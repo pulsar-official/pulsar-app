@@ -1,0 +1,55 @@
+// -- COLOR SYSTEM (Dark Theme) --
+$surface-0: oklch(0.12 0.02 290);
+$surface-1: oklch(0.15 0.02 290);
+$surface-2: oklch(0.18 0.02 290);
+$surface-3: oklch(0.22 0.02 290);
+$surface-4: oklch(0.26 0.02 290);
+
+$border: oklch(0.24 0.01 290);
+$border-subtle: oklch(0.20 0.01 290);
+
+$text-1: oklch(0.95 0 0);
+$text-2: oklch(0.62 0 0);
+$text-3: oklch(0.40 0 0);
+
+$accent-blue: oklch(0.6 0.15 260);
+$accent-green: oklch(0.65 0.14 150);
+$accent-orange: oklch(0.72 0.16 60);
+$accent-purple: oklch(0.6 0.12 290);
+
+// -- SPACING (4px grid) --
+$sp-1: 4px;
+$sp-2: 8px;
+$sp-3: 12px;
+$sp-4: 16px;
+$sp-6: 24px;
+$sp-8: 32px;
+
+// -- LAYOUT DIMENSIONS --
+$sidebar-w: 240px;
+$sidebar-w-sm: 60px;
+$topbar-h: 56px;
+$icon-size: 28px;
+$icon-r: 6px;
+
+// -- MOTION --
+$ease: cubic-bezier(0.4, 0, 0.2, 1);
+$ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
+$ease-in: cubic-bezier(0.4, 0, 1, 1);
+$dur: 280ms;
+$dur-fast: 140ms;
+
+// -- TYPOGRAPHY --
+$font-family-base: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+$font-size-xs: 11px;
+$font-size-sm: 12px;
+$font-size-base: 13px;
+$font-size-lg: 14px;
+$font-size-xl: 16px;
+
+// -- Z-INDEX --
+$z-base: 1;
+$z-dropdown: 10;
+$z-sticky: 20;
+$z-fixed: 30;
+$z-modal: 50;
