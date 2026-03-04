@@ -1,0 +1,153 @@
+@import './variables';
+
+// ── RESET ──
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  background: $surface-0;
+  color: $text-1;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+  font-size: $font-size-base;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// ── TYPOGRAPHY ──
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: $accent-blue;
+  text-decoration: none;
+  transition: color $dur-fast $ease;
+
+  &:hover {
+    color: $text-1;
+  }
+}
+
+// ── FORM ELEMENTS ──
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  transition: all $dur-fast $ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+// ── SCROLLBAR ──
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(0.22 0.02 280);
+  border-radius: 3px;
+
+  &:hover {
+    background: oklch(0.28 0.03 280);
+  }
+}
+
+// ── FOCUS VISIBLE ──
+:focus-visible {
+  outline: 2px solid $accent-blue;
+  outline-offset: 2px;
+}
+
+// ── UTILITY CLASSES ──
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+// ── ANIMATIONS ──
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn $dur $ease forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp $dur $ease forwards;
+}

@@ -1,10 +1,10 @@
-import { ClerkProvider } from '@clerk/nextjs'
 import type { Metadata } from 'next'
 import '@/styles/globals.scss'
+import { AppLayout } from '@/components/Layout/AppLayout'
 
 export const metadata: Metadata = {
-  title: 'Pulsar - AI Knowledge Intelligence Engine',
-  description: 'Transform notes into connected, actionable systems',
+  title: 'Pulsar - Knowledge Intelligence OS',
+  description: 'AI-powered knowledge management and productivity platform',
 }
 
 export default function RootLayout({
@@ -13,10 +13,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body>{children}</body>
-      </html>
-    </ClerkProvider>
+    <html lang="en">
+      <body style={{ margin: 0, padding: 0, width: '100%', height: '100%' }}>
+        <AppLayout>
+          {children}
+        </AppLayout>
+      </body>
+    </html>
   )
 }

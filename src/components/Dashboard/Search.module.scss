@@ -1,0 +1,43 @@
+@import '@/styles/variables';
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 15px;
+  height: 32px;
+  background: $surface-2;
+  border-radius: 32px;
+  margin: 8px 0px;
+  flex-shrink: 0;
+  transition: background $dur-fast $ease;
+}
+
+.search:focus-within {
+  background: $surface-3;
+}
+
+.searchIcon {
+  color: $text-2;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+}
+
+.searchInput {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: $text-1;
+  font-size: 12px;
+  font-family: inherit;
+  min-width: 0;
+
+  &::placeholder {
+    color: $text-2;
+  }
+}
