@@ -1,0 +1,61 @@
+@use "@/styles/variables" as *;
+.wrap { width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+.header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 14px; flex-shrink: 0; gap: 12px; flex-wrap: wrap; }
+.headerLeft { display: flex; align-items: center; gap: 12px; }
+.headerRight { display: flex; align-items: center; gap: 8px; }
+.pageTitle { font-size: 20px; font-weight: 700; color: $text-1; letter-spacing: -0.3px; }
+.weekNav { display: flex; align-items: center; background: $surface-2; border: 1px solid $border; border-radius: 8px; padding: 3px; gap: 2px; }
+.weekNavBtn { background: none; border: none; color: $text-2; cursor: pointer; width: 28px; height: 28px; border-radius: 5px; display: flex; align-items: center; justify-content: center; &:hover { color: $text-1; background: $surface-3; } svg { width: 13px; height: 13px; } }
+.weekLabel { font-size: 16px; font-weight: 700; color: $text-1; padding: 0 12px; min-width: 160px; text-align: center; }
+.todayBtn { background: $surface-2; border: 1px solid $border; color: $text-2; border-radius: 6px; padding: 4px 10px; font-size: 11px; cursor: pointer; font-family: inherit; &:hover { border-color: oklch(0.55 0.18 290); color: $text-1; } }
+.addBtn { height: 32px; padding: 0 13px; border-radius: 6px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: inherit; background: oklch(0.55 0.18 290); color: #fff; box-shadow: 0 2px 12px oklch(0.3 0.15 290 / 0.4); &:hover { background: oklch(0.6 0.18 290); } }
+.body { flex: 1; overflow: auto; padding: 0 24px 24px; }
+.table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.thead { position: sticky; top: 0; z-index: 2; }
+.thCorner { background: $surface-1; position: sticky; left: 0; z-index: 3; min-width: 200px; padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; color: $text-3; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid $border; }
+.thDay { background: $surface-1; padding: 8px 6px; text-align: center; font-size: 11px; font-weight: 600; color: $text-2; min-width: 52px; border-bottom: 1px solid $border; }
+.thDayToday { color: oklch(0.55 0.18 290); }
+.thDayNum { display: block; font-size: 14px; font-weight: 700; margin-bottom: 1px; }
+.thDayName { display: block; font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; color: $text-3; }
+.habitRow { &:hover .habitCell { background: $surface-2; } &:hover .dragHandle { opacity: 1; } }
+.habitName { position: sticky; left: 0; z-index: 1; background: $surface-1; padding: 10px 14px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid $border-subtle; min-width: 200px; cursor: pointer; }
+.dragHandle { opacity: 0; color: $text-3; cursor: grab; display: flex; align-items: center; transition: opacity 150ms ease; flex-shrink: 0; &:active { cursor: grabbing; } svg { width: 14px; height: 14px; } }
+.habitEmoji { font-size: 18px; width: 26px; text-align: center; flex-shrink: 0; }
+.habitLabel { font-size: 13px; font-weight: 500; color: $text-1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.habitStreak { font-size: 10px; color: $text-3; margin-top: 1px; }
+.streakHot { color: oklch(0.78 0.15 40); }
+.habitCell { padding: 6px; text-align: center; border-bottom: 1px solid $border-subtle; cursor: pointer; transition: background 100ms ease; }
+.checkBox { width: 28px; height: 28px; border-radius: 6px; border: 1.5px solid $border; display: flex; align-items: center; justify-content: center; margin: 0 auto; transition: all 150ms ease; cursor: pointer; &:hover { border-color: oklch(0.55 0.18 290); background: oklch(0.18 0.04 290); transform: scale(1.08); } }
+.checkDone { border-color: $accent-green; background: oklch(0.22 0.08 150); color: oklch(0.80 0.14 150); animation: haPop 300ms ease; }
+.checkMark { font-size: 13px; font-weight: 700; }
+@keyframes haPop { 0% { transform: scale(0.6); opacity: 0; } 55% { transform: scale(1.15); opacity: 1; } 85% { transform: scale(0.95); } 100% { transform: scale(1); opacity: 1; } }
+.addRow { }
+.addRowCell { padding: 10px 14px; border: none; }
+.addRowBtn { background: none; border: 2px dashed $border; color: $text-3; border-radius: 8px; padding: 8px 16px; font-size: 12px; cursor: pointer; font-family: inherit; display: flex; align-items: center; gap: 6px; width: 100%; &:hover { border-color: oklch(0.55 0.18 290); color: $text-2; } }
+.summaryRow { }
+.summaryCell { padding: 6px; text-align: center; border-top: 1px solid $border; font-size: 10px; font-weight: 600; color: $text-3; }
+.summaryCorner { position: sticky; left: 0; background: $surface-1; padding: 10px 14px; font-size: 11px; font-weight: 600; color: $text-3; text-transform: uppercase; letter-spacing: 0.05em; border-top: 1px solid $border; }
+.pctBadge { display: inline-block; padding: 2px 6px; border-radius: 99px; font-size: 10px; font-weight: 700; }
+.pctGood { background: oklch(0.22 0.07 150); color: oklch(0.80 0.14 150); }
+.pctMed { background: oklch(0.22 0.07 60); color: oklch(0.80 0.14 60); }
+.pctLow { background: oklch(0.20 0.08 20); color: oklch(0.78 0.15 20); }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); z-index: 50; animation: haFadeIn 200ms ease; display: flex; align-items: center; justify-content: center; }
+.modal { width: 420px; max-width: 95vw; background: $surface-1; border: 1px solid $border; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,0.5); animation: haSlideUp 250ms ease; }
+.modalTop { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid $border; }
+.modalTitle { font-size: 14px; font-weight: 700; color: $text-1; }
+.modalClose { background: none; border: none; color: $text-3; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 6px; &:hover { background: $surface-3; color: $text-1; } }
+.modalBody { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.label { font-size: 11px; font-weight: 600; color: $text-3; text-transform: uppercase; letter-spacing: 0.05em; }
+.input { background: $surface-2; border: 1px solid $border; border-radius: 6px; padding: 8px 10px; font-size: 13px; color: $text-1; font-family: inherit; outline: none; width: 100%; box-sizing: border-box; &:focus { border-color: oklch(0.55 0.18 290); box-shadow: 0 0 0 2px oklch(0.22 0.06 290); } &::placeholder { color: $text-3; } }
+.emojiRow { display: flex; gap: 6px; flex-wrap: wrap; }
+.emojiBtn { font-size: 18px; padding: 4px 6px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; background: none; &:hover { background: $surface-3; } &.active { border-color: oklch(0.55 0.18 290); background: $surface-3; } }
+.freqRow { display: flex; gap: 6px; }
+.freqBtn { padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 500; color: $text-2; cursor: pointer; border: 1px solid $border; background: transparent; font-family: inherit; &:hover { color: $text-1; border-color: oklch(0.55 0.18 290); } &.active { color: $text-1; background: $surface-3; border-color: oklch(0.55 0.18 290); } }
+.modalFooter { display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding: 12px 20px; border-top: 1px solid $border; }
+.cancelBtn { background: $surface-2; border: 1px solid $border; color: $text-2; border-radius: 6px; padding: 6px 14px; font-size: 12px; cursor: pointer; font-family: inherit; &:hover { color: $text-1; } }
+.saveBtn { background: oklch(0.55 0.18 290); border: none; color: #fff; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; box-shadow: 0 2px 12px oklch(0.3 0.15 290 / 0.4); &:hover { background: oklch(0.6 0.18 290); } }
+.deleteBtn { background: none; border: 1px solid oklch(0.45 0.15 20); color: oklch(0.65 0.15 20); border-radius: 6px; padding: 6px 14px; font-size: 12px; cursor: pointer; font-family: inherit; margin-right: auto; &:hover { background: oklch(0.20 0.08 20); } }
+
+@keyframes haFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes haSlideUp { from { opacity: 0; transform: translateY(12px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }

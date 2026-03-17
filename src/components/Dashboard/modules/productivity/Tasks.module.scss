@@ -1,0 +1,60 @@
+@use "@/styles/variables" as *;
+.wrap { width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+.header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 14px; flex-shrink: 0; gap: 12px; flex-wrap: wrap; }
+.headerLeft { display: flex; align-items: center; gap: 12px; }
+.headerRight { display: flex; align-items: center; gap: 8px; }
+.pageTitle { font-size: 20px; font-weight: 700; color: $text-1; letter-spacing: -0.3px; }
+.tabs { display: flex; gap: 2px; background: $surface-2; padding: 3px; border-radius: 8px; }
+.tab { padding: 5px 12px; border-radius: 5px; font-size: 11px; font-weight: 500; color: $text-2; cursor: pointer; border: none; background: transparent; font-family: inherit; &:hover { color: $text-1; } &.active { color: $text-1; background: $surface-3; } }
+.filterRow { display: flex; align-items: center; gap: 8px; padding: 0 24px 10px; flex-shrink: 0; overflow-x: auto; }
+.filterBtn { padding: 4px 10px; border-radius: 6px; font-size: 11px; color: $text-2; cursor: pointer; border: 1px solid $border; background: transparent; font-family: inherit; white-space: nowrap; flex-shrink: 0; transition: all 120ms ease; &:hover { color: $text-1; border-color: oklch(0.55 0.18 290); } &.active { color: $text-1; background: $surface-3; border-color: oklch(0.55 0.18 290); } }
+.addBtn { height: 32px; padding: 0 13px; border-radius: 6px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: inherit; background: oklch(0.55 0.18 290); color: #fff; box-shadow: 0 2px 12px oklch(0.3 0.15 290 / 0.4); &:hover { background: oklch(0.6 0.18 290); } }
+.body { flex: 1; overflow-y: auto; padding: 0 24px 24px; }
+.taskList { display: flex; flex-direction: column; gap: 4px; }
+.taskItem { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; background: $surface-2; border: 1px solid $border-subtle; border-radius: 8px; cursor: pointer; transition: background 140ms ease, border-color 140ms ease, transform 120ms ease; &:hover { background: $surface-3; border-color: $border; transform: translateY(-1px); } }
+.taskCheck { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid $border; flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-top: 1px; cursor: pointer; transition: all 150ms ease; &:hover { border-color: oklch(0.55 0.18 290); background: oklch(0.18 0.04 290); } }
+.taskCheckDone { border-color: oklch(0.65 0.14 150); background: oklch(0.65 0.14 150); color: #fff; font-size: 10px; font-weight: 700; animation: tCheckPop 200ms ease; }
+.taskBody { flex: 1; min-width: 0; }
+.taskTitle { font-size: 13px; font-weight: 500; color: $text-1; line-height: 1.3; }
+.taskTitleDone { text-decoration: line-through; color: $text-3; }
+.taskMeta { display: flex; align-items: center; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
+.taskTag { font-size: 10px; padding: 2px 7px; border-radius: 99px; font-weight: 500; }
+.tagWork { background: oklch(0.20 0.06 260); color: oklch(0.80 0.12 260); }
+.tagPersonal { background: oklch(0.20 0.06 150); color: oklch(0.80 0.12 150); }
+.tagUrgent { background: oklch(0.20 0.08 20); color: oklch(0.78 0.15 20); }
+.tagHealth { background: oklch(0.22 0.07 60); color: oklch(0.80 0.14 60); }
+.taskPriority { font-size: 10px; font-weight: 600; }
+.priHigh { color: oklch(0.65 0.15 20); }
+.priMed { color: oklch(0.72 0.16 60); }
+.priLow { color: $text-3; }
+.taskDue { font-size: 10px; color: $text-3; }
+.taskDueOverdue { color: oklch(0.65 0.15 20); }
+.sectionLabel { font-size: 11px; font-weight: 600; color: $text-3; text-transform: uppercase; letter-spacing: 0.05em; padding: 14px 0 6px; }
+.boardWrap { display: flex; gap: 12px; height: 100%; overflow-x: auto; padding-bottom: 12px; }
+.boardCol { min-width: 260px; flex: 1; background: $surface-2; border-radius: 10px; border: 1px solid $border-subtle; display: flex; flex-direction: column; max-height: 100%; overflow: hidden; }
+.boardColHeader { padding: 12px 14px; font-size: 12px; font-weight: 700; color: $text-1; border-bottom: 1px solid $border-subtle; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.boardColCount { font-size: 10px; font-weight: 600; color: $text-3; background: $surface-3; padding: 1px 6px; border-radius: 99px; }
+.boardColBody { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+.boardCard { background: $surface-3; border: 1px solid $border-subtle; border-radius: 8px; padding: 10px 12px; cursor: pointer; transition: border-color 120ms ease, transform 120ms ease; &:hover { border-color: $border; transform: translateY(-1px); } }
+.boardCardTitle { font-size: 12px; font-weight: 500; color: $text-1; margin-bottom: 6px; line-height: 1.35; }
+.boardCardMeta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+@keyframes tCheckPop { 0% { transform: scale(0.7); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); z-index: 50; display: flex; align-items: center; justify-content: center; animation: tFadeIn 200ms ease; }
+.modal { width: 460px; max-width: 95vw; background: $surface-1; border: 1px solid $border; border-radius: 12px; display: flex; flex-direction: column; max-height: 85vh; overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,0.5); animation: tSlideUp 250ms ease; }
+.modalTop { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid $border; flex-shrink: 0; }
+.modalTitle { font-size: 14px; font-weight: 700; color: $text-1; }
+.modalClose { background: none; border: none; color: $text-3; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 6px; &:hover { background: $surface-3; color: $text-1; } }
+.modalBody { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; flex: 1; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.label { font-size: 11px; font-weight: 600; color: $text-3; text-transform: uppercase; letter-spacing: 0.05em; }
+.input { background: $surface-2; border: 1px solid $border; border-radius: 6px; padding: 8px 10px; font-size: 13px; color: $text-1; font-family: inherit; outline: none; width: 100%; box-sizing: border-box; &:focus { border-color: oklch(0.55 0.18 290); box-shadow: 0 0 0 2px oklch(0.22 0.06 290); } &::placeholder { color: $text-3; } }
+.textarea { background: $surface-2; border: 1px solid $border; border-radius: 6px; padding: 8px 10px; font-size: 13px; color: $text-1; font-family: inherit; outline: none; width: 100%; box-sizing: border-box; resize: vertical; min-height: 64px; &:focus { border-color: oklch(0.55 0.18 290); box-shadow: 0 0 0 2px oklch(0.22 0.06 290); } &::placeholder { color: $text-3; } }
+.select { background: $surface-2; border: 1px solid $border; border-radius: 6px; padding: 8px 10px; font-size: 13px; color: $text-1; font-family: inherit; outline: none; width: 100%; &:focus { border-color: oklch(0.55 0.18 290); } }
+.modalFooter { display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding: 12px 20px; border-top: 1px solid $border; flex-shrink: 0; }
+.cancelBtn { background: $surface-2; border: 1px solid $border; color: $text-2; border-radius: 6px; padding: 6px 14px; font-size: 12px; cursor: pointer; font-family: inherit; &:hover { color: $text-1; } }
+.saveBtn { background: oklch(0.55 0.18 290); border: none; color: #fff; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; box-shadow: 0 2px 12px oklch(0.3 0.15 290 / 0.4); &:hover { background: oklch(0.6 0.18 290); } }
+.deleteBtn { background: none; border: 1px solid oklch(0.45 0.15 20); color: oklch(0.65 0.15 20); border-radius: 6px; padding: 6px 14px; font-size: 12px; cursor: pointer; font-family: inherit; margin-right: auto; &:hover { background: oklch(0.20 0.08 20); } }
+.empty { text-align: center; padding: 40px 20px; color: $text-3; font-size: 13px; }
+
+@keyframes tFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes tSlideUp { from { opacity: 0; transform: translateY(12px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }

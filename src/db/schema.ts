@@ -5,6 +5,8 @@ export const users = pgTable('users', {
   clerkId: varchar('clerk_id', { length: 255 }).unique().notNull(),
   email: varchar('email', { length: 255 }).unique().notNull(),
   username: varchar('username', { length: 255 }),
+  phone: varchar('phone', { length: 32 }),
+  stripeCustomerId: varchar('stripe_customer_id', { length: 255 }),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 })

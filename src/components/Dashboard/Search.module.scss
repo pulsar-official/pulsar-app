@@ -1,23 +1,26 @@
 @import '@/styles/variables';
 
+.searchContainer {
+  position: relative;
+  flex-shrink: 0;
+  margin: $sp-2 0;
+}
+
 .search {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 0 15px;
-  height: 32px;
+  gap: $sp-2;
+  padding: $sp-2 14px;
   background: $surface-2;
   border-radius: 32px;
-  margin: 8px 0px;
-  flex-shrink: 0;
-  transition: background $dur-fast $ease;
+  transition: background $dur-fast $ease, gap $dur $ease;
+
+  &:focus-within {
+    background: $surface-3;
+  }
 }
 
-.search:focus-within {
-  background: $surface-3;
-}
-
-.searchIcon {
+.icon {
   color: $text-2;
   flex-shrink: 0;
   display: flex;
@@ -27,7 +30,7 @@
   height: 14px;
 }
 
-.searchInput {
+.input {
   flex: 1;
   background: none;
   border: none;
@@ -36,8 +39,66 @@
   font-size: 12px;
   font-family: inherit;
   min-width: 0;
+  max-width: 200px;
+  transition: opacity $dur $ease, max-width $dur $ease;
 
   &::placeholder {
     color: $text-2;
+  }
+
+  :global(.sidebar.collapsed) & {
+    opacity: 0;
+    max-width: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+}
+
+/* ── COMMAND SUGGESTIONS ── */
+.suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: $surface-2;
+  border: 1px solid $border;
+  border-radius: 8px;
+  overflow: hidden;
+  z-index: 100;
+  animation: slideDown 140ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.suggestionItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: $sp-2 $sp-3;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  color: $text-2;
+  font-family: inherit;
+  text-align: left;
+  transition: background $dur-fast $ease, color $dur-fast $ease;
+
+  &:hover {
+    background: $surface-3;
+    color: $text-1;
+  }
+
+  & + & {
+    border-top: 1px solid $border-subtle;
   }
 }
