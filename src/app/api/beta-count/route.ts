@@ -9,11 +9,13 @@ const BASE_OFFSET = 71 // seed offset — real signups add on top
 export async function GET() {
   try {
     const client = await clerkClient()
-    const realCount = await client.users.getCount()
-    const filled = Math.min(realCount + BASE_OFFSET, BETA_TOTAL)
+    const { totalCount } = await client.users.getUserList({ limit: 1 })
+    const filled = Math.min(totalCount + BASE_OFFSET, BETA_TOTAL)
     const remaining = Math.max(0, BETA_TOTAL - filled)
     return NextResponse.json({ count: filled, total: BETA_TOTAL, remaining, filled })
   } catch {
-    return NextResponse.json({ count: 77, total: 100, remaining: 23, filled: 77 })
+    // fallback: BASE_OFFSET + 1 assumed user
+    const filled = BASE_OFFSET + 1
+    return NextResponse.json({ count: filled, total: BETA_TOTAL, remaining: BETA_TOTAL - filled, filled })
   }
 }
