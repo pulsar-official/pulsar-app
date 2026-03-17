@@ -202,7 +202,7 @@ export const BOTTOM_NAV = [
 ]
 
 export const BOTTOM_NAV_RIGHT = [
-  { id: 'notifications-nav', label: 'Notifications', icon: 'bell' as IconName, badge: '12' },
+  { id: 'notifications-nav', label: 'Notifications', icon: 'bell' as IconName },
   { id: 'feedback', label: 'Feedback', icon: 'chat' as IconName },
   { id: 'settings', label: 'Settings', icon: 'settings' as IconName }
 ]

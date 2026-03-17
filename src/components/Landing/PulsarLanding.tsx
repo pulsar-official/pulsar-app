@@ -446,6 +446,14 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
   const [yearly, setYearly] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [prog, setProg] = useState(0);
+  const [betaSlots, setBetaSlots] = useState({ filled: 77, remaining: 23, total: 100 });
+
+  useEffect(() => {
+    fetch('/api/beta-count')
+      .then(r => r.json())
+      .then(d => setBetaSlots({ filled: d.filled, remaining: d.remaining, total: d.total }))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!autoCycle || !showcase.vis) return;
@@ -489,7 +497,7 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
           {/* Badge */}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '5px 16px', borderRadius: '100px', background: 'rgba(167,139,250,0.05)', border: '1px solid rgba(167,139,250,0.12)', marginBottom: '32px', fontSize: '0.72rem', fontFamily: 'var(--mono)', color: 'var(--t3)', opacity: hero.vis ? 1 : 0, transform: hero.vis ? 'none' : 'translateY(20px)', transition: `all 0.7s ${E}` }}>
             <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#6ee7b7', animation: 'plPulse 2s ease infinite', flexShrink: 0 }} />
-            v0.1 · invite-only private beta · 847 on waitlist
+            v0.1 · closed beta · <span style={{ color: '#f59e0b', fontWeight: 600 }}>{betaSlots.remaining} of {betaSlots.total} spots left</span>
           </div>
           {/* Headline */}
           <h1 style={{ fontSize: 'clamp(2.8rem,5.8vw,4.5rem)', fontWeight: 700, lineHeight: 1.06, letterSpacing: '-0.04em', marginBottom: '22px', opacity: hero.vis ? 1 : 0, transform: hero.vis ? 'none' : 'translateY(40px)', transition: `all 0.9s ${E} 0.1s` }}>
@@ -511,8 +519,15 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(167,139,250,0.45)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(167,139,250,0.08)'; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(167,139,250,0.18)'; e.currentTarget.style.color = 'var(--t2)'; e.currentTarget.style.background = 'rgba(167,139,250,0.04)'; }}>Watch Demo</button>
           </div>
+          {/* Beta capacity */}
+          <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '7px', marginTop: '28px', opacity: hero.vis ? 1 : 0, transition: `all 0.9s ${E} 0.45s` }}>
+            <div style={{ width: '240px', height: '3px', borderRadius: '4px', background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+              <div style={{ width: `${(betaSlots.filled / betaSlots.total) * 100}%`, height: '100%', borderRadius: '4px', background: 'linear-gradient(90deg,#7c3aed,#a78bfa)', transition: 'width 0.8s cubic-bezier(0.16,1,0.3,1)' }} />
+            </div>
+            <span style={{ fontSize: '0.67rem', fontFamily: 'var(--mono)', color: 'var(--t4)' }}>{betaSlots.filled}/{betaSlots.total} beta seats filled &nbsp;·&nbsp; <span style={{ color: '#f59e0b' }}>{betaSlots.remaining} remaining</span></span>
+          </div>
           {/* Feature pills */}
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '36px' }}>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '28px' }}>
             {FEATURES.map((f, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '5px 14px', borderRadius: '100px', background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)', fontSize: '0.72rem', color: 'var(--t3)', fontFamily: 'var(--mono)', animation: hero.vis ? `plPillIn 0.55s ${E} ${0.65 + i * 0.07}s both` : 'none' }}>
                 <span style={{ fontSize: '0.8rem' }}>{f.icon}</span>{f.label}
@@ -693,7 +708,17 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
         ))}
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '640px', margin: '0 auto', opacity: cta.vis ? 1 : 0, transform: cta.vis ? 'none' : 'translateY(36px)', transition: `all 0.9s ${E}` }}>
           <h2 style={{ fontSize: 'clamp(2rem,4.5vw,3.2rem)', fontWeight: 700, letterSpacing: '-0.038em', lineHeight: 1.08, marginBottom: '18px' }}>Ready to think<br /><span className="pl-shimmer">differently?</span></h2>
-          <p style={{ color: 'var(--t2)', fontSize: '1.05rem', lineHeight: 1.65, maxWidth: '500px', margin: '0 auto 38px' }}>Pulsar is in private beta. Request early access and shape the future of personal knowledge systems.</p>
+          <p style={{ color: 'var(--t2)', fontSize: '1.05rem', lineHeight: 1.65, maxWidth: '500px', margin: '0 auto 20px' }}>Pulsar is in closed beta — only 100 users total. Request access before the last seats are gone.</p>
+          {/* Spots counter */}
+          <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginBottom: '28px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ width: '180px', height: '4px', borderRadius: '4px', background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+                <div style={{ width: `${(betaSlots.filled / betaSlots.total) * 100}%`, height: '100%', borderRadius: '4px', background: 'linear-gradient(90deg,#7c3aed,#f59e0b)', transition: 'width 0.8s cubic-bezier(0.16,1,0.3,1)' }} />
+              </div>
+              <span style={{ fontSize: '0.75rem', fontFamily: 'var(--mono)', color: '#f59e0b', fontWeight: 600 }}>{betaSlots.remaining} left</span>
+            </div>
+            <span style={{ fontSize: '0.67rem', fontFamily: 'var(--mono)', color: 'var(--t4)' }}>{betaSlots.filled} of {betaSlots.total} beta spots claimed</span>
+          </div>
           <div style={{ display: 'flex', gap: '0', maxWidth: '440px', margin: '0 auto', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(167,139,250,0.15)', background: 'var(--s2)', transition: 'border-color 0.3s,box-shadow 0.3s' }}
             onFocus={e => { e.currentTarget.style.borderColor = 'rgba(167,139,250,0.4)'; e.currentTarget.style.boxShadow = '0 0 32px rgba(167,139,250,0.14)'; }}
             onBlur={e => { e.currentTarget.style.borderColor = 'rgba(167,139,250,0.15)'; e.currentTarget.style.boxShadow = 'none'; }}>
@@ -712,7 +737,7 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
           <div style={{ width: '22px', height: '22px', borderRadius: '6px', background: 'linear-gradient(135deg,#a78bfa,#7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, color: '#fff' }}>P</div>
           <span style={{ fontWeight: 600, fontSize: '0.92rem' }}>Pulsar</span>
         </div>
-        <div style={{ fontSize: '0.7rem', fontFamily: 'var(--mono)', color: 'var(--t4)' }}>© 2025 Pulsar · Knowledge OS for the relentlessly curious</div>
+        <div style={{ fontSize: '0.7rem', fontFamily: 'var(--mono)', color: 'var(--t4)' }}>© 2026 Pulsar · Knowledge OS for the relentlessly curious</div>
         <div style={{ display: 'flex', gap: '22px' }}>
           {['Twitter', 'GitHub', 'Discord'].map(s => (
             <a key={s} href="#" style={{ fontSize: '0.78rem', fontFamily: 'var(--mono)', color: 'var(--t4)', transition: 'color 0.2s' }}

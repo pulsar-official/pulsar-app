@@ -1,5 +1,4 @@
 'use client'
-import { useState } from 'react'
 import { useAuth } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import AppLayout from './AppLayout'
@@ -8,18 +7,17 @@ import PulsarLanding from '@/components/Landing/PulsarLanding'
 export default function AppShell() {
   const { isLoaded, userId } = useAuth()
   const router = useRouter()
-  const [enterDash, setEnterDash] = useState(false)
 
+  // Show nothing while Clerk hydrates (avoids flash)
   if (!isLoaded) return null
 
-  if (userId || enterDash) return <AppLayout />
+  // Authenticated → straight to dashboard
+  if (userId) return <AppLayout />
 
+  // Not authenticated → landing page
   return (
     <PulsarLanding
-      onEnter={() => {
-        if (userId) setEnterDash(true)
-        else router.push('/sign-up')
-      }}
+      onEnter={() => router.push('/sign-up')}
     />
   )
 }

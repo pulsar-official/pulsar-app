@@ -61,6 +61,9 @@ import Comments from './modules/collaboration/Comments'
 import ActivityFeed from './modules/collaboration/ActivityFeed'
 import Permissions from './modules/collaboration/Permissions'
 
+// Settings
+import Settings from './modules/settings/Settings'
+
 // Extensions
 import InstalledApps from './modules/extensions/InstalledApps'
 import ImportExport from './modules/extensions/ImportExport'
@@ -127,6 +130,8 @@ const MODULES: Record<string, React.ComponentType<any>> = {
   comments: Comments,
   activityfeed: ActivityFeed,
   permissions: Permissions,
+  // settings
+  settings: Settings,
   // extensions
   installedapps: InstalledApps,
   importexport: ImportExport,

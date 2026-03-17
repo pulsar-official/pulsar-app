@@ -15,22 +15,33 @@ interface NavItem {
 interface NavItemsProps {
   items: NavItem[]
   collapsed?: boolean
+  onNavigate?: (id: string) => void
+  activeId?: string
+  badgeOverrides?: Record<string, string>
 }
 
-export const NavItems: React.FC<NavItemsProps> = ({ items, collapsed = false }) => {
+export const NavItems: React.FC<NavItemsProps> = ({ items, collapsed = false, onNavigate, activeId, badgeOverrides }) => {
   return (
     <nav className={styles.nav}>
-      {items.map((item) => (
-        <div key={item.id} className={styles.navItem}>
-          <div className={styles.navIcon}>
-            <Icon name={item.icon} size={13} />
+      {items.map((item) => {
+        const badge = badgeOverrides?.[item.id] ?? item.badge
+        return (
+          <div
+            key={item.id}
+            className={`${styles.navItem} ${activeId === item.id ? styles.active : ''}`}
+            onClick={() => onNavigate?.(item.id)}
+            style={{ cursor: 'pointer' }}
+          >
+            <div className={styles.navIcon}>
+              <Icon name={item.icon} size={13} />
+            </div>
+            <span className={styles.navLabel}>{item.label}</span>
+            {badge && (
+              <span className={styles.badge}>{badge}</span>
+            )}
           </div>
-          <span className={styles.navLabel}>{item.label}</span>
-          {item.badge && (
-            <span className={styles.badge}>{item.badge}</span>
-          )}
-        </div>
-      ))}
+        )
+      })}
     </nav>
   )
 }
