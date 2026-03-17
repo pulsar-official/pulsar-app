@@ -35,7 +35,7 @@ const TYPE_ICON: Record<NotifType, string> = {
 
 const SEED_NOTIFS: Notif[] = [
   { id: '1', type: 'focus',  title: 'Focus session complete',     body: '2h 30m deep work session ended — great run.',    time: '5m ago',   group: 'Today',   unread: true  },
-  { id: '2', type: 'goal',   title: 'Goal milestone reached',     body: 'You're 75% toward "Launch MVP". Keep going.',   time: '1h ago',   group: 'Today',   unread: true  },
+  { id: '2', type: 'goal',   title: 'Goal milestone reached',     body: "You're 75% toward Launch MVP. Keep going.",      time: '1h ago',   group: 'Today',   unread: true  },
   { id: '3', type: 'streak', title: 'Daily streak',               body: '14 days in a row — your longest ever!',          time: '3h ago',   group: 'Today',   unread: true  },
   { id: '4', type: 'task',   title: 'Task overdue',               body: '"Review PR #41" passed its due date.',           time: '6h ago',   group: 'Today',   unread: false },
   { id: '5', type: 'system', title: 'Pulsar v0.1.4 deployed',     body: 'New: Board view in Tasks, Calendar week fixes.', time: 'Yesterday',group: 'Earlier', unread: false },
