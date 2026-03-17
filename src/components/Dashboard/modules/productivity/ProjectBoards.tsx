@@ -107,7 +107,7 @@ function BoardCanvas({ board, onBack, onUpdate }: CanvasProps) {
   const [threads,  setThreads]  = useState<BoardThread[]>(board.threads);
   const [sel,      setSel]      = useState<string | null>(null);
   const [pan,      setPan]      = useState<PanState>({ x: CANVAS_DEFAULTS.panX, y: CANVAS_DEFAULTS.panY });
-  const [scale,    setScale]    = useState(CANVAS_DEFAULTS.scale);
+  const [scale,    setScale]    = useState<number>(CANVAS_DEFAULTS.scale);
   const [drag,     setDrag]     = useState<DragState | null>(null);
   const [panning,  setPanning]  = useState(false);
   const [panStart, setPanStart] = useState<{ x: number; y: number } | null>(null);

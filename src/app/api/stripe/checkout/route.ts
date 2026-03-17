@@ -24,7 +24,8 @@ export async function POST(req: NextRequest) {
       expand: ['latest_invoice.payment_intent'],
     })
 
-    const invoice = subscription.latest_invoice as Stripe.Invoice
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const invoice = subscription.latest_invoice as any
     const pi = invoice.payment_intent as Stripe.PaymentIntent
 
     return NextResponse.json({

@@ -27,7 +27,7 @@ import {
 
 // ─── CSS custom properties injected on .root ──────────────────────────────────
 
-const ROOT_VARS: CSSProperties & Record<string, string> = {
+const ROOT_VARS = {
   '--pc-bg':          '#07070d',
   '--pc-surface':     '#0c0c14',
   '--pc-s2':          '#111119',

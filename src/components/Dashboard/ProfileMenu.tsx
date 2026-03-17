@@ -11,7 +11,7 @@ interface ProfileMenuProps {
   onSettingsClick?: () => void
   onShortcutsClick?: () => void
   onSignOut?: () => void
-  triggerRef?: React.RefObject<HTMLButtonElement>
+  triggerRef?: React.RefObject<HTMLButtonElement | null>
 }
 
 export const ProfileMenu: React.FC<ProfileMenuProps> = ({
