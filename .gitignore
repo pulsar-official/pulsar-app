@@ -48,3 +48,6 @@ next-env.d.ts
 
 # Temp artifacts
 _tmp_write.js
+
+# Cloudflare Workers (contains secrets — not needed for Vercel)
+wrangler.toml
