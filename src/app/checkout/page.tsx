@@ -5,7 +5,9 @@ import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { useSearchParams, useRouter } from 'next/navigation'
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+  : null
 
 const AMOUNTS: Record<string, { monthly: number; yearly: number }> = {
   molecule: { monthly: 1200, yearly: 10000 },
@@ -135,7 +137,7 @@ function CheckoutContent() {
   if (!planName) { router.push('/pricing'); return null }
 
   const afterUrl = '/checkout?' + params.toString()
-  const noStripe = !priceId || !process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+  const noStripe = !process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: isSignedIn ? '320px 1fr' : '1fr 1fr', minHeight: 'calc(100vh - 65px)', transition: 'grid-template-columns 0.4s ease' }}>
