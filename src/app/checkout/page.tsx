@@ -1,6 +1,6 @@
 'use client'
 import { useState, Suspense } from 'react'
-import { SignUp, useUser } from '@clerk/nextjs'
+import { SignIn, SignUp, useUser } from '@clerk/nextjs'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { useSearchParams, useRouter } from 'next/navigation'
@@ -126,42 +126,83 @@ function CheckoutContent() {
   const params = useSearchParams()
   const router = useRouter()
   const { isSignedIn, user } = useUser()
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin')
   const priceId = params.get('priceId') ?? ''
   const planName = params.get('plan') ?? ''
   const billing = params.get('billing') ?? 'monthly'
   const amount = AMOUNTS[planName.toLowerCase()]?.[billing === 'yearly' ? 'yearly' : 'monthly'] ?? 1200
 
-  if (!priceId || !planName) { router.push('/pricing'); return null }
+  if (!planName) { router.push('/pricing'); return null }
 
   const afterUrl = '/checkout?' + params.toString()
+  const noStripe = !priceId || !process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', minHeight: 'calc(100vh - 65px)' }}>
-      {/* LEFT — Create account */}
+    <div style={{ display: 'grid', gridTemplateColumns: isSignedIn ? '320px 1fr' : '1fr 1fr', minHeight: 'calc(100vh - 65px)', transition: 'grid-template-columns 0.4s ease' }}>
+      {/* LEFT — Account */}
       <div style={{ padding: '48px 44px', borderRight: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column' }}>
         <p style={{ fontSize: '0.7rem', fontFamily: "'JetBrains Mono',monospace", color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 6px' }}>// step 1</p>
-        <h2 style={{ fontSize: '1.35rem', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 24px', color: '#eeeef5' }}>
-          {isSignedIn ? 'Signed in' : 'Create your account'}
+        <h2 style={{ fontSize: '1.35rem', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 20px', color: '#eeeef5' }}>
+          {isSignedIn ? 'Account confirmed' : 'Sign in to continue'}
         </h2>
         {isSignedIn ? (
-          <div style={{ padding: '20px', background: 'rgba(110,231,183,0.06)', border: '1px solid rgba(110,231,183,0.18)', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(110,231,183,0.15)', display: 'grid', placeItems: 'center', fontSize: 16 }}>✓</div>
+          /* Already signed in */
+          <div style={{ padding: '18px 20px', background: 'rgba(110,231,183,0.06)', border: '1px solid rgba(110,231,183,0.18)', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(110,231,183,0.15)', display: 'grid', placeItems: 'center', fontSize: 18, flexShrink: 0 }}>✓</div>
             <div>
-              <div style={{ color: '#6ee7b7', fontWeight: 600, fontSize: '0.9rem' }}>Account ready</div>
+              <div style={{ color: '#6ee7b7', fontWeight: 600, fontSize: '0.9rem' }}>Ready to pay</div>
               <div style={{ color: '#7878a0', fontSize: '0.8rem', marginTop: 2 }}>{user?.emailAddresses[0]?.emailAddress}</div>
             </div>
           </div>
         ) : (
-          <SignUp routing="hash" afterSignUpUrl={afterUrl} signInUrl={'/sign-in?redirect_url=' + encodeURIComponent(afterUrl)} appearance={CA} />
+          /* Auth toggle + Clerk component */
+          <>
+            <div style={{ display: 'flex', gap: 0, marginBottom: 24, background: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 3 }}>
+              {(['signin', 'signup'] as const).map(mode => (
+                <button key={mode} onClick={() => setAuthMode(mode)}
+                  style={{ flex: 1, padding: '7px 0', borderRadius: 6, border: 'none', fontSize: '0.82rem', fontWeight: 600, fontFamily: "'Space Grotesk',system-ui,sans-serif", cursor: 'pointer', transition: 'all 0.2s',
+                    background: authMode === mode ? '#18182a' : 'transparent',
+                    color: authMode === mode ? '#eeeef5' : '#65657a',
+                  }}>
+                  {mode === 'signin' ? 'Sign In' : 'Create Account'}
+                </button>
+              ))}
+            </div>
+            {authMode === 'signin'
+              ? <SignIn  routing="hash" afterSignInUrl={afterUrl}  signUpUrl={'#'} appearance={CA} />
+              : <SignUp  routing="hash" afterSignUpUrl={afterUrl}  signInUrl={'#'} appearance={CA} />
+            }
+          </>
         )}
       </div>
+
       {/* RIGHT — Payment */}
-      <div style={{ padding: '48px 44px', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ padding: '48px 44px', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+        {/* Lock overlay when not signed in */}
+        {!isSignedIn && (
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(7,7,13,0.7)', backdropFilter: 'blur(4px)', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
+            <div style={{ fontSize: '2rem' }}>🔒</div>
+            <p style={{ color: '#7878a0', fontSize: '0.88rem', textAlign: 'center', maxWidth: 220, lineHeight: 1.5, margin: 0 }}>
+              Complete step 1 to unlock payment
+            </p>
+          </div>
+        )}
         <p style={{ fontSize: '0.7rem', fontFamily: "'JetBrains Mono',monospace", color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 6px' }}>// step 2</p>
         <h2 style={{ fontSize: '1.35rem', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 24px', color: '#eeeef5' }}>Payment details</h2>
-        <Elements stripe={stripePromise} options={{ mode: 'subscription', amount, currency: 'usd', appearance: SA }}>
-          <PaymentPanel priceId={priceId} planName={planName} billing={billing} amount={amount} />
-        </Elements>
+        {noStripe ? (
+          <div style={{ padding: '28px', background: 'rgba(167,139,250,0.05)', border: '1px solid rgba(167,139,250,0.15)', borderRadius: 12, textAlign: 'center' }}>
+            <div style={{ fontSize: '1.5rem', marginBottom: 12 }}>⚙️</div>
+            <div style={{ color: '#a78bfa', fontWeight: 600, marginBottom: 8 }}>{planName} — {billing}</div>
+            <div style={{ color: '#7878a0', fontSize: '0.85rem', lineHeight: 1.6 }}>
+              Payment processing is being set up.<br />
+              <a href="mailto:hello@pulsar.zone" style={{ color: '#a78bfa', textDecoration: 'none' }}>Email us</a> to complete your subscription manually.
+            </div>
+          </div>
+        ) : (
+          <Elements stripe={stripePromise} options={{ mode: 'subscription', amount, currency: 'usd', appearance: SA }}>
+            <PaymentPanel priceId={priceId} planName={planName} billing={billing} amount={amount} />
+          </Elements>
+        )}
       </div>
     </div>
   )

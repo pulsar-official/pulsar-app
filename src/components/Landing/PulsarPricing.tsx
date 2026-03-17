@@ -59,8 +59,10 @@ export default function PulsarPricing() {
   const router = useRouter()
 
   const handleCheckout = (tier: typeof TIERS[number], isYearly: boolean) => {
-    if (!tier.priceIdMonthly) { router.push('/sign-up'); return }
-    const priceId = isYearly && tier.priceIdYearly ? tier.priceIdYearly : tier.priceIdMonthly
+    // Always go to checkout — price ID may be empty if env vars aren't set yet,
+    // the checkout page handles that gracefully.
+    const priceId = isYearly && tier.priceIdYearly ? tier.priceIdYearly
+      : tier.priceIdMonthly ?? ''
     router.push(`/checkout?priceId=${encodeURIComponent(priceId)}&plan=${encodeURIComponent(tier.name)}&billing=${isYearly ? 'yearly' : 'monthly'}`)
   }
   const hero = useReveal(0.05)
