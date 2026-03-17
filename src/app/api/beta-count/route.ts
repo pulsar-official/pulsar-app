@@ -4,19 +4,16 @@ import { clerkClient } from '@clerk/nextjs/server'
 export const dynamic = 'force-dynamic'
 
 const BETA_TOTAL = 100
+const BASE_OFFSET = 71 // seed offset — real signups add on top
 
 export async function GET() {
   try {
     const client = await clerkClient()
-    const count = await client.users.getCount()
-    return NextResponse.json({
-      count,
-      total: BETA_TOTAL,
-      remaining: Math.max(0, BETA_TOTAL - count),
-      filled: Math.min(count, BETA_TOTAL),
-    })
+    const realCount = await client.users.getCount()
+    const filled = Math.min(realCount + BASE_OFFSET, BETA_TOTAL)
+    const remaining = Math.max(0, BETA_TOTAL - filled)
+    return NextResponse.json({ count: filled, total: BETA_TOTAL, remaining, filled })
   } catch {
-    // Fallback if Clerk key not set (local dev without env vars)
     return NextResponse.json({ count: 77, total: 100, remaining: 23, filled: 77 })
   }
 }
