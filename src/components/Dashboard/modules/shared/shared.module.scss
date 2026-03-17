@@ -1,0 +1,44 @@
+@import '@/styles/variables';
+
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: -3;
+  height: 100%;
+  min-height: 320px;
+  text-align: center;
+  user-select: none;
+}
+
+.icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.title {
+  font-size: -size-xl;
+  font-weight: 600;
+  color: -1;
+  letter-spacing: -0.3px;
+}
+
+.sub {
+  font-size: -size-sm;
+  color: -3;
+}
+
+.badge {
+  font-size: -size-xs;
+  color: -3;
+  background: -2;
+  border: 1px solid ;
+  border-radius: 4px;
+  padding: 2px 8px;
+}

@@ -17,18 +17,34 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate }) => {
   const { sidebarCollapsed, toggleSidebar } = useUIStore()
   const [currentPillarIndex, setCurrentPillarIndex] = useState(6)
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [isCollapsing, setIsCollapsing] = useState(false)
 
-  const handlePrevious = () => {
-    setCurrentPillarIndex((prev) => (prev - 1 + 7) % 7)
-  }
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!sidebarCollapsed) {
+        setIsCollapsing(true)
+        const collapseTimer = setTimeout(() => setIsCollapsing(false), 400)
+        return () => clearTimeout(collapseTimer)
+      } else {
+        setIsCollapsing(false)
+      }
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [sidebarCollapsed])
 
-  const handleNext = () => {
-    setCurrentPillarIndex((prev) => (prev + 1) % 7)
-  }
+  // Force close dropdown when sidebar collapses
+  useEffect(() => {
+    if (sidebarCollapsed) {
+      setDropdownOpen(false)
+    }
+  }, [sidebarCollapsed])
 
-  if (sidebarCollapsed && dropdownOpen) {
-    setDropdownOpen(false)
-  }
+  // Guard: if dropdown tries to open while collapsed, close it
+  useEffect(() => {
+    if (sidebarCollapsed && dropdownOpen) {
+      setDropdownOpen(false)
+    }
+  }, [sidebarCollapsed, dropdownOpen])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -41,17 +57,30 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate }) => {
   }, [dropdownOpen])
 
   return (
-    <aside className={`${styles.sidebar} ${sidebarCollapsed ? styles.collapsed : ''}`}>
-      <Profile initials="P" name="Pulsar" subtitle="Knowledge OS" />
+    <aside className={`${styles.sidebar} ${sidebarCollapsed ? styles.collapsed : ''} ${isCollapsing ? styles.collapsing : ''}`}>
+      <Profile
+        initials="P"
+        name="Pulsar"
+        subtitle="Knowledge OS"
+        streak={14}
+        tasksToday={7}
+        focusTimeToday={2.4}
+        onSettingsClick={() => console.log('Settings clicked')}
+        onShortcutsClick={() => console.log('Shortcuts clicked')}
+        onSignOut={() => console.log('Sign out clicked')}
+      />
       
       <Search />
       
       <Carousel
         currentIndex={currentPillarIndex}
-        onPrevious={handlePrevious}
-        onNext={handleNext}
-        onOpenDropdown={() => setDropdownOpen(!dropdownOpen)}
-        dropdownOpen={dropdownOpen}
+        onOpenDropdown={() => {
+          if (!sidebarCollapsed) {
+            setDropdownOpen(true)
+          }
+        }}
+        onCloseDropdown={() => setDropdownOpen(false)}
+        onRotate={setCurrentPillarIndex}
         collapsed={sidebarCollapsed}
       />
       

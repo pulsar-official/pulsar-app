@@ -8,3 +8,14 @@
   padding: 24px;
   position: relative;
 }
+
+.mainFull {
+  grid-row: 2;
+  grid-column: 2;
+  background: $surface-0;
+  overflow: hidden;
+  padding: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}

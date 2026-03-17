@@ -2,6 +2,8 @@
 
 import React, { useRef, useEffect, useState, useCallback } from 'react'
 import styles from './Carousel.module.scss'
+import { Dropdown } from './Dropdown'
+import { useUIStore } from '@/stores/uiStore'
 
 const PILLARS = [
   { id: 'extensions', label: 'Extensions', color: 20 },
@@ -28,6 +30,7 @@ export const Carousel: React.FC<CarouselProps> = ({
   onRotate,
   collapsed = false,
 }) => {
+  const { setCurrentPage } = useUIStore()
   const switcherRef = useRef<HTMLDivElement>(null)
   const carouselRef = useRef<HTMLDivElement>(null)
   const itemsRef = useRef<(HTMLDivElement | null)[]>([])
@@ -54,17 +57,19 @@ export const Carousel: React.FC<CarouselProps> = ({
     const outClass = dir === -1 ? styles.slideUpOut : styles.slideDownOut
     setAnimatingClasses({ [fromIdx]: outClass })
 
+    // Use requestAnimationFrame to sync pillar update with carousel animation start
+    requestAnimationFrame(() => {
+      currentRef.current = nextIndex
+      setCurrent(nextIndex)
+    })
+
     // After phase 1, switch to next item and animate in
     const phaseOneTimer = setTimeout(() => {
       console.log('✅ Phase 1 done, starting phase 2')
-      
-      // Update to next item
-      currentRef.current = nextIndex
-      setCurrent(nextIndex)
 
       // Clear previous animation and apply new one
       const inClass = dir === 1 ? styles.slideDownIn : styles.slideUpIn
-      setAnimatingClasses({ [nextIndex]: inClass })
+      setAnimatingClasses({ [fromIdx]: '', [nextIndex]: inClass })
 
       // After phase 2
       const phaseTwoTimer = setTimeout(() => {
@@ -114,9 +119,11 @@ export const Carousel: React.FC<CarouselProps> = ({
 
       if (iconEl) {
         setClickedIcon(currentRef.current)
+        setCurrentPage(PILLARS[currentRef.current].id + "-home")
       } else {
         if (isOpen) {
           setIsOpen(false)
+          setClickedIcon(null)
           onCloseDropdown?.()
         } else {
           setIsOpen(true)
@@ -127,9 +134,13 @@ export const Carousel: React.FC<CarouselProps> = ({
     [isOpen, onOpenDropdown, onCloseDropdown]
   )
 
+  // Derive collapsed-aware values to avoid setState in effects
+  const effectiveIsOpen = isOpen && !collapsed
+  const effectiveClickedIcon = collapsed ? null : clickedIcon
+
   const switcherClasses = [
     styles.switcher,
-    isOpen ? styles.isOpen : ''
+    effectiveIsOpen ? styles.isOpen : ''
   ].filter(Boolean).join(' ')
 
   return (
@@ -142,11 +153,15 @@ export const Carousel: React.FC<CarouselProps> = ({
         {PILLARS.map((pillar, idx) => {
           const isCurrent = idx === current
           const animClass = animatingClasses[idx] || ''
+          const isAnimating = Object.keys(animatingClasses).length > 0
           const itemClasses = [
             styles.carouselItem,
-            isCurrent ? styles.isCurrent : '',
+            (isCurrent && !isAnimating) ? styles.isCurrent : '',
             animClass
           ].filter(Boolean).join(' ')
+
+          // Only render if current or animating
+          if (!isCurrent && !animClass) return null
 
           return (
             <div
@@ -158,7 +173,7 @@ export const Carousel: React.FC<CarouselProps> = ({
               data-pillar={pillar.id}
             >
               <div
-                className={`${styles.icon} ${clickedIcon === idx ? styles.iconClicked : ''}`}
+                className={`${styles.icon} ${effectiveClickedIcon === idx ? styles.iconClicked : ''}`}
                 data-pillar-home={pillar.id}
                 style={{
                   background: `oklch(0.28 0.10 ${pillar.color})`,
@@ -203,6 +218,20 @@ export const Carousel: React.FC<CarouselProps> = ({
           </div>
         )}
       </div>
+
+      <Dropdown
+        isOpen={effectiveIsOpen}
+        currentPillarId={PILLARS[current].id}
+        onClose={() => {
+          setIsOpen(false)
+          setClickedIcon(null)
+          onCloseDropdown?.()
+        }}
+        onNavigate={(page) => {
+          setCurrentPage(page)
+        }}
+        collapsed={collapsed}
+      />
     </div>
   )
 }

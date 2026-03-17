@@ -1,15 +1,31 @@
 @import '@/styles/variables';
 
+.profileContainer {
+  position: relative;
+  flex-shrink: 0;
+}
+
 .profile {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px;
-  height: 44px;
+  gap: $sp-2;
+  padding: 6px $sp-2;
   background: $surface-2;
-  border-radius: 14px;
+  border: none;
+  border-radius: $icon-r;
+  cursor: pointer;
   flex-shrink: 0;
-  margin: 0;
+  transition: background 140ms ease;
+  font-family: inherit;
+  width: 100%;
+
+  &:hover {
+    background: $surface-3;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
 }
 
 .avatar {
@@ -43,6 +59,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   margin: 0;
+  align-self: start;
 }
 
 .subtitle {

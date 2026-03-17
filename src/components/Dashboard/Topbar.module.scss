@@ -1,26 +1,29 @@
 @import '@/styles/variables';
 
 .topbar {
+  grid-row: 1;
+  grid-column: 2;
   background: $surface-1;
   border-bottom: 1px solid $border;
   display: flex;
   align-items: center;
-  padding: 0 24px;
-  height: 100%;
-  flex-shrink: 0;
-  width: 100%;
+  justify-content: space-between;
+  padding: 0 $sp-6;
+  height: 56px;
+  position: relative;
 }
 
+/* ── BREADCRUMB ── */
 .breadcrumb {
   display: flex;
   align-items: center;
   gap: 4px;
   font-size: 12px;
   color: $text-2;
-  flex-wrap: wrap;
+  flex: 1;
 }
 
-.sep {
+.separator {
   color: $text-3;
   font-size: 11px;
   padding: 0 1px;
@@ -28,15 +31,15 @@
 }
 
 .link {
-  color: oklch(0.65 0.12 260);
   background: none;
   border: none;
+  color: oklch(0.65 0.12 260);
   cursor: pointer;
   padding: 1px 3px;
   border-radius: 4px;
+  transition: color 120ms ease, background 120ms ease;
   font-family: inherit;
   font-size: inherit;
-  transition: color 120ms, background 120ms;
 
   &:hover {
     color: $text-1;
@@ -48,4 +51,155 @@
   color: $text-1;
   font-weight: 500;
   padding: 1px 3px;
+}
+
+/* ── RIGHT SECTION ── */
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: $sp-3;
+}
+
+/* ── QUICK ACTIONS ── */
+.quickActions {
+  display: flex;
+  align-items: center;
+  gap: $sp-2;
+}
+
+.actionBtn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $text-2;
+  transition: background 140ms ease, color 140ms ease;
+
+  &:hover {
+    background: $surface-2;
+    color: $text-1;
+  }
+
+  svg {
+    width: 13px;
+    height: 13px;
+  }
+}
+
+/* ── NOTIFICATIONS ── */
+.notificationContainer {
+  position: relative;
+}
+
+.notificationBtn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $text-2;
+  position: relative;
+  transition: background 140ms ease, color 140ms ease;
+
+  &:hover {
+    background: $surface-2;
+    color: $text-1;
+  }
+
+  svg {
+    width: 13px;
+    height: 13px;
+  }
+}
+
+.badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background: oklch(0.6 0.14 20);
+  color: oklch(0.95 0 0);
+  font-size: 9px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── NOTIFICATION PEEK ── */
+.notificationPeek {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 320px;
+  background: $surface-2;
+  border: 1px solid $border;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  animation: slideUp 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.peekHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $sp-3 $sp-4;
+  border-bottom: 1px solid $border-subtle;
+}
+
+.peekTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: $text-1;
+}
+
+.peekClose {
+  background: none;
+  border: none;
+  color: $text-3;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+  transition: color 120ms ease;
+
+  &:hover {
+    color: $text-2;
+  }
+}
+
+.peekContent {
+  max-height: 360px;
+  overflow-y: auto;
+  padding: $sp-3;
+}
+
+.peekItem {
+  font-size: 12px;
+  color: $text-2;
+  padding: $sp-2;
+  border-radius: 6px;
+  background: $surface-3;
 }

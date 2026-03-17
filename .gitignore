@@ -42,3 +42,9 @@ next-env.d.ts
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+# Claude Code
+.claude/
+
+# Temp artifacts
+_tmp_write.js

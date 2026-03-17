@@ -1,0 +1,926 @@
+// --- FOCUS SESSIONS - STYLES ---
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+// ─── TOKENS ───
+$bg:            #0a0c10;
+$bg-card:       #12141a;
+$bg-hover:      #1a1d26;
+$border:        #1e2230;
+$text:          #e8eaed;
+$text2:         #8b8fa4;
+$text3:         #5a5f73;
+$accent:        #7c5cfc;
+$accent-hover:  #6b4de8;
+$accent-glow:   rgba(124, 92, 252, 0.15);
+$accent-subtle: rgba(124, 92, 252, 0.08);
+$green:         #34d399;
+$green-glow:    rgba(52, 211, 153, 0.12);
+$red:           #f87171;
+$red-glow:      rgba(248, 113, 113, 0.12);
+$amber:         #fbbf24;
+$amber-glow:    rgba(251, 191, 36, 0.12);
+
+// ─── KEYFRAMES ───
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(1.4); }
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.5); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+// ─── ROOT ───
+.app {
+  font-family: 'Space Grotesk', sans-serif;
+  background: transparent;
+  color: $text;
+  height: 100%;
+  overflow: hidden;
+  *::selection { background: rgba(124, 92, 252, 0.25); }
+}
+
+// ─── SHARED PANEL ───
+.panel {
+  background: $bg-card;
+  border: 1px solid $border;
+  border-radius: 14px;
+}
+
+// ─── PLACEHOLDER ROWS ───
+.taskPlaceholder {
+  padding: 11px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  &.even { background: rgba(255, 255, 255, 0.018); }
+}
+.taskPlaceholderDot {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid $border;
+  flex-shrink: 0;
+  opacity: 0.3;
+}
+.taskPlaceholderLine {
+  height: 10px;
+  border-radius: 4px;
+  background: $border;
+  opacity: 0.4;
+}
+
+// ─── SECTION LABEL ───
+.sectionLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.8px;
+  color: $text3;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sectionDivider {
+  flex: 1;
+  height: 1px;
+  background: $border;
+}
+
+// ══════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════
+.dashboard {
+  padding: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboardCols {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
+  @media (max-width: 760px) { grid-template-columns: 1fr; }
+}
+
+.colLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-height: 0;
+}
+.colRight {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 0;
+  @media (max-width: 760px) { order: -1; }
+}
+
+// ── Header ──
+.headerPanel { padding: 24px 24px 20px; }
+
+.header {
+  h1 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, $text 40%, $accent);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 4px;
+  }
+  p { color: $text2; font-size: 13px; }
+}
+
+.streakBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: $accent-glow;
+  border: 1px solid rgba(124, 92, 252, 0.16);
+  font-size: 11px;
+  color: $accent;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.streakDot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: $accent;
+}
+
+// ── Tasks panel ──
+.tasksPanel {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.tasksSection {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+.tasksHeader {
+  padding: 16px 20px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.taskCount {
+  font-size: 11px;
+  background: rgba(124, 92, 252, 0.094);
+  color: $accent;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+.addTaskRow {
+  display: flex;
+  gap: 8px;
+  padding: 0 20px 16px;
+}
+.addTaskInput {
+  flex: 1;
+  background: $bg-card;
+  border: 1px solid $border;
+  border-radius: 8px;
+  padding: 9px 14px;
+  color: $text;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 160ms;
+  &::placeholder { color: $text3; }
+  &:focus { border-color: rgba(124, 92, 252, 0.38); }
+}
+.addTaskBtn {
+  background: $accent-glow;
+  border: 1px solid rgba(124, 92, 252, 0.19);
+  color: $accent;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 160ms;
+  &:hover { background: rgba(124, 92, 252, 0.145); border-color: rgba(124, 92, 252, 0.31); }
+}
+.tasksList {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid $border;
+  flex: 1;
+  max-height: none;
+  overflow-y: auto;
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: $border; border-radius: 2px; }
+}
+.tasksEmpty {
+  padding: 24px 20px;
+  text-align: center;
+  color: $text3;
+  font-size: 13px;
+}
+.taskItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 140ms;
+  user-select: none;
+  flex-shrink: 0;
+  &.even     { background: rgba(255, 255, 255, 0.018); }
+  &:hover    { background: $bg-hover; }
+  &.selected { background: $accent-subtle; }
+  &.selected .taskCheck { border-color: $accent; background: $accent-glow; }
+  &:hover .taskRemove { opacity: 1; }
+}
+.taskCheck {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid $border;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all 160ms;
+  font-size: 9px;
+  color: $accent;
+}
+.taskTitle  { flex: 1; font-size: 13px; color: $text; }
+.taskPriority {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.taskRemove {
+  background: none;
+  border: none;
+  color: $text3;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 160ms, color 160ms;
+  font-family: inherit;
+  &:hover { color: $red; }
+}
+
+// ── Rhythm panel ──
+.rhythmPanel {
+  background: $bg-card;
+  border: 1px solid $border;
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.typesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.typeCard {
+  background: $bg-card;
+  border: 1.5px solid $border;
+  border-radius: 11px;
+  padding: 16px 14px;
+  cursor: pointer;
+  transition: border-color 150ms ease-out, background 150ms ease-out, box-shadow 150ms ease-out;
+  position: relative;
+  overflow: hidden;
+  &:hover {
+    border-color: var(--c);
+    background: color-mix(in srgb, var(--c) 6%, $bg-card);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  }
+  &.selected {
+    border-color: var(--c);
+    background: color-mix(in srgb, var(--c) 9%, $bg-card);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--c) 20%, transparent), 0 4px 20px rgba(0, 0, 0, 0.2);
+  }
+  &.customCard {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 20px;
+  }
+}
+.typeCardBody {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.typeIcon {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--c) 12%, $bg);
+  border: 1px solid color-mix(in srgb, var(--c) 25%, transparent);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; font-weight: 700;
+  color: var(--c);
+  margin-bottom: 10px;
+  transition: background 150ms;
+}
+.typeLabel  { font-size: 13px; font-weight: 600; margin-bottom: 2px; color: $text; }
+.typeDesc   { font-size: 11px; color: $text3; line-height: 1.45; margin-bottom: 10px; }
+.typeTiming {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: color-mix(in srgb, var(--c) 70%, $text3);
+  padding: 2px 7px;
+  background: color-mix(in srgb, var(--c) 8%, $bg);
+  border-radius: 4px;
+  display: inline-block;
+  border: 1px solid color-mix(in srgb, var(--c) 18%, transparent);
+}
+.customFields {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  flex: 1;
+  align-self: center;
+  animation: slideDown 160ms ease-out;
+}
+.customFieldsHidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+.settingGroup {
+  label {
+    display: block;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: $text3;
+    margin-bottom: 5px;
+    font-weight: 600;
+  }
+}
+.settingInput {
+  width: 100%;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: 6px;
+  padding: 6px 8px;
+  color: $text;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 150ms;
+  appearance: textfield;
+  text-align: center;
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button { -webkit-appearance: none; }
+  &:focus { border-color: var(--c, #{$accent}); }
+}
+
+// ── Commit ──
+.commitSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid $border;
+}
+.commitBtn {
+  width: 100%;
+  background: $accent;
+  border: none;
+  color: white;
+  font-size: 14px; font-weight: 600;
+  padding: 13px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: 'Space Grotesk', sans-serif;
+  transition: all 200ms ease-out;
+  letter-spacing: 0.3px;
+  &:hover { background: $accent-hover; box-shadow: 0 6px 24px rgba(124, 92, 252, 0.25); }
+}
+.commitNote { font-size: 11px; color: $text3; text-align: center; }
+
+// ══════════════════════════════════════
+// SESSION / REST
+// ══════════════════════════════════════
+.session {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'JetBrains Mono', monospace;
+}
+.sessionLeft {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 40px 40px;
+  position: relative;
+  border-right: 1px solid $border;
+  overflow: hidden;
+}
+.sessionRight {
+  display: flex;
+  flex-direction: column;
+  background: $bg-card;
+  overflow: hidden;
+}
+.sessionRightHeader {
+  padding: 20px 20px 14px;
+  border-bottom: 1px solid $border;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  h3 {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.8px;
+    color: $text3;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+.sessionRightCount {
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  color: $text3;
+}
+.sessionTasksList {
+  flex: 1;
+  overflow-y: auto;
+  &::-webkit-scrollbar { width: 3px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: $border; border-radius: 2px; }
+}
+.sessionEmpty {
+  padding: 32px 20px;
+  text-align: center;
+  color: $text3;
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+// ── Quote ──
+.quote {
+  font-size: 11px;
+  color: $text3;
+  font-style: italic;
+  align-self: stretch;
+  text-align: center;
+  line-height: 1.8;
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 24px;
+  padding: 12px 16px;
+  border: 1px solid $border;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+// ── Status badge ──
+.sessionBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 10px; font-weight: 700;
+  margin-bottom: 36px;
+  text-transform: uppercase;
+  letter-spacing: 1.8px;
+  font-family: 'JetBrains Mono', monospace;
+  &.focus { background: $accent-glow; color: $accent; border: 1px solid rgba(124, 92, 252, 0.145); }
+  &.rest  { background: $green-glow;  color: $green;  border: 1px solid rgba(52, 211, 153, 0.145); }
+}
+.pulse {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse 2s infinite;
+}
+
+// ── Timer ring ──
+.timerWrap {
+  position: relative;
+  width: 260px; height: 260px;
+  margin-bottom: 28px;
+  @media (max-width: 520px) { width: 220px; height: 220px; }
+}
+.timerSvg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.timerBg  { fill: none; stroke: $border; stroke-width: 5; }
+.timerProgress {
+  fill: none;
+  stroke: $accent;
+  stroke-width: 5;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.98s linear;
+  &.restPhase { stroke: $green; }
+}
+.timerInner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.timerTime {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 48px; font-weight: 500;
+  letter-spacing: -1px;
+  line-height: 1;
+  @media (max-width: 520px) { font-size: 40px; }
+}
+.timerLabel {
+  font-size: 11px;
+  color: $text3;
+  margin-top: 6px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+// ── Cycle dots ──
+.cycles { display: flex; gap: 8px; margin-bottom: 28px; }
+.cycleDot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: $border;
+  transition: background 300ms, box-shadow 300ms;
+  &.done   { background: $green; }
+  &.active { background: $accent; box-shadow: 0 0 8px rgba(124, 92, 252, 0.38); animation: pulse 2s infinite; }
+}
+
+// ── Session footer ──
+.sessionFooter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+.lockedMsg {
+  font-size: 11px;
+  color: $text3;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.3px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.lockedIcon {
+  width: 14px; height: 14px;
+  border-radius: 3px;
+  border: 1.5px solid $text3;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8px;
+}
+.emergencyBtn {
+  background: none;
+  border: 1px solid $border;
+  color: $text3;
+  font-size: 11px;
+  padding: 6px 14px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  transition: all 200ms;
+  &:hover { background: $red-glow; color: $red; border-color: rgba(248, 113, 113, 0.25); }
+}
+
+// ── Current task card ──
+.currentTask {
+  padding: 20px;
+  border-bottom: 1px solid $border;
+  flex-shrink: 0;
+}
+.currentTaskLabel {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: $text3;
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 10px;
+}
+.currentTaskTitle {
+  font-size: 13px;
+  font-family: 'JetBrains Mono', monospace;
+  color: $text;
+  line-height: 1.6;
+  margin-bottom: 14px;
+  word-break: break-word;
+}
+.currentTaskActions { display: flex; gap: 8px; }
+.currentTaskBtn {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid $border;
+  background: none;
+  color: $text2;
+  transition: all 150ms;
+  &.doneBtn:hover  { border-color: rgba(52, 211, 153, 0.31); color: $green; background: $green-glow; }
+  &.laterBtn:hover { border-color: rgba(251, 191, 36, 0.25); color: $amber; background: $amber-glow; }
+}
+.currentTaskResources {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid $border;
+}
+.currentTaskResourcesLabel {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1.8px;
+  color: $text3;
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 8px;
+}
+.resourceChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 5px;
+  border: 1px solid $border;
+  background: $bg;
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  color: $text2;
+  margin: 0 4px 4px 0;
+  cursor: default;
+}
+
+// ── Queue ──
+.queueList {
+  flex: 1;
+  overflow-y: auto;
+  &::-webkit-scrollbar { width: 3px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: $border; border-radius: 2px; }
+}
+.queueLabel {
+  padding: 10px 20px 6px;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1.8px;
+  color: $text3;
+  font-family: 'JetBrains Mono', monospace;
+  border-bottom: 1px solid rgba(30, 34, 48, 0.38);
+}
+.queueRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 20px;
+  border-bottom: 1px solid rgba(30, 34, 48, 0.25);
+  opacity: 0.5;
+  &:last-child { border-bottom: none; }
+  &.even { background: rgba(255, 255, 255, 0.014); }
+}
+.queueRowDot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: $text3;
+  flex-shrink: 0;
+}
+.queueRowTitle {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  color: $text3;
+  word-break: break-word;
+  line-height: 1.4;
+}
+.queueRowTag {
+  font-size: 9px;
+  color: rgba(251, 191, 36, 0.38);
+  font-family: 'JetBrains Mono', monospace;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+// ── Rest view ──
+.restMsg {
+  text-align: center;
+  margin-bottom: 24px;
+  h2 { font-size: 22px; font-weight: 600; margin-bottom: 6px; font-family: 'Space Grotesk', sans-serif; }
+  p  { color: $text2; font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+}
+.skipRest {
+  background: $bg-card;
+  border: 1px solid $border;
+  color: $text2;
+  padding: 10px 24px;
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+  transition: all 200ms;
+  &:hover { border-color: rgba(124, 92, 252, 0.31); color: $text; }
+}
+
+// ── Rest task rows ──
+.stask {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 20px;
+  border-bottom: 1px solid rgba(30, 34, 48, 0.31);
+  transition: background 140ms;
+  &:last-child { border-bottom: none; }
+  &.even { background: rgba(255, 255, 255, 0.016); }
+  &.done { opacity: 0.32; }
+  &.done .staskCheck { background: $green; border-color: $green; }
+  &.done .staskTitle { text-decoration: line-through; color: $text3; }
+}
+.staskCheck {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid $border;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: all 180ms;
+  font-size: 9px;
+  color: #000;
+  &:hover:not(.isDone) { border-color: $green; background: $green-glow; }
+}
+.staskInfo { flex: 1; min-width: 0; }
+.staskTitle {
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  color: $text;
+  word-break: break-word;
+  line-height: 1.5;
+}
+.staskTag {
+  font-size: 10px;
+  color: rgba(251, 191, 36, 0.5);
+  font-family: 'JetBrains Mono', monospace;
+  margin-top: 2px;
+}
+
+// ══════════════════════════════════════
+// COMPLETION
+// ══════════════════════════════════════
+.complete {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  overflow: hidden;
+  padding: 40px 24px;
+  text-align: center;
+  h2 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+  p  { color: $text2; font-size: 14px; margin-bottom: 28px; }
+}
+.completeIcon {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: $green-glow;
+  border: 1.5px solid rgba(52, 211, 153, 0.208);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; font-weight: 700;
+  color: $green;
+  margin-bottom: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  animation: scaleIn 450ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.statsRow {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.statBox {
+  background: $bg-card;
+  border: 1px solid $border;
+  border-radius: 10px;
+  padding: 14px 22px;
+  text-align: center;
+  min-width: 90px;
+}
+.statVal   { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 600; color: $accent; }
+.statLabel { font-size: 10px; color: $text3; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
+.newSession {
+  background: $accent-glow;
+  border: 1px solid rgba(124, 92, 252, 0.208);
+  color: $accent;
+  font-size: 14px; font-weight: 600;
+  padding: 13px 36px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: 'Space Grotesk', sans-serif;
+  transition: all 200ms;
+  &:hover { background: rgba(124, 92, 252, 0.133); border-color: rgba(124, 92, 252, 0.38); }
+}
+
+// ══════════════════════════════════════
+// MODALS
+// ══════════════════════════════════════
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+  animation: fadeIn 180ms ease-out;
+}
+.modal {
+  background: $bg-card;
+  border: 1px solid $border;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 380px;
+  width: 90%;
+  text-align: center;
+  animation: modalIn 220ms ease-out;
+  h2 { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+}
+.modalIcon {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: $red-glow;
+  border: 1px solid rgba(248, 113, 113, 0.145);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px;
+  font-size: 18px; font-weight: 700;
+  color: $red;
+  font-family: 'JetBrains Mono', monospace;
+}
+.modalLoss   { color: $red; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+.modalDetail { color: $text2; font-size: 13px; line-height: 1.6; margin-bottom: 20px; }
+.modalActions { display: flex; flex-direction: column; gap: 8px; }
+.keepGoing {
+  background: $accent;
+  border: none;
+  color: white;
+  font-size: 14px; font-weight: 600;
+  padding: 13px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: 'Space Grotesk', sans-serif;
+  transition: all 200ms;
+  &:hover { background: $accent-hover; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(124, 92, 252, 0.25); }
+}
+.quitConfirm {
+  background: none;
+  border: 1px solid $border;
+  color: $text3;
+  font-size: 12px;
+  padding: 10px;
+  border-radius: 9px;
+  cursor: pointer;
+  font-family: 'Space Grotesk', sans-serif;
+  transition: all 200ms;
+  &:hover { border-color: rgba(248, 113, 113, 0.25); color: $red; }
+}

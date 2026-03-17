@@ -25,13 +25,9 @@ export const NavItems: React.FC<NavItemsProps> = ({ items, collapsed = false }) 
           <div className={styles.navIcon}>
             <Icon name={item.icon} size={13} />
           </div>
-          {!collapsed && (
-            <>
-              <span className={styles.navLabel}>{item.label}</span>
-              {item.badge && (
-                <span className={styles.badge}>{item.badge}</span>
-              )}
-            </>
+          <span className={styles.navLabel}>{item.label}</span>
+          {item.badge && (
+            <span className={styles.badge}>{item.badge}</span>
           )}
         </div>
       ))}
