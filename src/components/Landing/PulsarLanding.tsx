@@ -446,13 +446,13 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
   const [yearly, setYearly] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [prog, setProg] = useState(0);
-  const [betaSlots, setBetaSlots] = useState({ filled: 77, remaining: 23, total: 100 });
+  const [betaSlots, setBetaSlots] = useState({ filled: 1, remaining: 99, total: 100 });
 
   useEffect(() => {
     fetch('/api/beta-count')
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error('bad'); return r.json(); })
       .then(d => setBetaSlots({ filled: d.filled, remaining: d.remaining, total: d.total }))
-      .catch(() => {});
+      .catch(() => setBetaSlots({ filled: 1, remaining: 99, total: 100 }));
   }, []);
 
   useEffect(() => {
