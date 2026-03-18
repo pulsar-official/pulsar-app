@@ -11,8 +11,12 @@ export default function WaitlistPage() {
 
   useEffect(() => {
     fetch('/api/beta-count')
-      .then(r => r.json())
-      .then(d => setSlots({ filled: d.filled, remaining: d.remaining, total: d.total }))
+      .then(r => { if (!r.ok) throw new Error('bad'); return r.json(); })
+      .then(d => setSlots({
+        filled: typeof d.filled === 'number' ? d.filled : 1,
+        remaining: typeof d.remaining === 'number' ? d.remaining : 99,
+        total: typeof d.total === 'number' ? d.total : 100,
+      }))
       .catch(() => {})
   }, [])
 
@@ -20,6 +24,7 @@ export default function WaitlistPage() {
 
   const name = user?.firstName || user?.username || 'there'
   const email = user?.primaryEmailAddress?.emailAddress || ''
+  const isAdmin = user?.publicMetadata?.role === 'admin'
 
   return (
     <div style={{ minHeight: '100vh', background: '#07070c', color: '#e2e2f0', fontFamily: 'var(--font, system-ui)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', position: 'relative', overflow: 'hidden' }}>
@@ -61,6 +66,13 @@ export default function WaitlistPage() {
 
         {/* actions */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center' }}>
+          {isAdmin && (
+            <button onClick={() => router.push('/')} style={{ padding: '12px 32px', borderRadius: 9, background: 'linear-gradient(135deg,#a78bfa,#7c3aed)', border: 'none', color: '#fff', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s', boxShadow: '0 4px 16px rgba(167,139,250,0.2)' }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 24px rgba(167,139,250,0.3)' }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(167,139,250,0.2)' }}>
+              Go to Dashboard
+            </button>
+          )}
           <button onClick={() => router.push('/')} style={{ padding: '12px 32px', borderRadius: 9, background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.2)', color: '#a78bfa', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s' }}
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(167,139,250,0.18)' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'rgba(167,139,250,0.1)' }}>

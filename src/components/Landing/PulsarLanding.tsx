@@ -452,7 +452,11 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
   useEffect(() => {
     fetch('/api/beta-count')
       .then(r => { if (!r.ok) throw new Error('bad'); return r.json(); })
-      .then(d => setBetaSlots({ filled: d.filled, remaining: d.remaining, total: d.total }))
+      .then(d => setBetaSlots({
+        filled: typeof d.filled === 'number' ? d.filled : 1,
+        remaining: typeof d.remaining === 'number' ? d.remaining : 99,
+        total: typeof d.total === 'number' ? d.total : 100,
+      }))
       .catch(() => setBetaSlots({ filled: 1, remaining: 99, total: 100 }));
   }, []);
 
