@@ -11,6 +11,7 @@ const CSS = `
 @keyframes psOrbit2{from{transform:rotate(0) translateX(260px) rotate(0)}to{transform:rotate(360deg) translateX(260px) rotate(-360deg)}}
 @keyframes psFadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes psShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
 .ps-auth ::-webkit-scrollbar{width:4px}.ps-auth ::-webkit-scrollbar-track{background:transparent}.ps-auth ::-webkit-scrollbar-thumb{background:rgba(167,139,250,.15);border-radius:3px}
 `
 
@@ -50,6 +51,7 @@ export default function SignUpPage() {
   const [shake, setShake] = useState(false)
   const [verifyStep, setVerifyStep] = useState(false)
   const [emailCode, setEmailCode] = useState('')
+  const [oauthLoading, setOauthLoading] = useState<'google' | 'github' | null>(null)
 
   useEffect(() => {
     if (!document.getElementById('ps-auth-css')) {
@@ -59,6 +61,7 @@ export default function SignUpPage() {
 
   const handleOAuth = async (provider: 'oauth_google' | 'oauth_github') => {
     if (!isLoaded || !signUp) return
+    setOauthLoading(provider === 'oauth_google' ? 'google' : 'github')
     await signUp.authenticateWithRedirect({ strategy: provider, redirectUrl: '/sso-callback', redirectUrlComplete: '/waitlist' })
   }
 
@@ -166,6 +169,15 @@ export default function SignUpPage() {
         <div style={{ fontSize: '0.7rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--ac)', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: 10 }}>// beta_waitlist</div>
         <h1 style={{ fontSize: '1.6rem', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: 6 }}>Join the waitlist</h1>
         <p style={{ fontSize: '0.92rem', color: 'var(--t2)', marginBottom: 28, lineHeight: 1.5 }}>Pulsar is in closed beta — claim your spot before it fills up.</p>
+        {/* OAuth loading message */}
+        {oauthLoading && (
+          <div style={{ marginBottom: 16, padding: '10px 14px', borderRadius: 8, background: 'rgba(167,139,250,0.08)', border: '1px solid rgba(167,139,250,0.18)', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid rgba(167,139,250,0.3)', borderTopColor: '#a78bfa', animation: 'spin 0.8s linear infinite', flexShrink: 0 }} />
+            <span style={{ fontSize: '0.82rem', color: '#a78bfa', fontFamily: 'var(--mn)' }}>
+              Redirecting to {oauthLoading === 'google' ? 'Google' : 'GitHub'} — please be patient, this may take a moment…
+            </span>
+          </div>
+        )}
         {/* OAuth */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
           {[

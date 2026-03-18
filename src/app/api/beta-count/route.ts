@@ -6,14 +6,13 @@ const BETA_TOTAL = 100
 
 export async function GET() {
   try {
-    // Count waitlist entries (people who submitted the waitlist form)
-    const res = await fetch('https://api.clerk.com/v1/waitlist_entries?limit=1', {
+    // Count all signed-up users
+    const res = await fetch('https://api.clerk.com/v1/users/count', {
       headers: { Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}` },
       cache: 'no-store',
     })
     if (!res.ok) throw new Error(`Clerk ${res.status}`)
     const data = await res.json()
-    // Clerk returns total_count in the response
     const count = (data.total_count ?? data.count ?? 1) as number
     const filled = Math.min(count, BETA_TOTAL)
     const remaining = Math.max(0, BETA_TOTAL - filled)

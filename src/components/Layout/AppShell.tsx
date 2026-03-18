@@ -1,7 +1,6 @@
 'use client'
 import { useAuth, useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
 import AppLayout from './AppLayout'
 import PulsarLanding from '@/components/Landing/PulsarLanding'
 
@@ -12,27 +11,18 @@ export default function AppShell() {
   const { user } = useUser()
   const router = useRouter()
 
-  // Admin if publicMetadata.role === 'admin' (set in Clerk dashboard)
   const isAdmin = user?.publicMetadata?.role === 'admin'
-
-  useEffect(() => {
-    if (isLoaded && userId && !BETA_OPEN && !isAdmin) {
-      router.push('/waitlist')
-    }
-  }, [isLoaded, userId, router, isAdmin])
 
   if (!isLoaded) return null
 
   // Beta open or admin → show dashboard
   if (userId && (BETA_OPEN || isAdmin)) return <AppLayout />
 
-  // Signed in but beta not open → blank while redirect fires
-  if (userId) return null
-
-  // Not authenticated → landing page
+  // Signed-in waitlisted user or unauthenticated → show landing page
+  // (redirect to /waitlist happens in sign-up/sign-in flows, not here)
   return (
     <PulsarLanding
-      onEnter={() => router.push('/sign-up')}
+      onEnter={() => router.push(userId ? '/waitlist' : '/sign-up')}
     />
   )
 }
