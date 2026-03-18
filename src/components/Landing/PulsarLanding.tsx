@@ -129,11 +129,11 @@ const STATS = [
 ];
 
 const FEATURES = [
-  { icon: '⚡', label: 'Pomodoro + deep work' },
-  { icon: '∞',  label: 'Infinite canvas' },
-  { icon: '🧠', label: 'AI connections' },
-  { icon: '◈',  label: 'Focus analytics' },
-  { icon: '⬡',  label: 'Custom workflows' },
+  { icon: '◈', label: 'Knowledge graph' },
+  { icon: '⚡', label: 'Deep work engine' },
+  { icon: '⬡', label: 'Unified workspace' },
+  { icon: '∞',  label: 'Spatial canvas' },
+  { icon: '◎',  label: 'Team synthesis' },
 ];
 
 const DEAD_NOTES  = [{ text: 'Systems Design notes', tag: '📖' }, { text: 'Startup ideas doc', tag: '💡' }, { text: 'Language learning', tag: '🌐' }, { text: 'OKR journal', tag: '🎯' }, { text: 'Research paper', tag: '📋' }, { text: 'Training plan', tag: '💪' }];
@@ -158,6 +158,7 @@ const WHY_ITEMS = [
   { icon: '🧩', title: 'Tool Fragmentation',        desc: 'Notes in Notion. Tasks in Linear. Goals in a spreadsheet. Your brain bridges the gaps manually, constantly.' },
   { icon: '🧠', title: 'Cognitive Overload',        desc: 'You manually ask: "What does this mean? What do I do next? Where does this fit?" — every single time.' },
   { icon: '🤖', title: 'AI That Misses the Point',  desc: "Current AI summarizes text. It doesn't connect your knowledge to your goals and move you forward." },
+  { icon: '🕳️', title: 'The Execution Gap',         desc: "You have the insight. You know what to do. But no system converts that clarity into a scheduled, trackable action." },
 ];
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
@@ -561,26 +562,59 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
       <WhyItMatters />
 
       {/* HOW IT WORKS */}
-      <section ref={howItWorks.ref} style={{ padding: '100px 40px', maxWidth: '960px', margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: '56px', opacity: howItWorks.vis ? 1 : 0, transform: howItWorks.vis ? 'none' : 'translateY(24px)', transition: `all 0.75s ${E}` }}>
+      <section ref={howItWorks.ref} style={{ padding: '100px 40px', maxWidth: '1000px', margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '64px', opacity: howItWorks.vis ? 1 : 0, transform: howItWorks.vis ? 'none' : 'translateY(24px)', transition: `all 0.75s ${E}` }}>
           <div style={{ fontSize: '0.7rem', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: '14px' }}>{'// how_it_works'}</div>
           <h2 style={{ fontSize: 'clamp(1.8rem,3.5vw,2.6rem)', fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.1 }}>Three steps. Zero friction.</h2>
-          <p style={{ color: 'var(--t2)', fontSize: '1rem', marginTop: '16px', maxWidth: '480px', margin: '16px auto 0', lineHeight: 1.65 }}>From scattered notes to executable knowledge — Pulsar handles the path in between.</p>
+          <p style={{ color: 'var(--t2)', fontSize: '1rem', marginTop: '16px', maxWidth: '460px', margin: '16px auto 0', lineHeight: 1.65 }}>Most tools stop at capture. Pulsar completes the loop — from raw input to real output.</p>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '2px', position: 'relative' }}>
-          <div style={{ position: 'absolute', top: '36px', left: 'calc(16.5% + 24px)', right: 'calc(16.5% + 24px)', height: '1px', background: 'linear-gradient(90deg,var(--accent),#38bdf8,#6ee7b7)', opacity: 0.3, pointerEvents: 'none' }} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '16px', position: 'relative' }}>
+          {/* connector line */}
+          <div style={{ position: 'absolute', top: '52px', left: 'calc(33.33% - 8px)', right: 'calc(33.33% - 8px)', height: '1px', background: 'linear-gradient(90deg,#a78bfa55,#38bdf855,#6ee7b755)', pointerEvents: 'none', zIndex: 0 }} />
           {[
-            { num: '01', icon: '✏️', color: 'var(--accent)', title: 'Capture', body: 'Dump notes, tasks, voice memos, and research anywhere. Pulsar ingests everything without friction.' },
-            { num: '02', icon: '🧠', color: '#38bdf8', title: 'Connect', body: 'AI surfaces hidden links, knowledge gaps, and patterns across everything you have ever captured.' },
-            { num: '03', icon: '⚡', color: '#6ee7b7', title: 'Execute', body: 'Pulsar turns insight into action — goals, sessions, habits, and projects that actually move forward.' },
+            {
+              num: '01', color: '#a78bfa', title: 'Capture',
+              body: 'Dump notes, tasks, voice memos, links, and ideas anywhere — without structure. Pulsar ingests everything without getting in your way.',
+              detail: 'No templates required. No folder decisions. Just capture.',
+              svg: (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              ),
+            },
+            {
+              num: '02', color: '#38bdf8', title: 'Connect',
+              body: 'AI maps relationships across everything you have ever captured — surfacing hidden links, knowledge gaps, and patterns you would never see manually.',
+              detail: 'The more you capture, the smarter it gets.',
+              svg: (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                </svg>
+              ),
+            },
+            {
+              num: '03', color: '#6ee7b7', title: 'Execute',
+              body: 'Pulsar converts insight into action — scheduled goals, focused sessions, tracked habits, and live projects that actually move forward day by day.',
+              detail: 'Clarity without action is just noise. Pulsar closes the gap.',
+              svg: (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                </svg>
+              ),
+            },
           ].map((s, i) => (
-            <div key={i} style={{ padding: '32px 28px', borderRadius: '14px', background: 'var(--s2)', border: '1px solid var(--border)', textAlign: 'center', opacity: howItWorks.vis ? 1 : 0, transform: howItWorks.vis ? 'none' : 'translateY(24px)', transition: `all 0.65s ${E} ${i * 0.1}s` }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = `${s.color}22`; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 14px 44px rgba(0,0,0,0.35)'; }}
+            <div key={i} style={{ padding: '36px 28px', borderRadius: '16px', background: 'var(--s2)', border: '1px solid var(--border)', position: 'relative', zIndex: 1, opacity: howItWorks.vis ? 1 : 0, transform: howItWorks.vis ? 'none' : 'translateY(28px)', transition: `all 0.65s ${E} ${i * 0.12}s` }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = `${s.color}30`; e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = `0 20px 56px rgba(0,0,0,0.4),0 0 0 1px ${s.color}14`; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: `${s.color}10`, border: `1px solid ${s.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '0.7rem', fontFamily: 'var(--mono)', fontWeight: 700, color: s.color }}>{s.num}</div>
-              <div style={{ fontSize: '1.6rem', marginBottom: '12px' }}>{s.icon}</div>
-              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '10px', color: s.color, letterSpacing: '-0.01em' }}>{s.title}</h3>
-              <p style={{ fontSize: '0.9rem', color: 'var(--t3)', lineHeight: 1.65 }}>{s.body}</p>
+              {/* step number */}
+              <div style={{ fontSize: '0.6rem', fontFamily: 'var(--mono)', fontWeight: 700, color: s.color, opacity: 0.5, letterSpacing: '0.1em', marginBottom: '18px' }}>{s.num}</div>
+              {/* icon */}
+              <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: `${s.color}0e`, border: `1px solid ${s.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.color, marginBottom: '20px' }}>
+                {s.svg}
+              </div>
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '12px', color: 'var(--t1)', letterSpacing: '-0.02em' }}>{s.title}</h3>
+              <p style={{ fontSize: '0.9rem', color: 'var(--t2)', lineHeight: 1.7, marginBottom: '16px' }}>{s.body}</p>
+              <p style={{ fontSize: '0.78rem', fontFamily: 'var(--mono)', color: s.color, opacity: 0.7, lineHeight: 1.5 }}>{s.detail}</p>
             </div>
           ))}
         </div>
