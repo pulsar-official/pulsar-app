@@ -434,12 +434,13 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
   }, []);
 
   const typed = useTyping(['thinkers.', 'builders.', 'polymaths.', 'obsessives.', 'researchers.', 'creators.'], 38, 1400, 20);
-  const hero     = useReveal(0.04);
-  const stats    = useReveal(0.12);
-  const showcase = useReveal(0.07);
-  const pricing  = useReveal(0.08);
-  const quotes   = useReveal(0.08);
-  const cta      = useReveal(0.08);
+  const hero       = useReveal(0.04);
+  const stats      = useReveal(0.12);
+  const howItWorks = useReveal(0.06);
+  const showcase   = useReveal(0.07);
+  const pricing    = useReveal(0.08);
+  const quotes     = useReveal(0.08);
+  const cta        = useReveal(0.08);
 
   const [activePillar, setActivePillar] = useState(0);
   const [autoCycle, setAutoCycle] = useState(true);
@@ -555,6 +556,32 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
       <DeadKnowledgeLoop />
       <WhyItMatters />
 
+      {/* HOW IT WORKS */}
+      <section ref={howItWorks.ref} style={{ padding: '100px 40px', maxWidth: '960px', margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '56px', opacity: howItWorks.vis ? 1 : 0, transform: howItWorks.vis ? 'none' : 'translateY(24px)', transition: `all 0.75s ${E}` }}>
+          <div style={{ fontSize: '0.7rem', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: '14px' }}>{'// how_it_works'}</div>
+          <h2 style={{ fontSize: 'clamp(1.8rem,3.5vw,2.6rem)', fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.1 }}>Three steps. Zero friction.</h2>
+          <p style={{ color: 'var(--t2)', fontSize: '1rem', marginTop: '16px', maxWidth: '480px', margin: '16px auto 0', lineHeight: 1.65 }}>From scattered notes to executable knowledge — Pulsar handles the path in between.</p>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '2px', position: 'relative' }}>
+          <div style={{ position: 'absolute', top: '36px', left: 'calc(16.5% + 24px)', right: 'calc(16.5% + 24px)', height: '1px', background: 'linear-gradient(90deg,var(--accent),#38bdf8,#6ee7b7)', opacity: 0.3, pointerEvents: 'none' }} />
+          {[
+            { num: '01', icon: '✏️', color: 'var(--accent)', title: 'Capture', body: 'Dump notes, tasks, voice memos, and research anywhere. Pulsar ingests everything without friction.' },
+            { num: '02', icon: '🧠', color: '#38bdf8', title: 'Connect', body: 'AI surfaces hidden links, knowledge gaps, and patterns across everything you have ever captured.' },
+            { num: '03', icon: '⚡', color: '#6ee7b7', title: 'Execute', body: 'Pulsar turns insight into action — goals, sessions, habits, and projects that actually move forward.' },
+          ].map((s, i) => (
+            <div key={i} style={{ padding: '32px 28px', borderRadius: '14px', background: 'var(--s2)', border: '1px solid var(--border)', textAlign: 'center', opacity: howItWorks.vis ? 1 : 0, transform: howItWorks.vis ? 'none' : 'translateY(24px)', transition: `all 0.65s ${E} ${i * 0.1}s` }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = `${s.color}22`; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 14px 44px rgba(0,0,0,0.35)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: `${s.color}10`, border: `1px solid ${s.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '0.7rem', fontFamily: 'var(--mono)', fontWeight: 700, color: s.color }}>{s.num}</div>
+              <div style={{ fontSize: '1.6rem', marginBottom: '12px' }}>{s.icon}</div>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '10px', color: s.color, letterSpacing: '-0.01em' }}>{s.title}</h3>
+              <p style={{ fontSize: '0.9rem', color: 'var(--t3)', lineHeight: 1.65 }}>{s.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* DASHBOARD SHOWCASE */}
       <section id="features" ref={showcase.ref} style={{ padding: '110px 40px', maxWidth: '1220px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '52px', opacity: showcase.vis ? 1 : 0, transform: showcase.vis ? 'none' : 'translateY(26px)', transition: `all 0.75s ${E}` }}>
@@ -637,6 +664,9 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
               <span onClick={() => setYearly(true)} style={{ fontSize: '0.78rem', fontFamily: 'var(--mono)', color: yearly ? 'var(--t1)' : 'var(--t3)', fontWeight: yearly ? 600 : 400, padding: '4px 14px', borderRadius: '100px', background: yearly ? 'var(--s3)' : 'transparent', transition: 'all 0.25s', cursor: 'pointer' }}>Yearly</span>
               {yearly && <span style={{ fontSize: '0.6rem', fontFamily: 'var(--mono)', padding: '3px 10px', borderRadius: '100px', background: 'rgba(110,231,183,0.1)', color: '#6ee7b7', border: '1px solid rgba(110,231,183,0.2)', fontWeight: 600, animation: 'plFadeUp 0.3s cubic-bezier(0.16,1,0.3,1)' }}>save up to 17%</span>}
             </div>
+            <div style={{ marginTop: '16px', padding: '7px 18px', borderRadius: '100px', background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.14)', display: 'inline-flex', alignItems: 'center', gap: '7px', fontSize: '0.73rem', fontFamily: 'var(--mono)', color: 'rgba(245,158,11,0.7)' }}>
+              <span>🔒</span> Payments open at beta launch · join the waitlist above
+            </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '16px', alignItems: 'stretch' }}>
             {TIERS.map((tier, i) => {
@@ -662,10 +692,13 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
                         </div>
                       ))}
                     </div>
-                    <button onClick={onEnter} style={{ width: '100%', padding: '11px', borderRadius: '8px', fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font)', marginTop: 'auto', border: tier.popular ? 'none' : '1px solid var(--border2)', background: tier.popular ? `linear-gradient(135deg,${tier.accent},${tier.accent}cc)` : 'transparent', color: tier.popular ? '#fff' : 'var(--t2)', transition: `all 0.22s ${E}` }}
-                      onMouseEnter={e => { if (!tier.popular) { e.currentTarget.style.background = 'var(--s3)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#fff'; } else { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = `0 8px 26px ${tier.accent}44`; } }}
-                      onMouseLeave={e => { if (!tier.popular) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--border2)'; e.currentTarget.style.color = 'var(--t2)'; } else { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; } }}>
-                      {price === 'Free' ? 'Start Free' : 'Get Started'}
+                    <button
+                      onClick={price === 'Free' ? onEnter : undefined}
+                      disabled={price !== 'Free'}
+                      style={{ width: '100%', padding: '11px', borderRadius: '8px', fontSize: '0.88rem', fontWeight: 600, fontFamily: 'var(--font)', marginTop: 'auto', border: tier.popular ? 'none' : '1px solid var(--border2)', background: price === 'Free' ? (tier.popular ? `linear-gradient(135deg,${tier.accent},${tier.accent}cc)` : 'transparent') : 'rgba(245,158,11,0.08)', color: price === 'Free' ? (tier.popular ? '#fff' : 'var(--t2)') : 'rgba(245,158,11,0.6)', cursor: price === 'Free' ? 'pointer' : 'default', opacity: price === 'Free' ? 1 : 0.75, transition: `all 0.22s ${E}` }}
+                      onMouseEnter={e => { if (price === 'Free' && !tier.popular) { e.currentTarget.style.background = 'var(--s3)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#fff'; } else if (price === 'Free') { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = `0 8px 26px ${tier.accent}44`; } }}
+                      onMouseLeave={e => { if (price === 'Free' && !tier.popular) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--border2)'; e.currentTarget.style.color = 'var(--t2)'; } else if (price === 'Free') { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; } }}>
+                      {price === 'Free' ? 'Start Free' : '🔒 Launching Soon'}
                     </button>
                   </div>
                 </div>

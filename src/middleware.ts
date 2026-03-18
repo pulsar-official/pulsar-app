@@ -4,10 +4,13 @@ const isPublicRoute = createRouteMatcher([
   '/',
   '/pricing',
   '/features',
+  '/waitlist',
   '/sign-in(.*)',
   '/sign-up(.*)',
-  '/sso-callback',
+  '/sso-callback(.*)',
   '/api/stripe/(.*)',
+  '/api/beta-count',
+  '/api/clerk/webhook',
   '/checkout',
 ])
 

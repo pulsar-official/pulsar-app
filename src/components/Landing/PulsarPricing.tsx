@@ -97,6 +97,9 @@ export default function PulsarPricing() {
             <span onClick={() => setYearly(true)} style={{ fontSize: '0.82rem', fontFamily: 'var(--mn)', color: yearly ? 'var(--t1)' : 'var(--t3)', fontWeight: yearly ? 600 : 400, padding: '5px 14px', borderRadius: 100, background: yearly ? 'var(--s3)' : 'transparent', cursor: 'pointer', transition: `all 0.25s ${E}` }}>Yearly</span>
             {yearly && <span style={{ fontSize: '0.65rem', fontFamily: 'var(--mn)', padding: '3px 10px', borderRadius: 100, background: 'rgba(110,231,183,0.08)', color: 'var(--ok)', border: '1px solid rgba(110,231,183,0.15)', fontWeight: 600 }}>save up to 17%</span>}
           </div>
+          <div style={{ marginTop: 16, padding: '8px 18px', borderRadius: 100, background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.15)', display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: '0.75rem', fontFamily: 'var(--mn)', color: 'rgba(245,158,11,0.75)' }}>
+            <span>🔒</span> Payments open at beta launch · <span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>join the waitlist above</span>
+          </div>
         </div>
       </section>
 
@@ -130,10 +133,13 @@ export default function PulsarPricing() {
                       </div>
                     ))}
                   </div>
-                  <button onClick={() => t.price === 'Free' ? router.push('/sign-up') : handleCheckout(t, yearly)} style={{ width: '100%', padding: 13, borderRadius: 8, marginTop: 'auto', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--ft)', transition: `all 0.2s ${E}`, border: t.pop ? 'none' : '1px solid var(--bd2)', background: t.pop ? `linear-gradient(135deg, ${t.accent}, #38bdf8)` : 'transparent', color: '#fff' }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; if (!t.pop) e.currentTarget.style.background = 'var(--s3)' }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = 'none'; if (!t.pop) e.currentTarget.style.background = 'transparent' }}
-                  >{price === 'Free' ? 'Start Free' : 'Get Started'}</button>
+                  <button
+                    onClick={() => t.price === 'Free' ? router.push('/sign-up') : undefined}
+                    disabled={t.price !== 'Free'}
+                    style={{ width: '100%', padding: 13, borderRadius: 8, marginTop: 'auto', fontSize: '0.9rem', fontWeight: 600, fontFamily: 'var(--ft)', transition: `all 0.2s ${E}`, border: t.pop ? 'none' : '1px solid var(--bd2)', background: t.price === 'Free' ? (t.pop ? `linear-gradient(135deg, ${t.accent}, #38bdf8)` : 'transparent') : 'rgba(245,158,11,0.08)', color: t.price === 'Free' ? '#fff' : 'rgba(245,158,11,0.6)', cursor: t.price === 'Free' ? 'pointer' : 'default', opacity: t.price === 'Free' ? 1 : 0.7 }}
+                    onMouseEnter={e => { if (t.price === 'Free') { e.currentTarget.style.transform = 'translateY(-1px)'; if (!t.pop) e.currentTarget.style.background = 'var(--s3)' } }}
+                    onMouseLeave={e => { if (t.price === 'Free') { e.currentTarget.style.transform = 'none'; if (!t.pop) e.currentTarget.style.background = 'transparent' } }}
+                  >{t.price === 'Free' ? 'Start Free' : '🔒 Launching Soon'}</button>
                 </div>
               </div>
             )
