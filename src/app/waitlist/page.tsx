@@ -22,9 +22,10 @@ export default function WaitlistPage() {
 
   if (!isLoaded) return null
 
-  const name = user?.firstName || user?.username || 'there'
-  const email = user?.primaryEmailAddress?.emailAddress || ''
+  const isSignedIn = !!user
   const isAdmin = user?.publicMetadata?.role === 'admin'
+  const name = user?.firstName || user?.username || ''
+  const email = user?.primaryEmailAddress?.emailAddress || ''
 
   return (
     <div style={{ minHeight: '100vh', background: '#07070c', color: '#e2e2f0', fontFamily: 'var(--font, system-ui)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', position: 'relative', overflow: 'hidden' }}>
@@ -34,20 +35,31 @@ export default function WaitlistPage() {
       {/* logo */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 48, position: 'relative', zIndex: 1, cursor: 'pointer' }}
         onClick={() => router.push('/')} role="button">
-        <div style={{ width: 32, height: 32, borderRadius: 9, background: 'linear-gradient(135deg,#a78bfa,#7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 700, color: '#fff', cursor: 'pointer' }} onClick={() => router.push('/')}>P</div>
-        <span style={{ fontWeight: 700, fontSize: '1.1rem', cursor: 'pointer' }} onClick={() => router.push('/')}>Pulsar</span>
+        <div style={{ width: 32, height: 32, borderRadius: 9, background: 'linear-gradient(135deg,#a78bfa,#7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 700, color: '#fff' }}>P</div>
+        <span style={{ fontWeight: 700, fontSize: '1.1rem' }}>Pulsar</span>
       </div>
 
       <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: 520 }}>
         {/* check circle */}
-        <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(110,231,183,0.08)', border: '1px solid rgba(110,231,183,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 28px', fontSize: '2rem' }}>✅</div>
+        <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(110,231,183,0.08)', border: '1px solid rgba(110,231,183,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 28px' }}>
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </div>
 
         <div style={{ fontSize: '0.7rem', fontFamily: 'monospace', fontWeight: 600, color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: 14 }}>// waitlist_confirmed</div>
         <h1 style={{ fontSize: 'clamp(2rem,5vw,3rem)', fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.1, marginBottom: 16 }}>
-          You're on the list,<br /><span style={{ color: '#a78bfa' }}>{name}.</span>
+          {isSignedIn && name ? (
+            <>You're on the list,<br /><span style={{ color: '#a78bfa' }}>{name}.</span></>
+          ) : (
+            <>You're on the list.</>
+          )}
         </h1>
         <p style={{ color: '#9898b8', fontSize: '1rem', lineHeight: 1.65, marginBottom: 8 }}>
-          We'll email you at <span style={{ color: '#e2e2f0', fontWeight: 600 }}>{email}</span> the moment beta opens.
+          {isSignedIn && email
+            ? <>We'll email you at <span style={{ color: '#e2e2f0', fontWeight: 600 }}>{email}</span> the moment beta opens.</>
+            : <>We'll email you the moment beta opens.</>
+          }
         </p>
         <p style={{ color: '#666688', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: 36 }}>
           Pulsar is in closed beta — only {slots.total} seats total. You're locked in.
@@ -76,13 +88,15 @@ export default function WaitlistPage() {
           <button onClick={() => router.push('/')} style={{ padding: '12px 32px', borderRadius: 9, background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.2)', color: '#a78bfa', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s' }}
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(167,139,250,0.18)' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'rgba(167,139,250,0.1)' }}>
-            ← Back to homepage
+            Back to homepage
           </button>
-          <button onClick={() => signOut(() => router.push('/'))} style={{ padding: '8px 20px', borderRadius: 9, background: 'transparent', border: 'none', color: '#555570', fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'inherit', transition: 'color 0.2s' }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#9898b8' }}
-            onMouseLeave={e => { e.currentTarget.style.color = '#555570' }}>
-            Sign out
-          </button>
+          {isSignedIn && (
+            <button onClick={() => signOut(() => router.push('/'))} style={{ padding: '8px 20px', borderRadius: 9, background: 'transparent', border: 'none', color: '#555570', fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'inherit', transition: 'color 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#9898b8' }}
+              onMouseLeave={e => { e.currentTarget.style.color = '#555570' }}>
+              Sign out
+            </button>
+          )}
         </div>
       </div>
     </div>
