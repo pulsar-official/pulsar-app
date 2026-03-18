@@ -1,0 +1,85 @@
+# ─── Production Services (VPS / self-hosted) ─────────────────────────────────
+# Deploy this on a VPS (DigitalOcean, Hetzner, etc.) for:
+#   - n8n automation with PostgreSQL backend (more reliable than SQLite at scale)
+#   - Typesense search (alternative to Typesense Cloud)
+#
+# Setup:
+#   1. Copy .env.docker to your VPS, fill in all values
+#   2. docker compose -f docker-compose.prod.yml --env-file .env.docker up -d
+#
+# n8n   → https://<your-domain>:5678  (put Nginx/Caddy in front for SSL)
+# Typesense → https://<your-domain>:8108
+
+services:
+
+  # ── n8n ──────────────────────────────────────────────────────────────────────
+  n8n:
+    image: n8nio/n8n:latest
+    restart: always
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    environment:
+      N8N_HOST: ${N8N_HOST}
+      N8N_PORT: 5678
+      N8N_PROTOCOL: https
+      WEBHOOK_URL: https://${N8N_HOST}/
+      GENERIC_TIMEZONE: UTC
+      N8N_BASIC_AUTH_ACTIVE: "true"
+      N8N_BASIC_AUTH_USER: ${N8N_USER}
+      N8N_BASIC_AUTH_PASSWORD: ${N8N_PASSWORD}
+      # PostgreSQL backend (much better than SQLite for production)
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgres
+      DB_POSTGRESDB_PORT: 5432
+      DB_POSTGRESDB_DATABASE: n8n
+      DB_POSTGRESDB_USER: n8n
+      DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD}
+      # Encryption key for stored credentials — set once, never change
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ── PostgreSQL (n8n storage) ──────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: n8n
+      POSTGRES_USER: n8n
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U n8n"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── Typesense (self-hosted search) ───────────────────────────────────────────
+  # Remove this block if using Typesense Cloud instead
+  typesense:
+    image: typesense/typesense:26.0
+    restart: always
+    ports:
+      - "8108:8108"
+    volumes:
+      - typesense_data:/data
+    environment:
+      TYPESENSE_DATA_DIR: /data
+      TYPESENSE_API_KEY: ${TYPESENSE_API_KEY}
+    command: >
+      --data-dir /data
+      --api-key=${TYPESENSE_API_KEY}
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8108/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  n8n_data:
+  postgres_data:
+  typesense_data:
