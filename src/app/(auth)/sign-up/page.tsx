@@ -64,7 +64,7 @@ export default function SignUpPage() {
 
   const validate = () => {
     const e: Record<string, string> = {}
-    if (!name.trim()) e.name = 'Name is required'
+    if (!name.trim()) e.name = 'Username is required'
     if (!email.trim()) e.email = 'Email is required'
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = 'Invalid email'
     if (pass.length < 8) e.pass = 'At least 8 characters'
@@ -78,8 +78,7 @@ export default function SignUpPage() {
     if (!isLoaded || !signUp) return
     setLoading(true)
     try {
-      const parts = name.trim().split(' ')
-      await signUp.create({ emailAddress: email, password: pass, firstName: parts[0], lastName: parts.slice(1).join(' ') || undefined })
+      await signUp.create({ emailAddress: email, password: pass, username: name.trim() })
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
       setVerifyStep(true)
     } catch (err: unknown) {
@@ -187,8 +186,8 @@ export default function SignUpPage() {
         {/* Form */}
         <div style={{ animation: shake ? 'psShake 0.4s ease' : 'none' }}>
           <div style={{ marginBottom: 16 }}>
-            <label style={labelStyle}>Full name</label>
-            <input value={name} onChange={e => { setName(e.target.value); setErrors(er => { const n = { ...er }; delete n.name; return n }) }} placeholder="Jane Doe" style={inputStyle('name')}
+            <label style={labelStyle}>Username</label>
+            <input value={name} onChange={e => { setName(e.target.value); setErrors(er => { const n = { ...er }; delete n.name; return n }) }} placeholder="e.g. cooldev" style={inputStyle('name')}
               onFocus={e => { if (!errors.name) e.currentTarget.style.borderColor = 'var(--ac)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(167,139,250,0.08)' }}
               onBlur={e => { if (!errors.name) e.currentTarget.style.borderColor = 'var(--bd2)'; e.currentTarget.style.boxShadow = 'none' }}
             />
