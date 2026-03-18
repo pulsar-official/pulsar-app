@@ -518,7 +518,7 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
               onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = ''; }}>Request Access →</button>
             <button onClick={onEnter} style={{ padding: '14px 36px', borderRadius: '10px', border: '1px solid rgba(167,139,250,0.18)', background: 'rgba(167,139,250,0.04)', color: 'var(--t2)', fontSize: '0.95rem', fontWeight: 500, cursor: 'pointer', fontFamily: 'var(--font)', transition: `all 0.3s ${E}` }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(167,139,250,0.45)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(167,139,250,0.08)'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(167,139,250,0.18)'; e.currentTarget.style.color = 'var(--t2)'; e.currentTarget.style.background = 'rgba(167,139,250,0.04)'; }}>Watch Demo</button>
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(167,139,250,0.18)'; e.currentTarget.style.color = 'var(--t2)'; e.currentTarget.style.background = 'rgba(167,139,250,0.04)'; }}>Join Waitlist</button>
           </div>
           {/* Beta capacity */}
           <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '7px', marginTop: '28px', opacity: hero.vis ? 1 : 0, transition: `all 0.9s ${E} 0.45s` }}>
@@ -698,7 +698,7 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
                       style={{ width: '100%', padding: '11px', borderRadius: '8px', fontSize: '0.88rem', fontWeight: 600, fontFamily: 'var(--font)', marginTop: 'auto', border: tier.popular ? 'none' : '1px solid var(--border2)', background: price === 'Free' ? (tier.popular ? `linear-gradient(135deg,${tier.accent},${tier.accent}cc)` : 'transparent') : 'rgba(245,158,11,0.08)', color: price === 'Free' ? (tier.popular ? '#fff' : 'var(--t2)') : 'rgba(245,158,11,0.6)', cursor: price === 'Free' ? 'pointer' : 'default', opacity: price === 'Free' ? 1 : 0.75, transition: `all 0.22s ${E}` }}
                       onMouseEnter={e => { if (price === 'Free' && !tier.popular) { e.currentTarget.style.background = 'var(--s3)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#fff'; } else if (price === 'Free') { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = `0 8px 26px ${tier.accent}44`; } }}
                       onMouseLeave={e => { if (price === 'Free' && !tier.popular) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--border2)'; e.currentTarget.style.color = 'var(--t2)'; } else if (price === 'Free') { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; } }}>
-                      {price === 'Free' ? 'Start Free' : '🔒 Launching Soon'}
+                      {price === 'Free' ? 'Join Waitlist' : '🔒 Launching Soon'}
                     </button>
                   </div>
                 </div>
@@ -758,7 +758,7 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
             <input type="email" placeholder="your@email.com" style={{ flex: 1, padding: '15px 18px', border: 'none', background: 'transparent', color: 'var(--t1)', fontSize: '0.95rem', fontFamily: 'var(--font)', outline: 'none' }} />
             <button onClick={onEnter} style={{ padding: '15px 28px', border: 'none', background: 'linear-gradient(135deg,#a78bfa,#7c3aed)', color: '#fff', fontSize: '0.92rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font)', transition: `all 0.22s ${E}`, flexShrink: 0 }}
               onMouseEnter={e => { e.currentTarget.style.background = 'linear-gradient(135deg,#c4b5fd,#a78bfa)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'linear-gradient(135deg,#a78bfa,#7c3aed)'; }}>Get Access</button>
+              onMouseLeave={e => { e.currentTarget.style.background = 'linear-gradient(135deg,#a78bfa,#7c3aed)'; }}>Join Waitlist</button>
           </div>
           <p style={{ fontSize: '0.7rem', fontFamily: 'var(--mono)', color: 'var(--t4)', marginTop: '14px' }}>No spam. Early access for serious builders only.</p>
         </div>

@@ -139,7 +139,7 @@ export default function PulsarPricing() {
                     style={{ width: '100%', padding: 13, borderRadius: 8, marginTop: 'auto', fontSize: '0.9rem', fontWeight: 600, fontFamily: 'var(--ft)', transition: `all 0.2s ${E}`, border: t.pop ? 'none' : '1px solid var(--bd2)', background: t.price === 'Free' ? (t.pop ? `linear-gradient(135deg, ${t.accent}, #38bdf8)` : 'transparent') : 'rgba(245,158,11,0.08)', color: t.price === 'Free' ? '#fff' : 'rgba(245,158,11,0.6)', cursor: t.price === 'Free' ? 'pointer' : 'default', opacity: t.price === 'Free' ? 1 : 0.7 }}
                     onMouseEnter={e => { if (t.price === 'Free') { e.currentTarget.style.transform = 'translateY(-1px)'; if (!t.pop) e.currentTarget.style.background = 'var(--s3)' } }}
                     onMouseLeave={e => { if (t.price === 'Free') { e.currentTarget.style.transform = 'none'; if (!t.pop) e.currentTarget.style.background = 'transparent' } }}
-                  >{t.price === 'Free' ? 'Start Free' : '🔒 Launching Soon'}</button>
+                  >{t.price === 'Free' ? 'Join Waitlist' : '🔒 Launching Soon'}</button>
                 </div>
               </div>
             )
@@ -209,7 +209,7 @@ export default function PulsarPricing() {
         <button onClick={() => router.push('/sign-up')} style={{ padding: '14px 36px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#a78bfa,#7c3aed)', color: '#fff', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--ft)', transition: `all 0.2s ${E}`, animation: 'ppGlow 3s ease infinite' }}
           onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 0 40px rgba(167,139,250,0.25)' }}
           onMouseLeave={e => { e.currentTarget.style.transform = 'none' }}
-        >Get Started Free →</button>
+        >Join Waitlist →</button>
       </section>
 
       {/* Footer */}

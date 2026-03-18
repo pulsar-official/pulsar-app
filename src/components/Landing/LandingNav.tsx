@@ -58,7 +58,7 @@ export default function LandingNav({ variant = 'sticky', scrolled = false, onGet
             onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
           >Go to Dashboard →</button>
         ) : (
-          /* Not signed in — show Sign In + Get Started */
+          /* Not signed in — show Sign In + Join Waitlist */
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <button
               onClick={() => router.push('/sign-in')}
@@ -71,7 +71,7 @@ export default function LandingNav({ variant = 'sticky', scrolled = false, onGet
               style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#a78bfa,#7c3aed)', color: '#fff', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', fontFamily: "'Space Grotesk',system-ui,sans-serif", transition: `all 0.22s ${E}` }}
               onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(167,139,250,0.3)' }}
               onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
-            >Get Started</button>
+            >Join Waitlist</button>
           </div>
         )}
       </div>

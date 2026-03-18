@@ -23,8 +23,6 @@ export default function SignInPage() {
   const [remember, setRemember] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
-  const [mfa, setMfa] = useState(false)
-  const [smsCode, setSmsCode] = useState('')
   const [shake, setShake] = useState(false)
 
   useEffect(() => {
@@ -35,7 +33,7 @@ export default function SignInPage() {
 
   const handleOAuth = async (provider: 'oauth_google' | 'oauth_github') => {
     if (!isLoaded || !signIn) return
-    await signIn.authenticateWithRedirect({ strategy: provider, redirectUrl: '/sso-callback', redirectUrlComplete: '/' })
+    await signIn.authenticateWithRedirect({ strategy: provider, redirectUrl: '/sso-callback', redirectUrlComplete: '/waitlist' })
   }
 
   const validate = () => {
@@ -53,23 +51,14 @@ export default function SignInPage() {
     setLoading(true)
     try {
       const result = await signIn.create({ identifier: email, password: pass })
-      if (result.status === 'complete') { await setActive!({ session: result.createdSessionId }); router.push('/') }
-      else if (result.status === 'needs_second_factor') { await signIn.prepareSecondFactor({ strategy: 'phone_code' }); setMfa(true) }
+      if (result.status === 'complete') { await setActive!({ session: result.createdSessionId }); router.push('/waitlist') }
     } catch (err: unknown) {
-      const msg = (err as { errors?: { longMessage?: string; message?: string }[] })?.errors?.[0]?.longMessage ?? 'Invalid email or password'
+      const errObj = (err as { errors?: { longMessage?: string; message?: string; code?: string }[] })?.errors?.[0]
+      if (errObj?.code === 'not_allowed_access' || errObj?.message?.toLowerCase().includes('waitlist')) {
+        router.push('/waitlist'); return
+      }
+      const msg = errObj?.longMessage ?? 'Invalid email or password'
       setErrors({ pass: msg }); setShake(true); setTimeout(() => setShake(false), 500)
-    } finally { setLoading(false) }
-  }
-
-  const verifySms = async () => {
-    if (!isLoaded || !signIn) return
-    setLoading(true)
-    try {
-      const result = await signIn.attemptSecondFactor({ strategy: 'phone_code', code: smsCode })
-      if (result.status === 'complete') { await setActive!({ session: result.createdSessionId }); router.push('/') }
-    } catch (err: unknown) {
-      const msg = (err as { errors?: { longMessage?: string; message?: string }[] })?.errors?.[0]?.longMessage ?? 'Invalid code'
-      setErrors({ sms: msg })
     } finally { setLoading(false) }
   }
 
@@ -80,32 +69,6 @@ export default function SignInPage() {
     color: 'var(--t1)', fontSize: '0.95rem', fontFamily: 'var(--ft)', outline: 'none', transition: `all 0.2s ${E}`,
   })
   const labelStyle: React.CSSProperties = { display: 'block', fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--t4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 7 }
-
-  if (mfa) {
-    return (
-      <div className="ps-login" style={{ display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh' }}>
-        <div style={{ position:'relative',zIndex:1,width:400,padding:'36px 32px',background:'rgba(12,12,20,0.85)',backdropFilter:'blur(24px)',WebkitBackdropFilter:'blur(24px)',border:'1px solid var(--bd2)',borderRadius:18,boxShadow:'0 24px 80px rgba(0,0,0,0.5)' }}>
-          <div style={{ display:'flex',alignItems:'center',gap:10,marginBottom:28 }}>
-            <div style={{ width:32,height:32,borderRadius:9,background:'linear-gradient(135deg,#a78bfa,#7c3aed)',display:'grid',placeItems:'center',fontSize:14,fontWeight:700,color:'#fff',boxShadow:'0 0 20px rgba(167,139,250,0.2)' }}>P</div>
-            <span style={{ fontWeight:700,fontSize:'1.15rem',letterSpacing:'-0.02em' }}>Pulsar</span>
-          </div>
-          <h1 style={{ fontSize:'1.5rem',fontWeight:700,letterSpacing:'-0.03em',marginBottom:8 }}>SMS Verification</h1>
-          <p style={{ fontSize:'0.9rem',color:'var(--t2)',marginBottom:28,lineHeight:1.5 }}>We sent a code to your registered phone. Check your messages.</p>
-          <div style={{ marginBottom:16 }}>
-            <label style={labelStyle}>SMS code</label>
-            <input value={smsCode} onChange={e=>{setSmsCode(e.target.value);setErrors({})}} placeholder="Enter 6-digit code" style={inputStyle('sms')}
-              onFocus={e=>{e.currentTarget.style.borderColor='var(--ac)';e.currentTarget.style.boxShadow='0 0 0 3px rgba(167,139,250,0.08)'}}
-              onBlur={e=>{e.currentTarget.style.borderColor='var(--bd2)';e.currentTarget.style.boxShadow='none'}}
-              onKeyDown={e=>{if(e.key==='Enter')verifySms()}}
-            />
-            {errors.sms && <span style={{ fontSize:'0.72rem',color:'var(--err)',fontFamily:'var(--mn)',marginTop:4,display:'block' }}>{errors.sms}</span>}
-          </div>
-          <button onClick={verifySms} disabled={loading} style={{ width:'100%',padding:14,borderRadius:10,border:'none',background:loading?'var(--s4)':'linear-gradient(135deg,#a78bfa,#7c3aed)',color:'#fff',fontSize:'0.98rem',fontWeight:600,cursor:loading?'wait':'pointer',fontFamily:'var(--ft)' }}>{loading?'Verifying...':'Confirm Sign In'}</button>
-          <p style={{ textAlign:'center',marginTop:16,fontSize:'0.85rem',color:'var(--t3)' }}><button onClick={()=>{setMfa(false);setErrors({})}} style={{ background:'none',border:'none',color:'var(--ac)',cursor:'pointer',fontWeight:600,fontFamily:'var(--ft)',fontSize:'0.85rem',padding:0 }}>Use different account</button></p>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="ps-login" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', position: 'relative' }}>
@@ -177,7 +140,7 @@ export default function SignInPage() {
           >{loading?'Signing in...':'Sign In'}</button>
         </div>
         <p style={{ textAlign:'center',marginTop:24,fontSize:'0.88rem',color:'var(--t3)' }}>
-          Don&apos;t have an account? <a href="/sign-up" style={{ color:'var(--ac)',textDecoration:'none',fontWeight:600 }}>Create one</a>
+          Not on the waitlist yet? <a href="/sign-up" style={{ color:'var(--ac)',textDecoration:'none',fontWeight:600 }}>Join now</a>
         </p>
       </div>
     </div>
