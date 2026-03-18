@@ -532,14 +532,6 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
             </div>
             <span style={{ fontSize: '0.67rem', fontFamily: 'var(--mono)', color: 'var(--t4)' }}>{betaSlots.filled}/{betaSlots.total} beta seats filled &nbsp;·&nbsp; <span style={{ color: '#f59e0b' }}>{betaSlots.remaining} remaining</span></span>
           </div>
-          {/* Feature pills */}
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '28px' }}>
-            {FEATURES.map((f, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '5px 14px', borderRadius: '100px', background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)', fontSize: '0.72rem', color: 'var(--t3)', fontFamily: 'var(--mono)', animation: hero.vis ? `plPillIn 0.55s ${E} ${0.65 + i * 0.07}s both` : 'none' }}>
-                <span style={{ fontSize: '0.8rem' }}>{f.icon}</span>{f.label}
-              </div>
-            ))}
-          </div>
         </div>
         {/* Scroll indicator */}
         <div style={{ position: 'absolute', bottom: '36px', left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', opacity: hero.vis ? 0.3 : 0, transition: 'opacity 1.2s ease 1.4s' }}>
@@ -809,13 +801,6 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
           <span style={{ fontWeight: 600, fontSize: '0.92rem' }}>Pulsar</span>
         </div>
         <div style={{ fontSize: '0.7rem', fontFamily: 'var(--mono)', color: 'var(--t4)' }}>© 2026 Pulsar · Knowledge OS for the relentlessly curious</div>
-        <div style={{ display: 'flex', gap: '22px' }}>
-          {['Twitter', 'GitHub', 'Discord'].map(s => (
-            <a key={s} href="#" style={{ fontSize: '0.78rem', fontFamily: 'var(--mono)', color: 'var(--t4)', transition: 'color 0.2s' }}
-              onMouseEnter={e => { e.currentTarget.style.color = '#fff'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'var(--t4)'; }}>{s}</a>
-          ))}
-        </div>
       </footer>
     </div>
   );
