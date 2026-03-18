@@ -122,10 +122,10 @@ const QUOTES = [
 ];
 
 const STATS = [
-  { val: '7',     label: 'Integrated pillars',  mono: false },
-  { val: '40K+',  label: 'Notes organized',     mono: true  },
-  { val: '< 80ms',label: 'AI response time',    mono: true  },
-  { val: '0',     label: 'Context switches',    mono: false },
+  { val: '7',    label: 'Core pillars',          mono: false },
+  { val: '100',  label: 'Beta seats total',       mono: true  },
+  { val: '1',    label: 'Workspace for it all',   mono: false },
+  { val: '0',    label: 'Context switches',       mono: false },
 ];
 
 const FEATURES = [
@@ -738,8 +738,8 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
-      <section id="community" ref={quotes.ref} style={{ padding: '100px 40px', maxWidth: '1100px', margin: '0 auto' }}>
+      {/* TESTIMONIALS — hidden until we have real ones */}
+      <section id="community" ref={quotes.ref} style={{ padding: '100px 40px', maxWidth: '1100px', margin: '0 auto', display: 'none' }}>
         <div style={{ textAlign: 'center', marginBottom: '52px', opacity: quotes.vis ? 1 : 0, transform: quotes.vis ? 'none' : 'translateY(26px)', transition: `all 0.75s ${E}` }}>
           <div style={{ fontSize: '0.7rem', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: '14px' }}>{'// community'}</div>
           <h2 style={{ fontSize: 'clamp(1.8rem,3.8vw,2.4rem)', fontWeight: 700, letterSpacing: '-0.035em' }}>Built with obsessives, for obsessives.</h2>
