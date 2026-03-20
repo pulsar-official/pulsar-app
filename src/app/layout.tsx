@@ -5,6 +5,15 @@ import { ClerkProvider } from '@clerk/nextjs'
 export const metadata: Metadata = {
   title: 'Pulsar - Knowledge Intelligence OS',
   description: 'AI-powered knowledge management and productivity platform',
+  metadataBase: new URL('https://pulsar.zone'),
+  alternates: { canonical: 'https://pulsar.zone' },
+  openGraph: {
+    title: 'Pulsar - Knowledge Intelligence OS',
+    description: 'AI-powered knowledge management and productivity platform',
+    url: 'https://pulsar.zone',
+    siteName: 'Pulsar',
+    type: 'website',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
