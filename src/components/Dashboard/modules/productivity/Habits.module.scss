@@ -5,92 +5,96 @@
   flex-direction: column;
   height: 100%;
   overflow: hidden;
-  background: oklch(0.09 0.03 290);
   color: #eeeef5;
 }
 
-/* ── Top bar ── */
-.topBar {
+/* ── Header ── */
+.header {
   display: flex;
   align-items: center;
-  gap: $sp-3;
-  padding: 14px $sp-6;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  justify-content: space-between;
+  padding: 16px 20px 12px;
   flex-shrink: 0;
 }
 
-.modLabel {
-  font-size: 9px;
-  font-family: monospace;
-  letter-spacing: 0.1em;
-  color: oklch(0.55 0.18 290);
-  background: rgba(167,139,250,0.08);
-  border: 1px solid rgba(167,139,250,0.14);
-  border-radius: 4px;
-  padding: 2px 6px;
-  text-transform: uppercase;
-  flex-shrink: 0;
+.title {
+  font-size: $font-size-xl;
+  font-weight: 700;
+  color: #eeeef5;
+  letter-spacing: -0.02em;
 }
 
-.monthNav {
+.headerRight {
   display: flex;
   align-items: center;
   gap: $sp-2;
 }
 
+.monthNav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 8px;
+  padding: 3px 6px;
+}
+
 .navBtn {
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.08);
+  width: 22px;
+  height: 22px;
+  border: none;
   background: transparent;
   color: #7878a0;
   cursor: pointer;
   display: grid;
   place-items: center;
-  font-size: 15px;
-  line-height: 1;
+  font-size: 14px;
+  border-radius: 4px;
   transition: background $dur-fast $ease, color $dur-fast $ease;
-  &:hover { background: rgba(255,255,255,0.06); color: #eeeef5; }
+  &:hover { background: rgba(255,255,255,0.07); color: #eeeef5; }
 }
 
 .monthLabel {
-  font-size: $font-size-base;
+  font-size: $font-size-sm;
   font-weight: 600;
-  color: #eeeef5;
-  min-width: 116px;
+  color: #c0c0d8;
+  min-width: 100px;
   text-align: center;
   letter-spacing: -0.01em;
 }
 
-.title {
-  font-size: $font-size-lg;
-  font-weight: 700;
-  color: #eeeef5;
-  letter-spacing: -0.02em;
-  flex: 1;
-}
-
 .addBtn {
-  margin-left: auto;
-  padding: 6px 14px;
-  border-radius: 8px;
+  padding: 5px 12px;
+  border-radius: 7px;
   border: none;
   background: oklch(0.55 0.18 290);
   color: #fff;
   font-size: $font-size-sm;
   font-weight: 600;
   cursor: pointer;
-  flex-shrink: 0;
   transition: opacity $dur-fast $ease;
   &:hover { opacity: 0.85; }
 }
 
-/* ── Grid ── */
-.gridWrap {
+/* ── Content area ── */
+.content {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 14px 14px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── Grid card ── */
+.gridCard {
+  flex: 1;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
   overflow: auto;
-  padding: $sp-3 $sp-6;
+  background: rgba(255,255,255,0.02);
   min-height: 0;
 }
 
@@ -106,25 +110,28 @@
   position: sticky;
   left: 0;
   z-index: 3;
-  background: oklch(0.09 0.03 290);
-  min-width: 160px;
-  width: 160px;
-  padding: 4px 12px 8px 0;
+  background: oklch(0.10 0.03 290);
+  min-width: 170px;
+  width: 170px;
+  padding: 8px 8px 10px 14px;
   font-size: $font-size-xs;
   color: #5a5a7a;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   text-align: left;
   font-weight: 400;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-right: 1px solid rgba(255,255,255,0.06);
 }
 
 .thDay {
-  min-width: 36px;
-  width: 36px;
+  min-width: 34px;
+  width: 34px;
   text-align: center;
-  padding: 4px 2px 8px;
-  background: oklch(0.09 0.03 290);
+  padding: 8px 2px 10px;
+  background: oklch(0.10 0.03 290);
   vertical-align: bottom;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
 .dayNum {
@@ -137,7 +144,7 @@
 
 .dayName {
   font-size: 8px;
-  color: #3a3a5a;
+  color: #3a3a55;
   display: block;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -145,20 +152,55 @@
 
 .thToday {
   .dayNum { color: oklch(0.72 0.14 290); }
-  .dayName { color: oklch(0.60 0.10 290); }
+  .dayName { color: oklch(0.58 0.10 290); }
 }
 
-.habitRow:hover .nameCell { background: oklch(0.11 0.03 290); }
-.habitRow:hover .cell { background: oklch(0.11 0.03 290); }
+/* Rows */
+.habitRow {
+  &:nth-child(even) .nameCell,
+  &:nth-child(even) .cell {
+    background: rgba(255,255,255,0.015);
+  }
+  &:hover .nameCell,
+  &:hover .cell {
+    background: rgba(255,255,255,0.04);
+  }
+}
+
+.habitRow.dragging { opacity: 0.4; }
+.habitRow.dragOver .nameCell,
+.habitRow.dragOver .cell { background: rgba(124,58,237,0.07); }
 
 .nameCell {
   position: sticky;
   left: 0;
   z-index: 1;
-  background: oklch(0.09 0.03 290);
-  padding: 5px 16px 5px 0;
+  background: transparent;
+  padding: 5px 10px 5px 0;
+  border-right: 1px solid rgba(255,255,255,0.05);
   transition: background $dur-fast $ease;
 }
+
+.nameCellInner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 10px;
+}
+
+.dragHandle {
+  font-size: 11px;
+  color: #3a3a55;
+  cursor: grab;
+  opacity: 0;
+  flex-shrink: 0;
+  transition: opacity $dur-fast $ease;
+  user-select: none;
+  line-height: 1;
+  &:active { cursor: grabbing; }
+}
+
+.habitRow:hover .dragHandle { opacity: 1; }
 
 .habitLabel {
   font-size: $font-size-sm;
@@ -166,22 +208,24 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 150px;
+  max-width: 140px;
   display: block;
 }
 
 .cell {
   text-align: center;
-  padding: 4px 2px;
+  padding: 4px 3px;
   vertical-align: middle;
+  background: transparent;
   transition: background $dur-fast $ease;
 }
 
-.circle {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(255,255,255,0.07);
+/* ── Rounded squares ── */
+.sq {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  border: 1.5px solid rgba(255,255,255,0.08);
   background: transparent;
   display: inline-flex;
   align-items: center;
@@ -192,55 +236,56 @@
   user-select: none;
 }
 
-.circleToday {
+.sqToday {
   border-color: oklch(0.55 0.18 290);
   cursor: pointer;
-  box-shadow: 0 0 0 3px rgba(124,58,237,0.14);
+  box-shadow: 0 0 0 2px rgba(124,58,237,0.12);
   &:hover {
-    background: rgba(124,58,237,0.10);
-    box-shadow: 0 0 0 5px rgba(124,58,237,0.22);
+    background: rgba(124,58,237,0.12);
+    box-shadow: 0 0 0 3px rgba(124,58,237,0.20);
   }
 }
 
-.circlePast { border-color: rgba(255,255,255,0.05); }
-.circleFuture { border-color: rgba(255,255,255,0.03); opacity: 0.3; }
+.sqPast   { border-color: rgba(255,255,255,0.05); }
+.sqFuture { border-color: rgba(255,255,255,0.03); opacity: 0.25; }
 
-.circleChecked {
+.sqChecked {
   background: oklch(0.20 0.07 150);
   border-color: oklch(0.42 0.12 150);
   color: oklch(0.78 0.14 150);
 }
 
-.circleCheckedToday {
-  background: oklch(0.20 0.09 290);
-  border-color: oklch(0.55 0.18 290);
-  color: oklch(0.82 0.15 290);
-  box-shadow: 0 0 0 3px rgba(124,58,237,0.22);
-  animation: haPop 280ms $ease forwards;
+.sqCheckedToday {
+  background: oklch(0.22 0.09 150);
+  border-color: oklch(0.50 0.14 150);
+  color: oklch(0.82 0.16 150);
+  animation: haPop 260ms $ease forwards;
 }
 
 .checkMark { font-size: 11px; line-height: 1; pointer-events: none; }
 
-/* ── Bottom panel ── */
-.bottom {
+/* ── Bottom row ── */
+.bottomRow {
   display: flex;
-  gap: 0;
-  border-top: 1px solid rgba(255,255,255,0.05);
-  min-height: 130px;
-  max-height: 150px;
+  gap: 10px;
+  height: 148px;
   flex-shrink: 0;
 }
 
-.graphWrap {
-  flex: 0 0 65%;
+.chartCard {
+  flex: 0 0 62%;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.02);
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 14px $sp-6;
+  overflow: hidden;
   min-width: 0;
 }
 
-.graphTitle {
+.chartLabel {
   font-size: $font-size-xs;
   color: #5a5a7a;
   text-transform: uppercase;
@@ -255,10 +300,18 @@
   display: block;
 }
 
-.insightPanel {
+.yLabel {
+  font-size: 8px;
+  fill: #4a4a68;
+  font-family: monospace;
+}
+
+.insightCard {
   flex: 1;
-  border-left: 1px solid rgba(255,255,255,0.05);
-  padding: 14px $sp-4;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.02);
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -280,18 +333,33 @@
   flex-shrink: 0;
 }
 
-.insightValue {
-  font-size: 1.9rem;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.04em;
-  color: #eeeef5;
+.insightHabitRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
 }
 
-.insightDesc {
+.insightDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.insightHabitName {
+  font-size: $font-size-base;
+  font-weight: 700;
+  color: #eeeef5;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.insightSub {
   font-size: $font-size-xs;
   color: #7878a0;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 /* Empty */
@@ -368,14 +436,14 @@
 .colorDot {
   width: 22px;
   height: 22px;
-  border-radius: 50%;
+  border-radius: 5px;
   border: 2px solid transparent;
   cursor: pointer;
   transition: transform $dur-fast $ease, border-color $dur-fast $ease;
-  &:hover { transform: scale(1.2); }
+  &:hover { transform: scale(1.18); }
 }
 
-.colorDotActive { border-color: rgba(255,255,255,0.65) !important; transform: scale(1.2); }
+.colorDotActive { border-color: rgba(255,255,255,0.65) !important; transform: scale(1.18); }
 
 .modalFooter { display: flex; justify-content: flex-end; gap: $sp-2; }
 
