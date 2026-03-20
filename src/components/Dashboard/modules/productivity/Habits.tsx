@@ -1,5 +1,5 @@
 'use client'
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useRef } from 'react'
 import styles from './Habits.module.scss'
 
 interface Habit { id: string; name: string; color: string }
@@ -17,7 +17,9 @@ const COLORS = [
 
 const MONTH_NAMES = ['January','February','March','April','May','June',
   'July','August','September','October','November','December']
-const DAY_NAMES = ['Su','Mo','Tu','We','Th','Fr','Sa']
+const DAY_NAMES  = ['Su','Mo','Tu','We','Th','Fr','Sa']
+const DAY_SHORT  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+const MON_SHORT  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
 function dk(d: Date) { return d.toISOString().slice(0, 10) }
 const TODAY = dk(new Date())
@@ -39,6 +41,9 @@ export default function Habits() {
   const [showAdd, setShowAdd]     = useState(false)
   const [newName, setNewName]     = useState('')
   const [newColor, setNewColor]   = useState(COLORS[0])
+  const [hoveredPt, setHoveredPt] = useState<number | null>(null)
+  const [tipPos, setTipPos]       = useState({ x: 0, y: 0 })
+  const svgRef                    = useRef<SVGSVGElement>(null)
 
   const monthKey = viewMonth.getFullYear() + '-' + viewMonth.getMonth()
 
@@ -64,30 +69,57 @@ export default function Habits() {
   const getCellState = (dateStr: string): 'today' | 'past' | 'future' =>
     dateStr === TODAY ? 'today' : dateStr < TODAY ? 'past' : 'future'
 
+  /* Chart data — includes done/total counts and date object for tooltip */
   const chartData = useMemo(() => {
     const days = monthDays.filter(d => dk(d) <= TODAY)
     if (!habits.length || !days.length) return []
     return days.map(d => {
       const ds = dk(d)
       const done = habits.filter(h => isChecked(h.id, ds)).length
-      return { day: d.getDate(), pct: done / habits.length }
+      return { day: d.getDate(), pct: done / habits.length, done, total: habits.length, date: d }
     })
   }, [monthDays, habits, isChecked])
 
+  /* SVG geometry — PB=14 reserves room for x-axis labels */
   const chartSvg = useMemo(() => {
     if (chartData.length < 1) return null
-    const W = 400, H = 72, PL = 28, PR = 6, PV = 6
+    const W = 400, H = 72, PL = 28, PR = 6, PT = 5, PB = 14
+    const cH = H - PT - PB
     const pts: [number, number][] = chartData.map((d, i) => [
       PL + (i / Math.max(chartData.length - 1, 1)) * (W - PL - PR),
-      PV + (1 - d.pct) * (H - PV * 2),
+      PT + (1 - d.pct) * cH,
     ])
     const polyline = pts.map(p => p.join(',')).join(' ')
-    const area = 'M' + pts[0][0] + ',' + H + ' ' +
+    const area = 'M' + pts[0][0] + ',' + (PT + cH) + ' ' +
       pts.map(p => 'L' + p[0] + ',' + p[1]).join(' ') +
-      ' L' + pts[pts.length - 1][0] + ',' + H + ' Z'
-    return { pts, polyline, area, W, H, PL, PV }
+      ' L' + pts[pts.length - 1][0] + ',' + (PT + cH) + ' Z'
+    return { pts, polyline, area, W, H, PL, PR, PT, PB, cH }
   }, [chartData])
 
+  /* SVG hover — find nearest point within 18px (viewBox units) */
+  const onSvgMove = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
+    if (!chartSvg || !svgRef.current) return
+    const rect = svgRef.current.getBoundingClientRect()
+    const vbX = (e.clientX - rect.left) / rect.width  * chartSvg.W
+    const vbY = (e.clientY - rect.top)  / rect.height * chartSvg.H
+    let best: number | null = null, bestD = Infinity
+    chartSvg.pts.forEach(([px, py], i) => {
+      const d = Math.hypot(px - vbX, py - vbY)
+      if (d < bestD && d < 18) { bestD = d; best = i }
+    })
+    setHoveredPt(best)
+    if (best !== null) {
+      const [px, py] = chartSvg.pts[best]
+      setTipPos({
+        x: (px / chartSvg.W) * rect.width,
+        y: (py / chartSvg.H) * rect.height,
+      })
+    }
+  }, [chartSvg])
+
+  const onSvgLeave = useCallback(() => setHoveredPt(null), [])
+
+  /* Insight: most consistently done habit this month */
   const insight = useMemo(() => {
     if (!habits.length) return null
     const pastDays = monthDays.filter(d => dk(d) <= TODAY)
@@ -108,6 +140,9 @@ export default function Habits() {
     setNewName(''); setNewColor(COLORS[0]); setShowAdd(false)
   }
 
+  /* Tooltip data for hovered point */
+  const tip = hoveredPt !== null ? chartData[hoveredPt] : null
+
   return (
     <div className={styles.wrap}>
 
@@ -126,7 +161,7 @@ export default function Habits() {
       {/* ── Content ── */}
       <div className={styles.content}>
 
-        {/* Monthly grid card — key forces remount + animation on month change */}
+        {/* Monthly grid card */}
         <div className={styles.gridCard} key={monthKey}>
           {habits.length === 0 ? (
             <div className={styles.empty}>
@@ -190,51 +225,108 @@ export default function Habits() {
         {/* ── Bottom row ── */}
         <div className={styles.bottomRow}>
 
-          {/* Line chart — key forces remount + animation on month change */}
+          {/* Line chart */}
           <div className={styles.chartCard} key={monthKey + '-chart'}>
-            {chartSvg ? (
-              <svg
-                className={styles.graphSvg}
-                viewBox={'0 0 ' + chartSvg.W + ' ' + chartSvg.H}
-                preserveAspectRatio="none"
-              >
-                <defs>
-                  <linearGradient id="habGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="oklch(0.55 0.18 290)" stopOpacity="0.30" />
-                    <stop offset="100%" stopColor="oklch(0.55 0.18 290)" stopOpacity="0.02" />
-                  </linearGradient>
-                </defs>
-                {([{ v: 1, label: '100%' }, { v: 0.5, label: '50%' }, { v: 0, label: '0%' }] as const).map(({ v, label }) => {
-                  const y = chartSvg.PV + (1 - v) * (chartSvg.H - chartSvg.PV * 2)
-                  return (
-                    <g key={v}>
-                      <line x1={chartSvg.PL} y1={y} x2={chartSvg.W - 6} y2={y}
-                        stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-                      <text x={chartSvg.PL - 4} y={y + 3} className={styles.yLabel} textAnchor="end">
-                        {label}
-                      </text>
-                    </g>
-                  )
-                })}
-                <path d={chartSvg.area} fill="url(#habGrad)" />
-                <polyline
-                  points={chartSvg.polyline}
-                  fill="none"
-                  stroke="oklch(0.65 0.16 290)"
-                  strokeWidth="1.5"
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                />
-                {chartSvg.pts.map(([x, y], i) => (
-                  <circle key={i} cx={x} cy={y} r={2.5} fill="oklch(0.75 0.16 290)" />
-                ))}
-              </svg>
-            ) : (
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center',
-                justifyContent: 'center', opacity: 0.25, fontSize: 11 }}>
-                No data yet
-              </div>
-            )}
+            <span className={styles.chartTitle}>Completion rate</span>
+            <div className={styles.graphWrap}>
+              {chartSvg ? (
+                <>
+                  <svg
+                    ref={svgRef}
+                    className={styles.graphSvg}
+                    viewBox={'0 0 ' + chartSvg.W + ' ' + chartSvg.H}
+                    preserveAspectRatio="none"
+                    onMouseMove={onSvgMove}
+                    onMouseLeave={onSvgLeave}
+                    style={{ cursor: 'crosshair' }}
+                  >
+                    <defs>
+                      <linearGradient id="habGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="oklch(0.55 0.18 290)" stopOpacity="0.22" />
+                        <stop offset="100%" stopColor="oklch(0.55 0.18 290)" stopOpacity="0.02" />
+                      </linearGradient>
+                    </defs>
+
+                    {/* Y grid lines + labels */}
+                    {([{ v: 1, label: '100%' }, { v: 0.5, label: '50%' }, { v: 0, label: '0%' }] as const).map(({ v, label }) => {
+                      const y = chartSvg.PT + (1 - v) * chartSvg.cH
+                      return (
+                        <g key={v}>
+                          <line x1={chartSvg.PL} y1={y} x2={chartSvg.W - chartSvg.PR} y2={y}
+                            stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+                          <text x={chartSvg.PL - 4} y={y + 3} className={styles.yLabel} textAnchor="end">
+                            {label}
+                          </text>
+                        </g>
+                      )
+                    })}
+
+                    {/* X axis day labels — every ~8 steps */}
+                    {chartData.map((d, i) => {
+                      const step = Math.max(1, Math.floor(chartData.length / 8))
+                      if (i % step !== 0 && i !== chartData.length - 1) return null
+                      const x = chartSvg.PL + (i / Math.max(chartData.length - 1, 1)) * (chartSvg.W - chartSvg.PL - chartSvg.PR)
+                      return (
+                        <text key={i} x={x} y={chartSvg.H - 2} className={styles.xLabel} textAnchor="middle">
+                          {d.day}
+                        </text>
+                      )
+                    })}
+
+                    <path d={chartSvg.area} fill="url(#habGrad)" />
+                    <polyline
+                      points={chartSvg.polyline}
+                      fill="none"
+                      stroke="oklch(0.65 0.16 290)"
+                      strokeWidth="1"
+                      strokeLinejoin="round"
+                      strokeLinecap="round"
+                    />
+                    {chartSvg.pts.map(([x, y], i) => (
+                      <circle
+                        key={i} cx={x} cy={y}
+                        r={hoveredPt === i ? 3.5 : 1.5}
+                        fill={hoveredPt === i ? 'oklch(0.82 0.18 290)' : 'oklch(0.72 0.16 290)'}
+                      />
+                    ))}
+                  </svg>
+
+                  {/* Hover tooltip */}
+                  {tip && (
+                    <div
+                      className={styles.chartTip}
+                      style={{
+                        left: Math.max(2, tipPos.x - 68),
+                        top: Math.max(2, tipPos.y - 100),
+                      }}
+                    >
+                      <div className={styles.ctDate}>
+                        {DAY_SHORT[tip.date.getDay()]} {MON_SHORT[tip.date.getMonth()]} {tip.day}
+                      </div>
+                      <div className={styles.ctPct}>{Math.round(tip.pct * 100)}%</div>
+                      <div className={styles.ctBar}>
+                        <div className={styles.ctFill} style={{ width: Math.round(tip.pct * 100) + '%' }} />
+                      </div>
+                      <div className={styles.ctDetail}>
+                        <span className={styles.ctItem}>
+                          <span className={styles.ctDot} style={{ background: 'oklch(0.65 0.14 150)' }} />
+                          {tip.done} done
+                        </span>
+                        <span className={styles.ctItem}>
+                          <span className={styles.ctDot} style={{ background: 'oklch(0.65 0.15 20)' }} />
+                          {tip.total - tip.done} missed
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', opacity: 0.25, fontSize: 11 }}>
+                  No data yet
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Insight */}
