@@ -1,259 +1,284 @@
-"use client"
+'use client'
+import { useState, useMemo, useCallback } from 'react'
+import styles from './Habits.module.scss'
 
-import React, { useState, useMemo } from "react"
-import styles from "./Habits.module.scss"
+interface Habit { id: string; name: string; color: string }
+type CheckMap = Record<string, Record<string, boolean>>
 
-interface Habit {
-  id: string; emoji: string; name: string; freq: "daily" | "weekdays" | "custom"
-}
-
-interface CheckMap { [habitId: string]: { [dateKey: string]: boolean } }
-
-function makeId() { return Math.random().toString(36).slice(2) }
-
-const EMOJIS = ["💧","🏃","📖","🧘","💊","🥗","😴","✍️","🎯","🔥","💡","🌱"]
-
-const SAMPLE_HABITS: Habit[] = [
-  { id: makeId(), emoji: "💧", name: "Drink 8 glasses", freq: "daily" },
-  { id: makeId(), emoji: "🏃", name: "Exercise 30min", freq: "weekdays" },
-  { id: makeId(), emoji: "📖", name: "Read 20 pages", freq: "daily" },
-  { id: makeId(), emoji: "🧘", name: "Meditate", freq: "daily" },
-  { id: makeId(), emoji: "💊", name: "Vitamins", freq: "daily" },
-  { id: makeId(), emoji: "✍️", name: "Journal", freq: "daily" },
+const COLORS = [
+  'oklch(0.55 0.18 290)',
+  'oklch(0.65 0.14 150)',
+  'oklch(0.62 0.16 80)',
+  'oklch(0.65 0.15 20)',
+  'oklch(0.60 0.15 220)',
+  'oklch(0.62 0.15 310)',
+  'oklch(0.65 0.13 180)',
 ]
-function getWeekStart(d: Date): Date {
-  const day = d.getDay()
-  const diff = day === 0 ? 6 : day - 1
-  const mon = new Date(d)
-  mon.setDate(d.getDate() - diff)
-  mon.setHours(0, 0, 0, 0)
-  return mon
-}
 
-function getWeekDays(start: Date): Date[] {
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(start)
-    d.setDate(start.getDate() + i)
-    return d
-  })
-}
+const MONTH_NAMES = ['January','February','March','April','May','June',
+  'July','August','September','October','November','December']
+const DAY_NAMES = ['Su','Mo','Tu','We','Th','Fr','Sa']
+const DOW_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
 
-function dk(d: Date): string {
-  return d.toISOString().split("T")[0]
-}
+function dk(d: Date) { return d.toISOString().slice(0, 10) }
+const TODAY = dk(new Date())
 
-function fmtWeek(start: Date, end: Date): string {
-  const sM = start.toLocaleString("default", { month: "short" })
-  const eM = end.toLocaleString("default", { month: "short" })
-  if (sM === eM) return sM + " " + start.getDate() + " – " + end.getDate() + ", " + start.getFullYear()
-  return sM + " " + start.getDate() + " – " + eM + " " + end.getDate() + ", " + end.getFullYear()
-}
+const SAMPLE: Habit[] = [
+  { id: '1', name: 'Morning workout', color: COLORS[1] },
+  { id: '2', name: 'Read 30 min',     color: COLORS[0] },
+  { id: '3', name: 'Meditate',        color: COLORS[2] },
+]
 
-const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+export default function Habits() {
+  const [habits, setHabits]       = useState<Habit[]>(SAMPLE)
+  const [checks, setChecks]       = useState<CheckMap>({})
+  const [viewMonth, setViewMonth] = useState(() => new Date())
+  const [showAdd, setShowAdd]     = useState(false)
+  const [newName, setNewName]     = useState('')
+  const [newColor, setNewColor]   = useState(COLORS[0])
 
-interface FormState { emoji: string; name: string; freq: "daily" | "weekdays" | "custom" }
-const DFORM: FormState = { emoji: "💧", name: "", freq: "daily" }
-const Habits: React.FC = () => {
-  const today = useMemo(() => new Date(), [])
-  const todayKey = dk(today)
-  const [weekOffset, setWeekOffset] = useState(0)
-  const [habits, setHabits] = useState<Habit[]>(SAMPLE_HABITS)
-  const [checks, setChecks] = useState<CheckMap>(() => {
-    const m: CheckMap = {}
-    SAMPLE_HABITS.forEach(h => {
-      m[h.id] = {}
-      for (let i = -14; i <= 0; i++) {
-        const d = new Date(today)
-        d.setDate(today.getDate() + i)
-        if (Math.random() > 0.35) m[h.id][dk(d)] = true
-      }
-    })
-    return m
-  })
-  const [open, setOpen] = useState(false)
-  const [editHabit, setEditHabit] = useState<Habit | null>(null)
-  const [form, setForm] = useState<FormState>(DFORM)
+  const monthDays = useMemo(() => {
+    const y = viewMonth.getFullYear(), m = viewMonth.getMonth()
+    const last = new Date(y, m + 1, 0).getDate()
+    return Array.from({ length: last }, (_, i) => new Date(y, m, i + 1))
+  }, [viewMonth])
 
-  const weekStart = useMemo(() => {
-    const ws = getWeekStart(today)
-    ws.setDate(ws.getDate() + weekOffset * 7)
-    return ws
-  }, [today, weekOffset])
+  const prevMonth = () => setViewMonth(d => new Date(d.getFullYear(), d.getMonth() - 1, 1))
+  const nextMonth = () => setViewMonth(d => new Date(d.getFullYear(), d.getMonth() + 1, 1))
 
-  const days = useMemo(() => getWeekDays(weekStart), [weekStart])
+  const isChecked = useCallback((habitId: string, dateStr: string) =>
+    checks[habitId]?.[dateStr] ?? false, [checks])
 
-  const toggle = (hid: string, dkey: string) => {
+  const toggle = useCallback((habitId: string) => {
     setChecks(prev => {
-      const hc = { ...prev[hid] }
-      if (hc[dkey]) { delete hc[dkey] } else { hc[dkey] = true }
-      return { ...prev, [hid]: hc }
+      const hMap = prev[habitId] ?? {}
+      return { ...prev, [habitId]: { ...hMap, [TODAY]: !(hMap[TODAY] ?? false) } }
     })
-  }
+  }, [])
 
-  const getStreak = (hid: string): number => {
-    let streak = 0
-    const d = new Date(today)
-    while (true) {
-      const k = dk(d)
-      if (checks[hid] && checks[hid][k]) { streak++; d.setDate(d.getDate() - 1) }
-      else break
+  const getCellState = (dateStr: string): 'today' | 'past' | 'future' =>
+    dateStr === TODAY ? 'today' : dateStr < TODAY ? 'past' : 'future'
+
+  /* Line chart data — daily completion % for viewed month up to today */
+  const chartData = useMemo(() => {
+    const days = monthDays.filter(d => dk(d) <= TODAY)
+    if (!habits.length || !days.length) return []
+    return days.map(d => {
+      const ds = dk(d)
+      const done = habits.filter(h => isChecked(h.id, ds)).length
+      return { day: d.getDate(), pct: done / habits.length }
+    })
+  }, [monthDays, habits, isChecked])
+
+  /* SVG polyline geometry */
+  const chartSvg = useMemo(() => {
+    if (chartData.length < 1) return null
+    const W = 400, H = 72, PAD = 6
+    const pts: [number, number][] = chartData.map((d, i) => [
+      PAD + (i / Math.max(chartData.length - 1, 1)) * (W - PAD * 2),
+      PAD + (1 - d.pct) * (H - PAD * 2),
+    ])
+    const polyline = pts.map(p => p.join(',')).join(' ')
+    const area = `M${pts[0][0]},${H} ` +
+      pts.map(p => `L${p[0]},${p[1]}`).join(' ') +
+      ` L${pts[pts.length - 1][0]},${H} Z`
+    return { pts, polyline, area, W, H }
+  }, [chartData])
+
+  /* Insight: most consistent day of week */
+  const insight = useMemo(() => {
+    if (!habits.length) return { value: '—', desc: 'Add habits to see insights' }
+    const sums = Array(7).fill(0), counts = Array(7).fill(0)
+    monthDays.forEach(d => {
+      const ds = dk(d)
+      if (ds > TODAY) return
+      const dow = d.getDay()
+      counts[dow]++
+      sums[dow] += habits.filter(h => isChecked(h.id, ds)).length / habits.length
+    })
+    let best = -1, bestPct = -1
+    for (let i = 0; i < 7; i++) {
+      const rate = counts[i] > 0 ? sums[i] / counts[i] : -1
+      if (rate > bestPct) { bestPct = rate; best = i }
     }
-    return streak
-  }
-
-  const openAdd = () => { setEditHabit(null); setForm(DFORM); setOpen(true) }
-  const openEdit = (h: Habit) => {
-    setEditHabit(h)
-    setForm({ emoji: h.emoji, name: h.name, freq: h.freq })
-    setOpen(true)
-  }
-
-  const save = () => {
-    if (!form.name.trim()) return
-    if (editHabit) {
-      setHabits(hs => hs.map(h => h.id === editHabit.id ? { ...h, ...form } : h))
-    } else {
-      const id = makeId()
-      setHabits(hs => [...hs, { id, ...form }])
-      setChecks(prev => ({ ...prev, [id]: {} }))
+    if (bestPct <= 0) return { value: '—', desc: 'Start checking off habits to see insights' }
+    return {
+      value: `${Math.round(bestPct * 100)}%`,
+      desc: `completion rate on ${DOW_NAMES[best]}s — your strongest day this month`,
     }
-    setOpen(false)
+  }, [habits, monthDays, isChecked])
+
+  const addHabit = () => {
+    if (!newName.trim()) return
+    setHabits(prev => [...prev, { id: Date.now().toString(), name: newName.trim(), color: newColor }])
+    setNewName(''); setNewColor(COLORS[0]); setShowAdd(false)
   }
 
-  const del = (id: string) => {
-    setHabits(hs => hs.filter(h => h.id !== id))
-    setChecks(prev => { const n = { ...prev }; delete n[id]; return n })
-    setOpen(false)
-  }
-
-  const weekEnd = days[6]
-  const weekLbl = fmtWeek(weekStart, weekEnd)
   return (
     <div className={styles.wrap}>
-      <div className={styles.header}>
-        <div className={styles.headerLeft}>
-          <div className={styles.pageTitle}>Habits</div>
-          <div className={styles.weekNav}>
-            <button className={styles.weekNavBtn} onClick={() => setWeekOffset(w => w - 1)} aria-label="Previous week">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>
-            </button>
-            <div className={styles.weekLabel}>{weekLbl}</div>
-            <button className={styles.weekNavBtn} onClick={() => setWeekOffset(w => w + 1)} aria-label="Next week">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 6 15 12 9 18" /></svg>
-            </button>
-          </div>
-          <button className={styles.todayBtn} onClick={() => setWeekOffset(0)}>Today</button>
+
+      {/* ── Top bar ── */}
+      <div className={styles.topBar}>
+        <span className={styles.modLabel}>MODULE</span>
+        <div className={styles.monthNav}>
+          <button className={styles.navBtn} onClick={prevMonth}>‹</button>
+          <span className={styles.monthLabel}>
+            {MONTH_NAMES[viewMonth.getMonth()]} {viewMonth.getFullYear()}
+          </span>
+          <button className={styles.navBtn} onClick={nextMonth}>›</button>
         </div>
-        <div className={styles.headerRight}>
-          <button className={styles.addBtn} onClick={openAdd}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Add habit
-          </button>
-        </div>
+        <span className={styles.title}>Habits</span>
+        <button className={styles.addBtn} onClick={() => setShowAdd(true)}>+ Add habit</button>
       </div>
-      <div className={styles.body}>
-        <table className={styles.table}>
-          <thead className={styles.thead}>
-            <tr>
-              <th className={styles.thCorner}>Habit</th>
-              {days.map((d, i) => {
-                const isToday = dk(d) === todayKey
-                return (
-                  <th key={i} className={[styles.thDay, isToday ? styles.thDayToday : ""].filter(Boolean).join(" ")}>
-                    <span className={styles.thDayNum}>{d.getDate()}</span>
-                    <span className={styles.thDayName}>{DAY_NAMES[i]}</span>
-                  </th>
-                )
-              })}
-            </tr>
-          </thead>
-          <tbody>
-            {habits.map(h => {
-              const streak = getStreak(h.id)
-              return (
-                <tr key={h.id} className={styles.habitRow}>
-                  <td className={styles.habitName} onClick={() => openEdit(h)}>
-                    <span className={styles.dragHandle}><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg></span><span className={styles.habitEmoji}>{h.emoji}</span>
-                    <div>
-                      <div className={styles.habitLabel}>{h.name}</div>
-                      {streak > 0 && <div className={[styles.habitStreak, streak >= 7 ? styles.streakHot : ""].filter(Boolean).join(" ")}>{streak} day streak 🔥</div>}
-                    </div>
+
+      {/* ── Monthly grid ── */}
+      <div className={styles.gridWrap}>
+        {habits.length === 0 ? (
+          <div className={styles.empty}>
+            <span style={{ fontSize: 30, opacity: 0.25 }}>◎</span>
+            <span>No habits yet — add your first one above</span>
+          </div>
+        ) : (
+          <table className={styles.gridTable}>
+            <thead className={styles.thead}>
+              <tr>
+                <th className={styles.thCorner}>Habit</th>
+                {monthDays.map(d => {
+                  const ds = dk(d)
+                  return (
+                    <th key={ds} className={`${styles.thDay} ${ds === TODAY ? styles.thToday : ''}`}>
+                      <span className={styles.dayNum}>{d.getDate()}</span>
+                      <span className={styles.dayName}>{DAY_NAMES[d.getDay()]}</span>
+                    </th>
+                  )
+                })}
+              </tr>
+            </thead>
+            <tbody>
+              {habits.map(habit => (
+                <tr key={habit.id} className={styles.habitRow}>
+                  <td className={styles.nameCell}>
+                    <span className={styles.habitLabel} style={{ color: habit.color }}>
+                      {habit.name}
+                    </span>
                   </td>
-                  {days.map((d, i) => {
-                    const dkey = dk(d)
-                    const done = !!(checks[h.id] && checks[h.id][dkey])
+                  {monthDays.map(d => {
+                    const ds = dk(d)
+                    const state = getCellState(ds)
+                    const checked = isChecked(habit.id, ds)
+                    const cls = [
+                      styles.circle,
+                      state === 'today' && checked  ? styles.circleCheckedToday :
+                      state === 'today'             ? styles.circleToday :
+                      checked                       ? styles.circleChecked :
+                      state === 'past'              ? styles.circlePast :
+                                                      styles.circleFuture,
+                    ].join(' ')
                     return (
-                      <td key={i} className={styles.habitCell} onClick={() => toggle(h.id, dkey)}>
-                        <div className={[styles.checkBox, done ? styles.checkDone : ""].filter(Boolean).join(" ")}>
-                          {done && <span className={styles.checkMark}>✓</span>}
-                        </div>
+                      <td key={ds} className={styles.cell}>
+                        <span
+                          className={cls}
+                          onClick={state === 'today' ? () => toggle(habit.id) : undefined}
+                        >
+                          {checked && <span className={styles.checkMark}>✓</span>}
+                        </span>
                       </td>
                     )
                   })}
                 </tr>
-              )
-            })}            <tr className={styles.addRow}>
-              <td className={styles.addRowCell} colSpan={8}>
-                <button className={styles.addRowBtn} onClick={openAdd}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                  Add a new habit
-                </button>
-              </td>
-            </tr>
-            <tr className={styles.summaryRow}>
-              <td className={styles.summaryCorner}>Completion</td>
-              {days.map((d, i) => {
-                const dkey = dk(d)
-                const total = habits.length
-                const done = habits.filter(h => checks[h.id] && checks[h.id][dkey]).length
-                const pct = total ? Math.round(done / total * 100) : 0
-                const cls = pct >= 80 ? styles.pctGood : pct >= 50 ? styles.pctMed : styles.pctLow
-                return (
-                  <td key={i} className={styles.summaryCell}>
-                    <span className={[styles.pctBadge, cls].join(" ")}>{pct}%</span>
-                  </td>
-                )
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* ── Bottom panel ── */}
+      <div className={styles.bottom}>
+
+        {/* Line chart */}
+        <div className={styles.graphWrap}>
+          <span className={styles.graphTitle}>
+            Completion · {MONTH_NAMES[viewMonth.getMonth()]}
+          </span>
+          {chartSvg ? (
+            <svg
+              className={styles.graphSvg}
+              viewBox={`0 0 ${chartSvg.W} ${chartSvg.H}`}
+              preserveAspectRatio="none"
+            >
+              <defs>
+                <linearGradient id="habGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="oklch(0.55 0.18 290)" stopOpacity="0.30" />
+                  <stop offset="100%" stopColor="oklch(0.55 0.18 290)" stopOpacity="0.02" />
+                </linearGradient>
+              </defs>
+              {[0, 0.5, 1].map(v => {
+                const y = 6 + (1 - v) * (chartSvg.H - 12)
+                return <line key={v} x1={6} y1={y} x2={chartSvg.W - 6} y2={y}
+                  stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
               })}
-            </tr>
-          </tbody>
-        </table>
-      </div>      {open && (
-        <div className={styles.overlay} onClick={() => setOpen(false)}>
-          <div className={styles.modal} onClick={e => e.stopPropagation()}>
-            <div className={styles.modalTop}>
-              <div className={styles.modalTitle}>{editHabit ? "Edit habit" : "New habit"}</div>
-              <button className={styles.modalClose} onClick={() => setOpen(false)}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
+              <path d={chartSvg.area} fill="url(#habGrad)" />
+              <polyline
+                points={chartSvg.polyline}
+                fill="none"
+                stroke="oklch(0.65 0.16 290)"
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+                strokeLinecap="round"
+              />
+              {chartSvg.pts.map(([x, y], i) => (
+                <circle key={i} cx={x} cy={y} r={2.5} fill="oklch(0.75 0.16 290)" />
+              ))}
+            </svg>
+          ) : (
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center',
+              justifyContent: 'center', opacity: 0.25, fontSize: 11 }}>
+              No data yet
             </div>
-            <div className={styles.modalBody}>
-              <div className={styles.field}>
-                <label className={styles.label}>Emoji</label>
-                <div className={styles.emojiRow}>
-                  {EMOJIS.map(e => (
-                    <button key={e} className={[styles.emojiBtn, form.emoji === e ? styles.active : ""].filter(Boolean).join(" ")} onClick={() => setForm(f => ({ ...f, emoji: e }))}>{e}</button>
-                  ))}
-                </div>
-              </div>
-              <div className={styles.field}>
-                <label className={styles.label}>Name</label>
-                <input className={styles.input} value={form.name} placeholder="Habit name" onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-              </div>
-              <div className={styles.field}>
-                <label className={styles.label}>Frequency</label>
-                <div className={styles.freqRow}>
-                  {(["daily", "weekdays", "custom"] as const).map(fr => (
-                    <button key={fr} className={[styles.freqBtn, form.freq === fr ? styles.active : ""].filter(Boolean).join(" ")} onClick={() => setForm(f => ({ ...f, freq: fr }))}>
-                      {fr.charAt(0).toUpperCase() + fr.slice(1)}
-                    </button>
-                  ))}
-                </div>
+          )}
+        </div>
+
+        {/* Insight */}
+        <div className={styles.insightPanel}>
+          <span className={styles.insightBadge}>INSIGHT</span>
+          <span className={styles.insightValue}>{insight.value}</span>
+          <span className={styles.insightDesc}>{insight.desc}</span>
+        </div>
+      </div>
+
+      {/* ── Add modal ── */}
+      {showAdd && (
+        <div className={styles.overlay}
+          onClick={e => { if (e.target === e.currentTarget) setShowAdd(false) }}>
+          <div className={styles.modal}>
+            <span className={styles.modalTitle}>New habit</span>
+            <div className={styles.field}>
+              <label className={styles.label}>Name</label>
+              <input
+                className={styles.input}
+                value={newName}
+                onChange={e => setNewName(e.target.value)}
+                placeholder="e.g. Morning workout"
+                autoFocus
+                onKeyDown={e => { if (e.key === 'Enter') addHabit() }}
+              />
+            </div>
+            <div className={styles.field}>
+              <label className={styles.label}>Color</label>
+              <div className={styles.colorRow}>
+                {COLORS.map(c => (
+                  <span
+                    key={c}
+                    className={`${styles.colorDot} ${newColor === c ? styles.colorDotActive : ''}`}
+                    style={{ background: c }}
+                    onClick={() => setNewColor(c)}
+                  />
+                ))}
               </div>
             </div>
             <div className={styles.modalFooter}>
-              {editHabit && <button className={styles.deleteBtn} onClick={() => del(editHabit.id)}>Delete</button>}
-              <button className={styles.cancelBtn} onClick={() => setOpen(false)}>Cancel</button>
-              <button className={styles.saveBtn} onClick={save}>Save</button>
+              <button className={styles.cancelBtn} onClick={() => setShowAdd(false)}>Cancel</button>
+              <button className={styles.saveBtn} onClick={addHabit}>Add habit</button>
             </div>
           </div>
         </div>
@@ -261,5 +286,3 @@ const Habits: React.FC = () => {
     </div>
   )
 }
-
-export default Habits
