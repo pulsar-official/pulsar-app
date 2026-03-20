@@ -33,14 +33,14 @@ const SAMPLE: Habit[] = [
 ]
 
 export default function Habits() {
-  const [habits, setHabits]           = useState<Habit[]>(SAMPLE)
-  const [checks, setChecks]           = useState<CheckMap>({})
-  const [viewMonth, setViewMonth]     = useState(() => new Date())
-  const [showAdd, setShowAdd]         = useState(false)
-  const [newName, setNewName]         = useState('')
-  const [newColor, setNewColor]       = useState(COLORS[0])
-  const [dragIdx, setDragIdx]         = useState<number | null>(null)
-  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null)
+  const [habits, setHabits]       = useState<Habit[]>(SAMPLE)
+  const [checks, setChecks]       = useState<CheckMap>({})
+  const [viewMonth, setViewMonth] = useState(() => new Date())
+  const [showAdd, setShowAdd]     = useState(false)
+  const [newName, setNewName]     = useState('')
+  const [newColor, setNewColor]   = useState(COLORS[0])
+
+  const monthKey = viewMonth.getFullYear() + '-' + viewMonth.getMonth()
 
   const monthDays = useMemo(() => {
     const y = viewMonth.getFullYear(), m = viewMonth.getMonth()
@@ -63,20 +63,6 @@ export default function Habits() {
 
   const getCellState = (dateStr: string): 'today' | 'past' | 'future' =>
     dateStr === TODAY ? 'today' : dateStr < TODAY ? 'past' : 'future'
-
-  const onDragStart = (idx: number) => setDragIdx(idx)
-  const onDragOver = (e: React.DragEvent, idx: number) => { e.preventDefault(); setDragOverIdx(idx) }
-  const onDrop = (idx: number) => {
-    if (dragIdx === null || dragIdx === idx) return
-    setHabits(prev => {
-      const next = [...prev]
-      const [moved] = next.splice(dragIdx, 1)
-      next.splice(idx, 0, moved)
-      return next
-    })
-    setDragIdx(null); setDragOverIdx(null)
-  }
-  const onDragEnd = () => { setDragIdx(null); setDragOverIdx(null) }
 
   const chartData = useMemo(() => {
     const days = monthDays.filter(d => dk(d) <= TODAY)
@@ -134,17 +120,14 @@ export default function Habits() {
           </span>
           <button className={styles.navBtn} onClick={nextMonth}>›</button>
         </div>
-        <div className={styles.headerRight}>
-          <span className={styles.title}>Habits</span>
-          <button className={styles.addBtn} onClick={() => setShowAdd(true)}>+ Add habit</button>
-        </div>
+        <button className={styles.addBtn} onClick={() => setShowAdd(true)}>+ Add habit</button>
       </div>
 
       {/* ── Content ── */}
       <div className={styles.content}>
 
-        {/* Monthly grid card */}
-        <div className={styles.gridCard}>
+        {/* Monthly grid card — key forces remount + animation on month change */}
+        <div className={styles.gridCard} key={monthKey}>
           {habits.length === 0 ? (
             <div className={styles.empty}>
               <span style={{ fontSize: 28, opacity: 0.2 }}>◎</span>
@@ -167,27 +150,12 @@ export default function Habits() {
                 </tr>
               </thead>
               <tbody>
-                {habits.map((habit, idx) => (
-                  <tr
-                    key={habit.id}
-                    className={[
-                      styles.habitRow,
-                      dragIdx === idx ? styles.dragging : '',
-                      dragOverIdx === idx ? styles.dragOver : '',
-                    ].join(' ')}
-                    draggable
-                    onDragStart={() => onDragStart(idx)}
-                    onDragOver={e => onDragOver(e, idx)}
-                    onDrop={() => onDrop(idx)}
-                    onDragEnd={onDragEnd}
-                  >
+                {habits.map(habit => (
+                  <tr key={habit.id} className={styles.habitRow}>
                     <td className={styles.nameCell}>
-                      <div className={styles.nameCellInner}>
-                        <span className={styles.dragHandle}>⠿</span>
-                        <span className={styles.habitLabel} style={{ color: habit.color }}>
-                          {habit.name}
-                        </span>
-                      </div>
+                      <span className={styles.habitLabel} style={{ color: habit.color }}>
+                        {habit.name}
+                      </span>
                     </td>
                     {monthDays.map(d => {
                       const ds = dk(d)
@@ -202,7 +170,7 @@ export default function Habits() {
                                                        styles.sqFuture,
                       ].join(' ')
                       return (
-                        <td key={ds} className={styles.cell}>
+                        <td key={ds} className={styles.cell + (ds === TODAY ? ' ' + styles.cellToday : '')}>
                           <span
                             className={cls}
                             onClick={state === 'today' ? () => toggle(habit.id) : undefined}
@@ -222,11 +190,8 @@ export default function Habits() {
         {/* ── Bottom row ── */}
         <div className={styles.bottomRow}>
 
-          {/* Line chart */}
-          <div className={styles.chartCard}>
-            <span className={styles.chartLabel}>
-              Completion · {MONTH_NAMES[viewMonth.getMonth()]}
-            </span>
+          {/* Line chart — key forces remount + animation on month change */}
+          <div className={styles.chartCard} key={monthKey + '-chart'}>
             {chartSvg ? (
               <svg
                 className={styles.graphSvg}
@@ -274,7 +239,7 @@ export default function Habits() {
 
           {/* Insight */}
           <div className={styles.insightCard}>
-            <span className={styles.insightBadge}>INSIGHT</span>
+            <span className={styles.insightTitle}>Insights</span>
             {insight ? (
               <>
                 <div className={styles.insightHabitRow}>
