@@ -1,5 +1,5 @@
 'use client'
-import { useState, useMemo, useCallback, useRef } from 'react'
+import { useState, useMemo, useCallback, useRef, useLayoutEffect } from 'react'
 import styles from './Habits.module.scss'
 
 interface Habit { id: string; name: string; color: string }
@@ -34,6 +34,14 @@ const SAMPLE: Habit[] = [
   { id: '7', name: 'Journal entry',   color: COLORS[6] },
 ]
 
+const Y_LEVELS = [
+  { v: 1,    label: '100%' },
+  { v: 0.75, label: '75%'  },
+  { v: 0.5,  label: '50%'  },
+  { v: 0.25, label: '25%'  },
+  { v: 0,    label: '0%'   },
+] as const
+
 export default function Habits() {
   const [habits, setHabits]       = useState<Habit[]>(SAMPLE)
   const [checks, setChecks]       = useState<CheckMap>({})
@@ -43,9 +51,23 @@ export default function Habits() {
   const [newColor, setNewColor]   = useState(COLORS[0])
   const [hoveredPt, setHoveredPt] = useState<number | null>(null)
   const [tipPos, setTipPos]       = useState({ x: 0, y: 0 })
+  const [svgSize, setSvgSize]     = useState({ w: 400, h: 90 })
   const svgRef                    = useRef<SVGSVGElement>(null)
+  const graphWrapRef              = useRef<HTMLDivElement>(null)
 
   const monthKey = viewMonth.getFullYear() + '-' + viewMonth.getMonth()
+
+  /* Track actual pixel size of graphWrap — eliminates SVG distortion */
+  useLayoutEffect(() => {
+    const el = graphWrapRef.current
+    if (!el) return
+    const ro = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect
+      if (width > 0 && height > 0) setSvgSize({ w: Math.round(width), h: Math.round(height) })
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   const monthDays = useMemo(() => {
     const y = viewMonth.getFullYear(), m = viewMonth.getMonth()
@@ -69,7 +91,6 @@ export default function Habits() {
   const getCellState = (dateStr: string): 'today' | 'past' | 'future' =>
     dateStr === TODAY ? 'today' : dateStr < TODAY ? 'past' : 'future'
 
-  /* Chart data — includes done/total counts and date object for tooltip */
   const chartData = useMemo(() => {
     const days = monthDays.filter(d => dk(d) <= TODAY)
     if (!habits.length || !days.length) return []
@@ -80,10 +101,11 @@ export default function Habits() {
     })
   }, [monthDays, habits, isChecked])
 
-  /* SVG geometry — PB=14 reserves room for x-axis labels */
+  /* SVG geometry — uses actual pixel dims from ResizeObserver (no distortion) */
   const chartSvg = useMemo(() => {
     if (chartData.length < 1) return null
-    const W = 400, H = 72, PL = 28, PR = 6, PT = 5, PB = 14
+    const W = svgSize.w, H = svgSize.h
+    const PL = 32, PR = 8, PT = 6, PB = 18
     const cH = H - PT - PB
     const pts: [number, number][] = chartData.map((d, i) => [
       PL + (i / Math.max(chartData.length - 1, 1)) * (W - PL - PR),
@@ -94,26 +116,23 @@ export default function Habits() {
       pts.map(p => 'L' + p[0] + ',' + p[1]).join(' ') +
       ' L' + pts[pts.length - 1][0] + ',' + (PT + cH) + ' Z'
     return { pts, polyline, area, W, H, PL, PR, PT, PB, cH }
-  }, [chartData])
+  }, [chartData, svgSize])
 
-  /* SVG hover — find nearest point within 18px (viewBox units) */
+  /* SVG hover — 1:1 pixel mapping since viewBox = actual size */
   const onSvgMove = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     if (!chartSvg || !svgRef.current) return
     const rect = svgRef.current.getBoundingClientRect()
-    const vbX = (e.clientX - rect.left) / rect.width  * chartSvg.W
-    const vbY = (e.clientY - rect.top)  / rect.height * chartSvg.H
+    const vbX = e.clientX - rect.left
+    const vbY = e.clientY - rect.top
     let best: number | null = null, bestD = Infinity
     chartSvg.pts.forEach(([px, py], i) => {
       const d = Math.hypot(px - vbX, py - vbY)
-      if (d < bestD && d < 18) { bestD = d; best = i }
+      if (d < bestD && d < 20) { bestD = d; best = i }
     })
     setHoveredPt(best)
     if (best !== null) {
       const [px, py] = chartSvg.pts[best]
-      setTipPos({
-        x: (px / chartSvg.W) * rect.width,
-        y: (py / chartSvg.H) * rect.height,
-      })
+      setTipPos({ x: px, y: py })
     }
   }, [chartSvg])
 
@@ -140,7 +159,6 @@ export default function Habits() {
     setNewName(''); setNewColor(COLORS[0]); setShowAdd(false)
   }
 
-  /* Tooltip data for hovered point */
   const tip = hoveredPt !== null ? chartData[hoveredPt] : null
 
   return (
@@ -158,10 +176,35 @@ export default function Habits() {
         <button className={styles.addBtn} onClick={() => setShowAdd(true)}>+ Add habit</button>
       </div>
 
-      {/* ── Content ── */}
-      <div className={styles.content}>
+      {/* ── Main area: insight sidebar + monthly grid ── */}
+      <div className={styles.mainArea}>
 
-        {/* Monthly grid card */}
+        {/* Insight sidebar */}
+        <div className={styles.insightSidebar}>
+          <span className={styles.insightTitle}>Insights</span>
+          {insight ? (
+            <>
+              <div className={styles.insightHabitRow}>
+                <span className={styles.insightDot} style={{ background: insight.habit.color }} />
+                <span className={styles.insightHabitName}>{insight.habit.name}</span>
+              </div>
+              <div className={styles.insightPct}>{insight.pct}%</div>
+              <div className={styles.insightBar}>
+                <div className={styles.insightBarFill} style={{ width: insight.pct + '%' }} />
+              </div>
+              <span className={styles.insightSub}>
+                Most consistent this month<br />
+                {insight.count} of {insight.total} days
+              </span>
+            </>
+          ) : (
+            <span className={styles.insightSub}>
+              Check off habits to see your most consistent one here
+            </span>
+          )}
+        </div>
+
+        {/* Monthly grid */}
         <div className={styles.gridCard} key={monthKey}>
           {habits.length === 0 ? (
             <div className={styles.empty}>
@@ -222,133 +265,112 @@ export default function Habits() {
           )}
         </div>
 
-        {/* ── Bottom row ── */}
-        <div className={styles.bottomRow}>
+      </div>
 
-          {/* Line chart */}
-          <div className={styles.chartCard} key={monthKey + '-chart'}>
-            <span className={styles.chartTitle}>Completion rate</span>
-            <div className={styles.graphWrap}>
-              {chartSvg ? (
-                <>
-                  <svg
-                    ref={svgRef}
-                    className={styles.graphSvg}
-                    viewBox={'0 0 ' + chartSvg.W + ' ' + chartSvg.H}
-                    preserveAspectRatio="none"
-                    onMouseMove={onSvgMove}
-                    onMouseLeave={onSvgLeave}
-                    style={{ cursor: 'crosshair' }}
-                  >
-                    <defs>
-                      <linearGradient id="habGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="oklch(0.55 0.18 290)" stopOpacity="0.22" />
-                        <stop offset="100%" stopColor="oklch(0.55 0.18 290)" stopOpacity="0.02" />
-                      </linearGradient>
-                    </defs>
+      {/* ── Chart strip (full width, bottom) ── */}
+      <div className={styles.chartStrip} key={monthKey + '-chart'}>
+        <span className={styles.chartTitle}>Completion rate</span>
+        <div className={styles.graphWrap} ref={graphWrapRef}>
+          {chartSvg ? (
+            <>
+              <svg
+                ref={svgRef}
+                className={styles.graphSvg}
+                viewBox={`0 0 ${svgSize.w} ${svgSize.h}`}
+                onMouseMove={onSvgMove}
+                onMouseLeave={onSvgLeave}
+                style={{ cursor: 'crosshair' }}
+              >
+                <defs>
+                  <linearGradient id="habGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="oklch(0.55 0.18 290)" stopOpacity="0.20" />
+                    <stop offset="100%" stopColor="oklch(0.55 0.18 290)" stopOpacity="0.02" />
+                  </linearGradient>
+                </defs>
 
-                    {/* Y grid lines + labels */}
-                    {([{ v: 1, label: '100%' }, { v: 0.5, label: '50%' }, { v: 0, label: '0%' }] as const).map(({ v, label }) => {
-                      const y = chartSvg.PT + (1 - v) * chartSvg.cH
-                      return (
-                        <g key={v}>
-                          <line x1={chartSvg.PL} y1={y} x2={chartSvg.W - chartSvg.PR} y2={y}
-                            stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-                          <text x={chartSvg.PL - 4} y={y + 3} className={styles.yLabel} textAnchor="end">
-                            {label}
-                          </text>
-                        </g>
-                      )
-                    })}
-
-                    {/* X axis day labels — every ~8 steps */}
-                    {chartData.map((d, i) => {
-                      const step = Math.max(1, Math.floor(chartData.length / 8))
-                      if (i % step !== 0 && i !== chartData.length - 1) return null
-                      const x = chartSvg.PL + (i / Math.max(chartData.length - 1, 1)) * (chartSvg.W - chartSvg.PL - chartSvg.PR)
-                      return (
-                        <text key={i} x={x} y={chartSvg.H - 2} className={styles.xLabel} textAnchor="middle">
-                          {d.day}
-                        </text>
-                      )
-                    })}
-
-                    <path d={chartSvg.area} fill="url(#habGrad)" />
-                    <polyline
-                      points={chartSvg.polyline}
-                      fill="none"
-                      stroke="oklch(0.65 0.16 290)"
-                      strokeWidth="1"
-                      strokeLinejoin="round"
-                      strokeLinecap="round"
-                    />
-                    {chartSvg.pts.map(([x, y], i) => (
-                      <circle
-                        key={i} cx={x} cy={y}
-                        r={hoveredPt === i ? 3.5 : 1.5}
-                        fill={hoveredPt === i ? 'oklch(0.82 0.18 290)' : 'oklch(0.72 0.16 290)'}
+                {/* Y grid lines + labels — 5 levels */}
+                {Y_LEVELS.map(({ v, label }) => {
+                  const y = chartSvg.PT + (1 - v) * chartSvg.cH
+                  return (
+                    <g key={v}>
+                      <line
+                        x1={chartSvg.PL} y1={y}
+                        x2={chartSvg.W - chartSvg.PR} y2={y}
+                        stroke="rgba(255,255,255,0.04)"
+                        strokeWidth="1"
                       />
-                    ))}
-                  </svg>
+                      <text x={chartSvg.PL - 4} y={y + 3} className={styles.yLabel} textAnchor="end">
+                        {label}
+                      </text>
+                    </g>
+                  )
+                })}
 
-                  {/* Hover tooltip */}
-                  {tip && (
-                    <div
-                      className={styles.chartTip}
-                      style={{
-                        left: Math.max(2, tipPos.x - 68),
-                        top: Math.max(2, tipPos.y - 100),
-                      }}
-                    >
-                      <div className={styles.ctDate}>
-                        {DAY_SHORT[tip.date.getDay()]} {MON_SHORT[tip.date.getMonth()]} {tip.day}
-                      </div>
-                      <div className={styles.ctPct}>{Math.round(tip.pct * 100)}%</div>
-                      <div className={styles.ctBar}>
-                        <div className={styles.ctFill} style={{ width: Math.round(tip.pct * 100) + '%' }} />
-                      </div>
-                      <div className={styles.ctDetail}>
-                        <span className={styles.ctItem}>
-                          <span className={styles.ctDot} style={{ background: 'oklch(0.65 0.14 150)' }} />
-                          {tip.done} done
-                        </span>
-                        <span className={styles.ctItem}>
-                          <span className={styles.ctDot} style={{ background: 'oklch(0.65 0.15 20)' }} />
-                          {tip.total - tip.done} missed
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center',
-                  justifyContent: 'center', opacity: 0.25, fontSize: 11 }}>
-                  No data yet
+                {/* X axis day labels — every ~8 steps */}
+                {chartData.map((d, i) => {
+                  const step = Math.max(1, Math.floor(chartData.length / 8))
+                  if (i % step !== 0 && i !== chartData.length - 1) return null
+                  const x = chartSvg.PL + (i / Math.max(chartData.length - 1, 1)) * (chartSvg.W - chartSvg.PL - chartSvg.PR)
+                  return (
+                    <text key={i} x={x} y={chartSvg.H - 3} className={styles.xLabel} textAnchor="middle">
+                      {d.day}
+                    </text>
+                  )
+                })}
+
+                <path d={chartSvg.area} fill="url(#habGrad)" />
+                <polyline
+                  points={chartSvg.polyline}
+                  fill="none"
+                  stroke="oklch(0.65 0.16 290)"
+                  strokeWidth="1.2"
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                />
+                {chartSvg.pts.map(([x, y], i) => (
+                  <circle
+                    key={i} cx={x} cy={y}
+                    r={hoveredPt === i ? 4 : 2}
+                    fill={hoveredPt === i ? 'oklch(0.82 0.18 290)' : 'oklch(0.72 0.16 290)'}
+                  />
+                ))}
+              </svg>
+
+              {/* Hover tooltip */}
+              {tip && (
+                <div
+                  className={styles.chartTip}
+                  style={{
+                    left: Math.max(2, tipPos.x - 68),
+                    top: Math.max(2, tipPos.y - 108),
+                  }}
+                >
+                  <div className={styles.ctDate}>
+                    {DAY_SHORT[tip.date.getDay()]} {MON_SHORT[tip.date.getMonth()]} {tip.day}
+                  </div>
+                  <div className={styles.ctPct}>{Math.round(tip.pct * 100)}%</div>
+                  <div className={styles.ctBar}>
+                    <div className={styles.ctFill} style={{ width: Math.round(tip.pct * 100) + '%' }} />
+                  </div>
+                  <div className={styles.ctDetail}>
+                    <span className={styles.ctItem}>
+                      <span className={styles.ctDot} style={{ background: 'oklch(0.65 0.14 150)' }} />
+                      {tip.done} done
+                    </span>
+                    <span className={styles.ctItem}>
+                      <span className={styles.ctDot} style={{ background: 'oklch(0.65 0.15 20)' }} />
+                      {tip.total - tip.done} missed
+                    </span>
+                  </div>
                 </div>
               )}
+            </>
+          ) : (
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center',
+              justifyContent: 'center', opacity: 0.25, fontSize: 11 }}>
+              No data yet
             </div>
-          </div>
-
-          {/* Insight */}
-          <div className={styles.insightCard}>
-            <span className={styles.insightTitle}>Insights</span>
-            {insight ? (
-              <>
-                <div className={styles.insightHabitRow}>
-                  <span className={styles.insightDot} style={{ background: insight.habit.color }} />
-                  <span className={styles.insightHabitName}>{insight.habit.name}</span>
-                </div>
-                <span className={styles.insightSub}>
-                  Most consistent · {insight.count}/{insight.total} days · {insight.pct}% this month
-                </span>
-              </>
-            ) : (
-              <span className={styles.insightSub}>
-                Start checking off habits to see your most consistent one here
-              </span>
-            )}
-          </div>
-
+          )}
         </div>
       </div>
 

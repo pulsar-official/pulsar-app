@@ -13,14 +13,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px 12px;
+  padding: 14px 16px 10px;
   flex-shrink: 0;
-}
-
-.headerRight {
-  display: flex;
-  align-items: center;
-  gap: $sp-2;
 }
 
 .monthNav {
@@ -73,15 +67,91 @@
   &:hover { opacity: 0.85; }
 }
 
-/* ── Content area ── */
-.content {
+/* ── Main area: sidebar + grid (flex row) ── */
+.mainArea {
   flex: 1;
   display: flex;
-  flex-direction: column;
-  gap: 24px;
-  padding: 0 14px 14px;
+  flex-direction: row;
+  gap: 12px;
+  padding: 0 14px;
   overflow: hidden;
   min-height: 0;
+}
+
+/* ── Insight sidebar ── */
+.insightSidebar {
+  flex: 0 0 175px;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.02);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+  min-height: 0;
+  animation: haSlideIn 220ms $ease;
+}
+
+.insightTitle {
+  font-size: $font-size-xs;
+  font-weight: 700;
+  color: oklch(0.72 0.14 80);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+}
+
+.insightHabitRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.insightDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.insightHabitName {
+  font-size: $font-size-sm;
+  font-weight: 700;
+  color: #eeeef5;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.insightPct {
+  font-size: 36px;
+  font-weight: 700;
+  font-family: monospace;
+  color: oklch(0.78 0.16 150);
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.insightBar {
+  height: 3px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.insightBarFill {
+  height: 100%;
+  background: oklch(0.65 0.14 150);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.insightSub {
+  font-size: $font-size-xs;
+  color: #7878a0;
+  line-height: 1.5;
 }
 
 /* ── Grid card ── */
@@ -91,6 +161,7 @@
   border-radius: 12px;
   overflow: auto;
   background: rgba(255,255,255,0.02);
+  min-width: 0;
   min-height: 0;
   animation: haSlideIn 220ms $ease;
 }
@@ -107,9 +178,9 @@
   position: sticky;
   left: 0;
   z-index: 3;
-  background: oklch(0.10 0.03 290);
-  min-width: 160px;
-  width: 160px;
+  background: #0d0d13;
+  min-width: 130px;
+  width: 130px;
   padding: 8px 8px 10px 14px;
   font-size: $font-size-xs;
   color: #5a5a7a;
@@ -126,7 +197,7 @@
   width: 34px;
   text-align: center;
   padding: 8px 2px 10px;
-  background: oklch(0.10 0.03 290);
+  background: #0d0d13;
   vertical-align: bottom;
   border-bottom: 1px solid rgba(255,255,255,0.06);
 }
@@ -148,9 +219,10 @@
 }
 
 .thToday {
-  background: oklch(0.12 0.04 290);
-  .dayNum { color: oklch(0.72 0.14 290); }
-  .dayName { color: oklch(0.58 0.10 290); }
+  background: #0f0f16;
+  border-bottom: 2px solid rgba(255,255,255,0.16) !important;
+  .dayNum { color: #c0c0d8; }
+  .dayName { color: #7878a0; }
 }
 
 /* Rows */
@@ -181,7 +253,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 140px;
+  max-width: 110px;
   display: block;
 }
 
@@ -194,7 +266,7 @@
 }
 
 .cellToday {
-  background: rgba(124, 58, 237, 0.05) !important;
+  background: rgba(255,255,255,0.035) !important;
 }
 
 /* ── Rounded squares ── */
@@ -214,15 +286,15 @@
 }
 
 .sqToday {
-  border-color: rgba(255,255,255,0.20);
+  border-color: rgba(255,255,255,0.22);
   cursor: pointer;
   &:hover {
     background: rgba(255,255,255,0.07);
   }
 }
 
-.sqPast   { border-color: rgba(255,255,255,0.05); }
-.sqFuture { border-color: rgba(255,255,255,0.03); opacity: 0.25; }
+.sqPast   { border-color: rgba(255,255,255,0.06); background: rgba(255,255,255,0.025); }
+.sqFuture { border-color: rgba(255,255,255,0.03); opacity: 0.2; }
 
 .sqChecked {
   background: oklch(0.20 0.07 150);
@@ -239,25 +311,18 @@
 
 .checkMark { font-size: 11px; line-height: 1; pointer-events: none; }
 
-/* ── Bottom row ── */
-.bottomRow {
-  display: flex;
-  gap: 24px;
-  height: 180px;
+/* ── Chart strip (full width, bottom) ── */
+.chartStrip {
   flex-shrink: 0;
-}
-
-.chartCard {
-  flex: 0 0 62%;
+  height: 140px;
+  margin: 10px 14px 14px;
   border: 1px solid rgba(255,255,255,0.07);
   border-radius: 12px;
   background: rgba(255,255,255,0.02);
-  padding: 12px 14px;
+  padding: 10px 14px 8px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  overflow: hidden;
-  min-width: 0;
+  gap: 5px;
   animation: haSlideIn 220ms $ease;
 }
 
@@ -358,57 +423,6 @@
   height: 5px;
   border-radius: 50%;
   flex-shrink: 0;
-}
-
-.insightCard {
-  flex: 1;
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 12px;
-  background: rgba(255,255,255,0.02);
-  padding: 12px 14px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 6px;
-  min-width: 0;
-}
-
-.insightTitle {
-  font-size: $font-size-xs;
-  font-weight: 700;
-  color: oklch(0.72 0.14 80);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  flex-shrink: 0;
-}
-
-.insightHabitRow {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-
-.insightDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  flex-shrink: 0;
-}
-
-.insightHabitName {
-  font-size: $font-size-base;
-  font-weight: 700;
-  color: #eeeef5;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.insightSub {
-  font-size: $font-size-xs;
-  color: #7878a0;
-  line-height: 1.4;
 }
 
 /* Empty */
