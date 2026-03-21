@@ -12,19 +12,19 @@
 .entryDot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .entryItemInfo { flex: 1; min-width: 0; }
 .entryItemTitle { font-size: 12px; font-weight: 500; color: $text-1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.entryItemDate { font-size: 10px; color: $text-3; margin-top: 1px; }
+.entryItemDate { font-size: 11px; color: $text-3; margin-top: 1px; }
 .editor { flex: 1; display: flex; flex-direction: column; background: $surface-2; border: 1px solid $border-subtle; border-radius: 10px; overflow: hidden; }
 .editorHeader { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid $border-subtle; flex-shrink: 0; gap: 12px; }
 .editorTitle { font-size: 16px; font-weight: 700; color: $text-1; border: none; background: transparent; outline: none; flex: 1; min-width: 0; font-family: inherit; &::placeholder { color: $text-3; } }
 .editorMeta { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .moodRow { display: flex; gap: 4px; }
-.moodBtn { font-size: 18px; padding: 2px 4px; border-radius: 4px; cursor: pointer; border: 2px solid transparent; background: none; transition: all 100ms ease; &:hover { background: $surface-3; transform: scale(1.1); } &.active { border-color: oklch(0.62 0.16 80); background: $surface-3; } }
+.moodBtn { font-size: 18px; padding: 5px 8px; border-radius: 4px; cursor: pointer; border: 2px solid transparent; background: none; transition: all 100ms ease; &:hover { background: $surface-3; transform: scale(1.1); } &.active { border-color: oklch(0.62 0.16 80); background: $surface-3; } }
 .editorBody { flex: 1; padding: 18px; overflow-y: auto; }
 .editorTextarea { width: 100%; height: 100%; min-height: 300px; background: transparent; border: none; outline: none; color: $text-1; font-size: 14px; font-family: inherit; line-height: 1.7; resize: none; &::placeholder { color: $text-3; } }
 .editorFooter { display: flex; align-items: center; justify-content: space-between; padding: 10px 18px; border-top: 1px solid $border-subtle; flex-shrink: 0; }
-.wordCount { font-size: 10px; color: $text-3; }
+.wordCount { font-size: 11px; color: $text-3; }
 .tagRow { display: flex; gap: 4px; flex-wrap: wrap; }
-.tag { font-size: 10px; padding: 3px 9px; border-radius: 99px; background: $surface-3; color: $text-2; cursor: pointer; border: 1px solid transparent; font-family: inherit; transition: all 100ms ease; &:hover { color: $text-1; border-color: $border; } }
+.tag { font-size: 11px; padding: 5px 12px; border-radius: 99px; background: $surface-3; color: $text-2; cursor: pointer; border: 1px solid transparent; font-family: inherit; transition: all 100ms ease; &:hover { color: $text-1; border-color: $border; } }
 .tagActive { background: oklch(0.20 0.08 80); color: oklch(0.80 0.14 80); border-color: oklch(0.32 0.10 80); }
 .empty { text-align: center; padding: 60px 20px; color: $text-3; font-size: 13px; flex: 1; display: flex; align-items: center; justify-content: center; }
 .deleteEntryBtn { background: none; border: none; color: $text-3; cursor: pointer; font-size: 11px; font-family: inherit; &:hover { color: oklch(0.65 0.15 20); } }
