@@ -1341,3 +1341,55 @@
     opacity: 1;
   }
 }
+
+// ─── Responsive ──────────────────────────────────────────────────────────────
+
+@media (max-width: 768px) {
+  .header {
+    padding: 12px 14px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .viewPane {
+    padding: 12px 14px;
+  }
+
+  .yearGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .monthShell {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .monthWeekRow {
+    min-height: 70px;
+  }
+
+  .weekShell {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .weekTimeGrid {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .dayBody {
+    flex-direction: column;
+  }
+
+  .daySidebar {
+    width: 100%;
+    flex-shrink: 1;
+  }
+
+  .dayHeader {
+    gap: 14px;
+    padding-bottom: 12px;
+  }
+}

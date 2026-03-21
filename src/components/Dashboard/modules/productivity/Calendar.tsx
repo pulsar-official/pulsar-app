@@ -6,6 +6,7 @@ import {
 } from 'react';
 
 import styles from './Calendar.module.scss';
+import { useProductivityStore } from '@/stores/productivityStore';
 
 import type {
   CalEvent, CalEventForm, CalendarView, CalendarAnim,
@@ -991,6 +992,27 @@ export default function PulsarCalendar() {
   const [form, setForm] = useState<CalEventForm>({
     title: '', date: fmt(new Date()), dateEnd: '', startTime: '', endTime: '', tag: 'default', recur: '',
   });
+  // Cross-module: overlay task due dates and goal deadlines as calendar events
+  const storeTasks = useProductivityStore(s => s.tasks)
+  const storeGoals = useProductivityStore(s => s.goals)
+  const crossModuleEvents = useMemo<CalEvent[]>(() => {
+    const derived: CalEvent[] = []
+    storeTasks.forEach(t => {
+      if (t.dueDate && !t.completed) {
+        derived.push({ id: `task-${t.id}`, title: `📋 ${t.title}`, date: t.dueDate, dateEnd: null, start: null, end: null, tag: 'work' as EventTag, recur: null })
+      }
+    })
+    storeGoals.forEach(g => {
+      if (g.deadline && !g.done) {
+        derived.push({ id: `goal-${g.id}`, title: `🎯 ${g.title}`, date: g.deadline, dateEnd: null, start: null, end: null, tag: 'personal' as EventTag, recur: null })
+      }
+    })
+    return derived
+  }, [storeTasks, storeGoals])
+
+  // Merge local events with cross-module overlay events
+  const allEvents = useMemo(() => [...events, ...crossModuleEvents], [events, crossModuleEvents])
+
   const [toastMsg, setToastMsg] = useState('');
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [notes, setNotes] = useState('');
@@ -1182,16 +1204,16 @@ export default function PulsarCalendar() {
         <main className={styles.main}>
           <div key={animKey} className={`${styles.viewPane}${animClass}`}>
             {view === 'year' && (
-              <YearView year={year} events={events} onMonthClick={m => { doAnim('zoom-in'); setMonth(m); setView('month'); }} />
+              <YearView year={year} events={allEvents} onMonthClick={m => { doAnim('zoom-in'); setMonth(m); setView('month'); }} />
             )}
             {view === 'month' && (
-              <MonthView year={year} month={month} events={events} use24h={use24h} onDayClick={handleDayClick} onDayDbl={ds => openCreate(ds)} onEventEdit={openEdit} />
+              <MonthView year={year} month={month} events={allEvents} use24h={use24h} onDayClick={handleDayClick} onDayDbl={ds => openCreate(ds)} onEventEdit={openEdit} />
             )}
             {view === 'week' && (
-              <WeekView date={new Date(year, month, day)} events={events} use24h={use24h} onDayClick={handleDayClick} onDayDbl={ds => openCreate(ds)} onEventEdit={openEdit} />
+              <WeekView date={new Date(year, month, day)} events={allEvents} use24h={use24h} onDayClick={handleDayClick} onDayDbl={ds => openCreate(ds)} onEventEdit={openEdit} />
             )}
             {view === 'day' && (
-              <DayView date={new Date(year, month, day)} events={events} use24h={use24h} onEventEdit={openEdit} onHourDbl={hr => openCreate(fmt(new Date(year, month, day)), `${String(hr).padStart(2, '0')}:00`)} notes={notes} onNotesChange={saveNotes} />
+              <DayView date={new Date(year, month, day)} events={allEvents} use24h={use24h} onEventEdit={openEdit} onHourDbl={hr => openCreate(fmt(new Date(year, month, day)), `${String(hr).padStart(2, '0')}:00`)} notes={notes} onNotesChange={saveNotes} />
             )}
           </div>
         </main>

@@ -12,6 +12,14 @@ const CSS = `
 @keyframes pfPulse{0%,100%{opacity:.4}50%{opacity:1}}
 @keyframes pfShimmer{0%{background-position:-200% center}100%{background-position:200% center}}
 .pf-shim{background:linear-gradient(90deg,#a78bfa,#e879f9 25%,#c4b5fd 50%,#818cf8 75%,#a78bfa);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:pfShimmer 5s linear infinite}
+@media(max-width:768px){
+  .pf-section{padding-left:20px!important;padding-right:20px!important}
+  .pf-pillar-row{flex-direction:column!important}
+  .pf-pillar-sidebar{flex:none!important;position:static!important;width:100%!important}
+  .pf-grid-2{grid-template-columns:1fr!important}
+  .pf-showcase-inner{grid-template-columns:1fr!important}
+  .pf-showcase-sidebar{display:none!important}
+}
 `;
 
 const M = { bg: '#0c0c14', s1: '#111119', s2: '#18182a', s3: '#222236', bd: 'rgba(255,255,255,0.06)', t3: '#65657a', t4: '#45455a', mn: "'JetBrains Mono',monospace" };
@@ -368,9 +376,9 @@ function PillarSection({ pillar, index }) {
   const shown = expanded ? pillar.subs : pillar.subs.slice(0, 4);
   const hasMore = pillar.subs.length > 4;
   return (
-    <section ref={reveal.ref} id={pillar.name.toLowerCase()} style={{ padding: '80px 40px', borderBottom: '1px solid var(--bd)', maxWidth: 1200, margin: '0 auto' }}>
-      <div style={{ display: 'flex', gap: 48, flexDirection: index % 2 ? 'row-reverse' : 'row' }}>
-        <div style={{ flex: '0 0 300px', position: 'sticky', top: 100, opacity: reveal.v ? 1 : 0, transform: reveal.v ? 'none' : 'translateY(24px)', transition: 'all 0.7s var(--ease)' }}>
+    <section ref={reveal.ref} id={pillar.name.toLowerCase()} className="pf-section" style={{ padding: '80px 40px', borderBottom: '1px solid var(--bd)', maxWidth: 1200, margin: '0 auto' }}>
+      <div className="pf-pillar-row" style={{ display: 'flex', gap: 48, flexDirection: index % 2 ? 'row-reverse' : 'row' }}>
+        <div className="pf-pillar-sidebar" style={{ flex: '0 0 300px', position: 'sticky', top: 100, opacity: reveal.v ? 1 : 0, transform: reveal.v ? 'none' : 'translateY(24px)', transition: 'all 0.7s var(--ease)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
             <span style={{ fontSize: '1.8rem' }}>{pillar.icon}</span>
             <div>
@@ -384,7 +392,7 @@ function PillarSection({ pillar, index }) {
           </div>
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+          <div className="pf-grid-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
             {shown.map((sub, si) => (
               <div key={si}
                 style={{ padding: '18px 20px', borderRadius: 12, background: 'var(--s1)', border: '1px solid var(--bd2)', transition: 'all 0.25s var(--ease)', opacity: reveal.v ? 1 : 0, transform: reveal.v ? 'none' : 'translateY(16px)', transitionDelay: (si * 0.03) + 's' }}
@@ -416,7 +424,7 @@ export default function PulsarFeatures() {
   return (
     <div className="pf">
       <LandingNav />
-      <section ref={hero.ref} style={{ padding: '100px 40px 80px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+      <section ref={hero.ref} style={{ padding: '100px 40px 80px', textAlign: 'center', position: 'relative', overflow: 'hidden' }} className="pf-section">
         <div style={{ position: 'absolute', top: '25%', left: '50%', transform: 'translate(-50%,-50%)', width: 800, height: 800, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,58,237,0.06), transparent 55%)', pointerEvents: 'none' }} />
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 720, margin: '0 auto', opacity: hero.v ? 1 : 0, transform: hero.v ? 'none' : 'translateY(28px)', transition: 'all 0.8s var(--ease)' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '5px 14px', borderRadius: 100, background: 'rgba(167,139,250,0.05)', border: '1px solid rgba(167,139,250,0.1)', marginBottom: 28, fontSize: '0.75rem', fontFamily: 'var(--mn)', color: 'var(--t3)' }}>
@@ -434,7 +442,7 @@ export default function PulsarFeatures() {
           ><span>{pl.icon}</span>{pl.name}</a>
         ))}
       </div>
-      <section ref={problem.ref} style={{ padding: '80px 40px', background: 'var(--s1)', borderTop: '1px solid var(--bd)', borderBottom: '1px solid var(--bd)' }}>
+      <section ref={problem.ref} className="pf-section" style={{ padding: '80px 40px', background: 'var(--s1)', borderTop: '1px solid var(--bd)', borderBottom: '1px solid var(--bd)' }}>
         <div style={{ maxWidth: 800, margin: '0 auto', opacity: problem.v ? 1 : 0, transform: problem.v ? 'none' : 'translateY(24px)', transition: 'all 0.7s var(--ease)' }}>
           <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 14 }}>// the_problem</div>
           <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 20 }}>The knowledge gap is <span style={{ color: '#ef4444' }}>killing your potential</span>.</h2>

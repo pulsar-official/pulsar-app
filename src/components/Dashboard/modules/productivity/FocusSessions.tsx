@@ -7,6 +7,7 @@ import {
 import type {
   Phase, Task, TimerTypeId, TimerConfig,
 } from '@/types/focusSessions';
+import { useProductivityStore } from '@/stores/productivityStore';
 
 // Allow CSS custom property --c on JSX elements
 declare module 'react' {
@@ -21,6 +22,20 @@ const cx = (...classes: (string | false | null | undefined)[]) =>
 // ─────────────────────────────────────────────
 export default function FocusSessions() {
 
+  // Seed tasks from productivity store, falling back to INITIAL_TASKS
+  const storeTasks = useProductivityStore(s => s.tasks)
+  const storeToggleTask = useProductivityStore(s => s.toggleTask)
+  const initialTasks = useMemo<Task[]>(() => {
+    const fromStore = storeTasks.filter(t => !t.completed).map(t => ({
+      id: t.id,
+      title: t.title,
+      priority: t.priority as Task['priority'],
+      done: false,
+      deferred: false,
+    }))
+    return fromStore.length > 0 ? fromStore : INITIAL_TASKS
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- only seed on mount
+
   // ── STATE ──
   const [phase, setPhase]                       = useState<Phase>('dashboard');
   const [selectedType, setSelectedType]         = useState<TimerTypeId>('pomodoro');
@@ -29,7 +44,7 @@ export default function FocusSessions() {
   const [customLongRest, setCustomLongRest]     = useState(15);
   const [customCycles, setCustomCycles]         = useState(4);
 
-  const [tasks, setTasks]                       = useState<Task[]>(INITIAL_TASKS);
+  const [tasks, setTasks]                       = useState<Task[]>(initialTasks);
   const [selectedTaskIds, setSelectedTaskIds]   = useState<Set<number>>(new Set());
   const [newTaskText, setNewTaskText]           = useState('');
 
@@ -182,6 +197,9 @@ export default function FocusSessions() {
   const markTaskDone = (id: number) => {
     setTasks((prev) => prev.map((t) => t.id === id ? { ...t, done: true, deferred: false } : t));
     setCompletedInSession((c) => c + 1);
+    // Sync completion back to productivity store
+    const storeTask = storeTasks.find(t => t.id === id)
+    if (storeTask && !storeTask.completed) storeToggleTask(id)
   };
 
   const deferTask = (id: number) => {

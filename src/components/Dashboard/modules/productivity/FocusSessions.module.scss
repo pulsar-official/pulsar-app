@@ -924,3 +924,42 @@ $amber-glow:    rgba(251, 191, 36, 0.12);
   transition: all 200ms;
   &:hover { border-color: rgba(248, 113, 113, 0.25); color: $red; }
 }
+
+// ── Responsive ──
+@media (max-width: 768px) {
+  .session {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+  }
+
+  .sessionLeft {
+    padding: 24px 20px 28px;
+    border-right: none;
+    border-bottom: 1px solid $border;
+  }
+
+  .sessionRight {
+    max-height: 260px;
+  }
+
+  .typesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboardCols {
+    grid-template-columns: 1fr;
+  }
+
+  .headerPanel {
+    padding: 18px 16px 14px;
+  }
+
+  .statsRow {
+    gap: 8px;
+  }
+
+  .statBox {
+    padding: 10px 14px;
+    min-width: 70px;
+  }
+}

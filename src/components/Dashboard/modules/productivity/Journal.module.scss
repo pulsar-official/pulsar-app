@@ -28,3 +28,31 @@
 .tagActive { background: oklch(0.20 0.08 80); color: oklch(0.80 0.14 80); border-color: oklch(0.32 0.10 80); }
 .empty { text-align: center; padding: 60px 20px; color: $text-3; font-size: 13px; flex: 1; display: flex; align-items: center; justify-content: center; }
 .deleteEntryBtn { background: none; border: none; color: $text-3; cursor: pointer; font-size: 11px; font-family: inherit; &:hover { color: oklch(0.65 0.15 20); } }
+
+/* ── Responsive ── */
+@media (max-width: $bp-md) {
+  .body {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    max-height: 180px;
+    overflow-y: auto;
+    border-bottom: 1px solid $border;
+    padding-bottom: 12px;
+  }
+
+  .editor {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .header {
+    padding: 16px 16px 10px;
+  }
+
+  .body {
+    padding: 0 16px 16px;
+  }
+}

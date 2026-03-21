@@ -869,3 +869,33 @@ $r-xs:  6px;
   transition: filter 150ms;
   &:hover { filter: brightness(1.12); }
 }
+
+// ── Responsive ──
+@media (max-width: 768px) {
+  .homeLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .canvasView {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    border-radius: 0;
+  }
+
+  .topBar {
+    padding: 0 12px;
+  }
+
+  .metrics {
+    display: none;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

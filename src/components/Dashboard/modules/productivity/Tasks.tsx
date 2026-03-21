@@ -2,70 +2,61 @@
 
 import React, { useState } from "react"
 import styles from "./Tasks.module.scss"
+import { useProductivityStore } from '@/stores/productivityStore'
+import type { Task, Priority, TaskTag, TaskStatus } from '@/types/productivity'
 
-type Priority = "high" | "med" | "low"
-type Tag = "work" | "personal" | "urgent" | "health"
-type Status = "todo" | "inprogress" | "done"
+type DisplayPriority = "high" | "med" | "low"
 
-interface Task {
-  id: string; title: string; desc: string; done: boolean
-  priority: Priority; tag: Tag; due: string; status: Status
-}
+const TAG_CLS: Record<TaskTag,string> = { work:styles.tagWork, personal:styles.tagPersonal, urgent:styles.tagUrgent, health:styles.tagHealth }
+const PRI_CLS: Record<DisplayPriority,string> = { high:styles.priHigh, med:styles.priMed, low:styles.priLow }
+const PRI_LABEL: Record<DisplayPriority,string> = { high:"● High", med:"● Med", low:"● Low" }
 
-function makeId() { return Math.random().toString(36).slice(2) }
+function toDisplayPri(p: Priority): DisplayPriority { return p === 'medium' ? 'med' : p as DisplayPriority }
+function toStorePri(p: DisplayPriority): Priority { return p === 'med' ? 'medium' : p as Priority }
 
-const SAMPLE: Task[] = [
-  { id:makeId(), title:"Design new dashboard layout", desc:"", done:false, priority:"high", tag:"work", due:"2025-06-10", status:"inprogress" },
-  { id:makeId(), title:"Review pull requests", desc:"", done:false, priority:"med", tag:"work", due:"2025-06-08", status:"todo" },
-  { id:makeId(), title:"Write unit tests for auth module", desc:"", done:false, priority:"high", tag:"work", due:"2025-06-12", status:"todo" },
-  { id:makeId(), title:"Schedule dentist appointment", desc:"", done:false, priority:"low", tag:"personal", due:"2025-06-15", status:"todo" },
-  { id:makeId(), title:"Prepare sprint presentation", desc:"", done:true, priority:"med", tag:"work", due:"2025-06-05", status:"done" },
-  { id:makeId(), title:"Buy groceries", desc:"", done:true, priority:"low", tag:"personal", due:"2025-06-04", status:"done" },
-  { id:makeId(), title:"Morning run - 5km", desc:"", done:false, priority:"med", tag:"health", due:"", status:"todo" },
-  { id:makeId(), title:"Fix critical login bug", desc:"", done:false, priority:"high", tag:"urgent", due:"2025-06-07", status:"inprogress" },
-]
-const TAG_CLS: Record<Tag,string> = { work:styles.tagWork, personal:styles.tagPersonal, urgent:styles.tagUrgent, health:styles.tagHealth }
-const PRI_CLS: Record<Priority,string> = { high:styles.priHigh, med:styles.priMed, low:styles.priLow }
-const PRI_LABEL: Record<Priority,string> = { high:"● High", med:"● Med", low:"● Low" }
-
-interface FormState { title:string; desc:string; priority:Priority; tag:Tag; due:string; status:Status }
+interface FormState { title:string; desc:string; priority:DisplayPriority; tag:TaskTag; due:string; status:TaskStatus }
 const DFORM: FormState = { title:"", desc:"", priority:"med", tag:"work", due:"", status:"todo" }
 
 const Tasks: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>(SAMPLE)
+  const tasks = useProductivityStore(s => s.tasks)
+  const storeAddTask = useProductivityStore(s => s.addTask)
+  const storeUpdateTask = useProductivityStore(s => s.updateTask)
+  const storeDeleteTask = useProductivityStore(s => s.deleteTask)
+  const storeToggleTask = useProductivityStore(s => s.toggleTask)
+
   const [view, setView] = useState<"list"|"board">("list")
-  const [filter, setFilter] = useState<"all"|Tag>("all")
+  const [filter, setFilter] = useState<"all"|TaskTag>("all")
   const [open, setOpen] = useState(false)
   const [editTask, setEditTask] = useState<Task|null>(null)
   const [form, setForm] = useState<FormState>(DFORM)
 
   const filtered = filter === "all" ? tasks : tasks.filter(t => t.tag === filter)
 
-  const toggleDone = (id: string) => {
-    setTasks(ts => ts.map(t => t.id !== id ? t : { ...t, done: !t.done, status: t.done ? "todo" : "done" }))
+  const toggleDone = (id: number) => {
+    storeToggleTask(id)
   }
 
   const openAdd = () => { setEditTask(null); setForm(DFORM); setOpen(true) }
   const openEdit = (t: Task) => {
     setEditTask(t)
-    setForm({ title:t.title, desc:t.desc, priority:t.priority, tag:t.tag, due:t.due, status:t.status })
+    setForm({ title:t.title, desc:t.description, priority:toDisplayPri(t.priority), tag:t.tag, due:t.dueDate ?? '', status:t.status })
     setOpen(true)
   }
 
   const save = () => {
     if (!form.title.trim()) return
     if (editTask) {
-      setTasks(ts => ts.map(t => t.id === editTask.id ? { ...t, ...form, done: form.status === "done" } : t))
+      storeUpdateTask({ ...editTask, title:form.title, description:form.desc, priority:toStorePri(form.priority), tag:form.tag, dueDate:form.due || null, status:form.status, completed: form.status === "done" })
     } else {
-      setTasks(ts => [...ts, { id:makeId(), ...form, done: form.status === "done" }])
+      storeAddTask({ title:form.title, description:form.desc, priority:toStorePri(form.priority), tag:form.tag, dueDate:form.due || null, status:form.status, completed: form.status === "done" })
     }
     setOpen(false)
   }
 
-  const del = (id: string) => { setTasks(ts => ts.filter(t => t.id !== id)); setOpen(false) }
+  const del = (id: number) => { storeDeleteTask(id); setOpen(false) }
   const renderListView = () => {
-    const active = filtered.filter(t => !t.done)
-    const completed = filtered.filter(t => t.done)
+    const active = filtered.filter(t => !t.completed)
+    const completed = filtered.filter(t => t.completed)
     return (
       <div className={styles.taskList}>
         {active.length > 0 && <div className={styles.sectionLabel}>Active ({active.length})</div>}
@@ -77,8 +68,8 @@ const Tasks: React.FC = () => {
               <div className={styles.taskTitle}>{t.title}</div>
               <div className={styles.taskMeta}>
                 <span className={[styles.taskTag, TAG_CLS[t.tag]].join(" ")}>{t.tag}</span>
-                <span className={[styles.taskPriority, PRI_CLS[t.priority]].join(" ")}>{PRI_LABEL[t.priority]}</span>
-                {t.due && <span className={styles.taskDue}>Due {t.due}</span>}
+                <span className={[styles.taskPriority, PRI_CLS[toDisplayPri(t.priority)]].join(" ")}>{PRI_LABEL[toDisplayPri(t.priority)]}</span>
+                {t.dueDate && <span className={styles.taskDue}>Due {t.dueDate}</span>}
               </div>
             </div>
           </div>
@@ -99,7 +90,7 @@ const Tasks: React.FC = () => {
     )
   }
   const renderBoardView = () => {
-    const cols: { key: Status; label: string }[] = [
+    const cols: { key: TaskStatus; label: string }[] = [
       { key: "todo", label: "To Do" },
       { key: "inprogress", label: "In Progress" },
       { key: "done", label: "Done" },
@@ -120,7 +111,7 @@ const Tasks: React.FC = () => {
                     <div className={styles.boardCardTitle}>{t.title}</div>
                     <div className={styles.boardCardMeta}>
                       <span className={[styles.taskTag, TAG_CLS[t.tag]].join(" ")}>{t.tag}</span>
-                      <span className={[styles.taskPriority, PRI_CLS[t.priority]].join(" ")}>{PRI_LABEL[t.priority]}</span>
+                      <span className={[styles.taskPriority, PRI_CLS[toDisplayPri(t.priority)]].join(" ")}>{PRI_LABEL[toDisplayPri(t.priority)]}</span>
                     </div>
                   </div>
                 ))}
@@ -180,7 +171,7 @@ const Tasks: React.FC = () => {
               </div>
               <div className={styles.field}>
                 <label className={styles.label}>Priority</label>
-                <select className={styles.select} value={form.priority} onChange={e => setForm(f => ({...f, priority: e.target.value as Priority}))}>
+                <select className={styles.select} value={form.priority} onChange={e => setForm(f => ({...f, priority: e.target.value as DisplayPriority}))}>
                   <option value="high">High</option>
                   <option value="med">Medium</option>
                   <option value="low">Low</option>
@@ -188,7 +179,7 @@ const Tasks: React.FC = () => {
               </div>
               <div className={styles.field}>
                 <label className={styles.label}>Tag</label>
-                <select className={styles.select} value={form.tag} onChange={e => setForm(f => ({...f, tag: e.target.value as Tag}))}>
+                <select className={styles.select} value={form.tag} onChange={e => setForm(f => ({...f, tag: e.target.value as TaskTag}))}>
                   <option value="work">Work</option>
                   <option value="personal">Personal</option>
                   <option value="urgent">Urgent</option>
@@ -197,7 +188,7 @@ const Tasks: React.FC = () => {
               </div>
               <div className={styles.field}>
                 <label className={styles.label}>Status</label>
-                <select className={styles.select} value={form.status} onChange={e => setForm(f => ({...f, status: e.target.value as Status}))}>
+                <select className={styles.select} value={form.status} onChange={e => setForm(f => ({...f, status: e.target.value as TaskStatus}))}>
                   <option value="todo">To Do</option>
                   <option value="inprogress">In Progress</option>
                   <option value="done">Done</option>

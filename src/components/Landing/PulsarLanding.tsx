@@ -187,6 +187,26 @@ const STYLES = `
 .pl-glow{animation:plGlow 3s ease-in-out infinite}.pl-glow:hover{animation:none;box-shadow:0 0 72px rgba(167,139,250,0.38),0 12px 48px rgba(0,0,0,0.5)}
 .pl-grid-overlay{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(167,139,250,0.012) 1px,transparent 1px),linear-gradient(90deg,rgba(167,139,250,0.012) 1px,transparent 1px);background-size:64px 64px}
 .pl-noise{position:fixed;inset:0;pointer-events:none;z-index:1;opacity:0.02;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.pl-mobile-only{display:none}
+@media(max-width:768px){
+  .pl-mobile-only{display:flex}
+  .pl-desktop-only{display:none!important}
+  .pl-hero-section{padding:80px 20px 60px!important;min-height:auto!important}
+  .pl-stats-row{gap:24px!important;padding:36px 20px!important}
+  .pl-section-pad{padding-left:20px!important;padding-right:20px!important}
+  .pl-grid-3{grid-template-columns:1fr!important}
+  .pl-grid-4{grid-template-columns:1fr 1fr!important}
+  .pl-grid-2{grid-template-columns:1fr!important}
+  .pl-showcase-inner{grid-template-columns:1fr!important;min-height:280px!important}
+  .pl-showcase-sidebar{display:none!important}
+  .pl-footer{flex-direction:column!important;gap:12px!important;text-align:center!important;padding:24px 20px!important}
+  .pl-nav-links{display:none!important}
+  .pl-nav-actions{display:none!important}
+  .pl-nav-mobile-toggle{display:flex!important}
+}
+@media(max-width:480px){
+  .pl-grid-4{grid-template-columns:1fr!important}
+}
 `;
 
 // ─── PillarMock ────────────────────────────────────────────────────────────────
@@ -332,7 +352,7 @@ function DeadKnowledgeLoop() {
   const alive = stage === 4 || stage === 5;
   const E = 'cubic-bezier(0.16,1,0.3,1)';
   return (
-    <section ref={reveal.ref} style={{ padding: '100px 40px', background: 'var(--s1)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
+    <section ref={reveal.ref} className="pl-section-pad" style={{ padding: '100px 40px', background: 'var(--s1)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
       <div style={{ maxWidth: '760px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '36px', opacity: reveal.vis ? 1 : 0, transform: reveal.vis ? 'none' : 'translateY(18px)', transition: `all 0.75s ${E}` }}>
           <div style={{ fontSize: '0.7rem', fontFamily: 'var(--mono)', fontWeight: 600, color: alive ? '#6ee7b7' : '#ef4444', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: '14px', transition: 'color 0.6s' }}>{alive ? '// knowledge_activated' : '// the_dead_knowledge_problem'}</div>
@@ -490,7 +510,7 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
       <LandingNav variant="fixed" scrolled={scrolled} onGetStarted={onEnter} />
 
       {/* HERO */}
-      <section ref={hero.ref} style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '120px 40px 80px', textAlign: 'center', overflow: 'hidden' }}>
+      <section ref={hero.ref} className="pl-hero-section" style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '120px 40px 80px', textAlign: 'center', overflow: 'hidden' }}>
         <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', top: `calc(50% + ${parallax1}px)`, left: '50%', transform: 'translate(-50%,-50%)', width: '460px', height: '460px', borderRadius: '50%', border: '1px solid rgba(167,139,250,0.06)', pointerEvents: 'none', zIndex: 0 }}>
           <div style={{ position: 'absolute', top: '-5px', left: '50%', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--accent)', animation: 'plOrbit 20s linear infinite', opacity: 0.7, boxShadow: '0 0 14px rgba(167,139,250,0.9)' }} />
@@ -541,7 +561,7 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
       </section>
 
       {/* STATS */}
-      <section ref={stats.ref} style={{ display: 'flex', justifyContent: 'center', gap: '56px', flexWrap: 'wrap', padding: '56px 40px', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', background: 'var(--s1)' }}>
+      <section ref={stats.ref} className="pl-stats-row" style={{ display: 'flex', justifyContent: 'center', gap: '56px', flexWrap: 'wrap', padding: '56px 40px', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', background: 'var(--s1)' }}>
         {STATS.map((s, i) => (
           <div key={i} style={{ textAlign: 'center', opacity: stats.vis ? 1 : 0, transform: stats.vis ? 'none' : 'translateY(20px)', transition: `all 0.65s ${E} ${i * 0.07}s` }}>
             <div style={{ fontFamily: s.mono ? 'var(--mono)' : 'var(--font)', fontSize: '1.9rem', fontWeight: 700, color: 'var(--accent)', letterSpacing: '-0.025em' }}>{s.val}</div>
@@ -560,7 +580,7 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
           <h2 style={{ fontSize: 'clamp(1.8rem,3.5vw,2.6rem)', fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.1 }}>Three steps. Zero friction.</h2>
           <p style={{ color: 'var(--t2)', fontSize: '1rem', marginTop: '16px', maxWidth: '460px', margin: '16px auto 0', lineHeight: 1.65 }}>Most tools stop at capture. Pulsar completes the loop — from raw input to real output.</p>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '16px', position: 'relative' }}>
+        <div className="pl-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '16px', position: 'relative' }}>
           {/* connector line */}
           <div style={{ position: 'absolute', top: '52px', left: 'calc(33.33% - 8px)', right: 'calc(33.33% - 8px)', height: '1px', background: 'linear-gradient(90deg,#a78bfa55,#38bdf855,#6ee7b755)', pointerEvents: 'none', zIndex: 0 }} />
           {[
@@ -642,8 +662,8 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
               {autoCycle ? 'auto-cycling' : 'manual'}
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '176px 1fr', minHeight: '360px' }}>
-            <div style={{ borderRight: '1px solid var(--border)', padding: '12px 8px', background: 'var(--s1)' }}>
+          <div className="pl-showcase-inner" style={{ display: 'grid', gridTemplateColumns: '176px 1fr', minHeight: '360px' }}>
+            <div className="pl-showcase-sidebar" style={{ borderRight: '1px solid var(--border)', padding: '12px 8px', background: 'var(--s1)' }}>
               {PILLARS.map((p, i) => (
                 <div key={p.id} onClick={() => { setActivePillar(i); setAutoCycle(false); }}
                   style={{ display: 'flex', alignItems: 'center', gap: '9px', padding: '8px 10px', borderRadius: '7px', marginBottom: '2px', cursor: 'pointer', background: activePillar === i ? `${p.color}0e` : 'transparent', transition: `all 0.18s ${E}` }}
@@ -698,7 +718,7 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
               <span>🔒</span> Payments open at beta launch · join the waitlist above
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '16px', alignItems: 'stretch' }}>
+          <div className="pl-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '16px', alignItems: 'stretch' }}>
             {TIERS.map((tier, i) => {
               const price = yearly && tier.yearlyPrice ? tier.yearlyPrice : tier.monthlyPrice;
               const period = yearly && tier.yearlyPrice ? tier.yearlyPeriod : tier.monthlyPeriod;
@@ -744,7 +764,7 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
           <div style={{ fontSize: '0.7rem', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: '14px' }}>{'// community'}</div>
           <h2 style={{ fontSize: 'clamp(1.8rem,3.8vw,2.4rem)', fontWeight: 700, letterSpacing: '-0.035em' }}>Built with obsessives, for obsessives.</h2>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '18px' }}>
+        <div className="pl-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '18px' }}>
           {QUOTES.map((q, i) => (
             <div key={i} style={{ padding: '28px', borderRadius: '14px', background: 'var(--s2)', border: '1px solid var(--border)', position: 'relative', opacity: quotes.vis ? 1 : 0, transform: quotes.vis ? 'none' : 'translateY(26px)', transition: `all 0.65s ${E} ${i * 0.09}s`, cursor: 'default' }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(167,139,250,0.15)'; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 18px 52px rgba(0,0,0,0.38)'; }}
@@ -795,7 +815,7 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
       </section>
 
       {/* FOOTER */}
-      <footer style={{ borderTop: '1px solid rgba(255,255,255,0.08)', padding: '32px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#07070c', width: '100%', boxSizing: 'border-box' }}>
+      <footer className="pl-footer" style={{ borderTop: '1px solid rgba(255,255,255,0.08)', padding: '32px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#07070c', width: '100%', boxSizing: 'border-box' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
           <div style={{ width: '22px', height: '22px', borderRadius: '6px', background: 'linear-gradient(135deg,#a78bfa,#7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, color: '#fff' }}>P</div>
           <span style={{ fontWeight: 600, fontSize: '0.92rem' }}>Pulsar</span>

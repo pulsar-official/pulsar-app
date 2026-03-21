@@ -1,20 +1,13 @@
 'use client'
 import { useState, useMemo, useCallback, useRef, useLayoutEffect } from 'react'
 import styles from './Habits.module.scss'
+import { useProductivityStore } from '@/stores/productivityStore'
 
-/* ── Types ── */
-interface Habit { id: string; name: string; color: string }
-type CheckMap = Record<string, Record<string, boolean>>
-
-/* ── Constants ── */
-const COLORS = [
-  'oklch(0.55 0.18 290)',
-  'oklch(0.65 0.14 150)',
-  'oklch(0.62 0.16 80)',
-  'oklch(0.65 0.15 20)',
-  'oklch(0.60 0.15 220)',
-  'oklch(0.62 0.15 310)',
-  'oklch(0.65 0.13 180)',
+/* ── Emoji palette for habit picker ── */
+const EMOJI_OPTIONS = [
+  '🏋️','📖','🧘','💧','📵','😴','✍️','🎵','💻','🏃',
+  '🍳','💊','🧹','📝','🎯','🌿','🚿','🐕','💰','🧠',
+  '🎨','📸','🗣️','❤️','☕','🚭','📚','🎸','🧪','🙏',
 ]
 
 const MONTH_NAMES = ['January','February','March','April','May','June',
@@ -26,26 +19,19 @@ const MON_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','
 function dk(d: Date) { return d.toISOString().slice(0, 10) }
 const TODAY = dk(new Date())
 
-const SAMPLE: Habit[] = [
-  { id: '1', name: 'Morning workout', color: COLORS[1] },
-  { id: '2', name: 'Read 30 min',     color: COLORS[0] },
-  { id: '3', name: 'Meditate',        color: COLORS[2] },
-  { id: '4', name: 'Drink 2L water',  color: COLORS[4] },
-  { id: '5', name: 'No social media', color: COLORS[3] },
-  { id: '6', name: 'Sleep by 11pm',   color: COLORS[5] },
-  { id: '7', name: 'Journal entry',   color: COLORS[6] },
-]
-
 const PCT_MARKS = [0, 25, 50, 75, 100]
 
 /* ══════════════════════════════════════════════════════════════ */
 export default function Habits() {
-  const [habits, setHabits]       = useState<Habit[]>(SAMPLE)
-  const [checks, setChecks]       = useState<CheckMap>({})
+  const habits = useProductivityStore(s => s.habits)
+  const habitChecks = useProductivityStore(s => s.habitChecks)
+  const checkMap = useProductivityStore(s => s.getHabitCheckMap())
+  const storeAddHabit = useProductivityStore(s => s.addHabit)
+  const storeToggleCheck = useProductivityStore(s => s.toggleHabitCheck)
   const [viewMonth, setViewMonth] = useState(() => new Date())
   const [showAdd, setShowAdd]     = useState(false)
   const [newName, setNewName]     = useState('')
-  const [newColor, setNewColor]   = useState(COLORS[0])
+  const [newEmoji, setNewEmoji]   = useState(EMOJI_OPTIONS[0])
   const [hoveredPt, setHoveredPt] = useState<number | null>(null)
   const [tipPos, setTipPos]       = useState({ x: 0, y: 0 })
   const [svgSize, setSvgSize]     = useState({ w: 360, h: 200 })
@@ -76,15 +62,12 @@ export default function Habits() {
   const prevMonth = () => setViewMonth(d => new Date(d.getFullYear(), d.getMonth() - 1, 1))
   const nextMonth = () => setViewMonth(d => new Date(d.getFullYear(), d.getMonth() + 1, 1))
 
-  const isChecked = useCallback((habitId: string, dateStr: string) =>
-    checks[habitId]?.[dateStr] ?? false, [checks])
+  const isChecked = useCallback((habitId: number, dateStr: string) =>
+    checkMap[String(habitId)]?.[dateStr] ?? false, [checkMap])
 
-  const toggle = useCallback((habitId: string) => {
-    setChecks(prev => {
-      const hMap = prev[habitId] ?? {}
-      return { ...prev, [habitId]: { ...hMap, [TODAY]: !(hMap[TODAY] ?? false) } }
-    })
-  }, [])
+  const toggle = useCallback((habitId: number) => {
+    storeToggleCheck(habitId, TODAY)
+  }, [storeToggleCheck])
 
   const getCellState = (dateStr: string): 'today' | 'past' | 'future' =>
     dateStr === TODAY ? 'today' : dateStr < TODAY ? 'past' : 'future'
@@ -100,22 +83,25 @@ export default function Habits() {
     })
   }, [monthDays, habits, isChecked])
 
-  /* ── Chart SVG geometry (horizontal: X=%, Y=days) ── */
+  /* ── Chart SVG geometry: X=days, Y=percentage (0-100) ── */
   const chartSvg = useMemo(() => {
     if (chartData.length < 1) return null
     const W = svgSize.w, H = svgSize.h
-    const PL = 32, PR = 12, PT = 8, PB = 22
+    const PL = 28, PR = 12, PT = 8, PB = 22
     const chartW = W - PL - PR
     const chartH = H - PT - PB
 
     const pts: [number, number][] = chartData.map((d, i) => [
-      PL + (d.pct / 100) * chartW,
-      PT + (i / Math.max(chartData.length - 1, 1)) * chartH,
+      PL + (i / Math.max(chartData.length - 1, 1)) * chartW,
+      PT + (1 - d.pct / 100) * chartH,
     ])
 
     const pathD = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0] + ',' + p[1]).join(' ')
+    const areaD = 'M' + pts[0][0] + ',' + (PT + chartH) + ' ' +
+      pts.map(p => 'L' + p[0] + ',' + p[1]).join(' ') +
+      ' L' + pts[pts.length - 1][0] + ',' + (PT + chartH) + ' Z'
 
-    return { pts, pathD, W, H, PL, PR, PT, PB, chartW, chartH }
+    return { pts, pathD, areaD, W, H, PL, PR, PT, PB, chartW, chartH }
   }, [chartData, svgSize])
 
   /* SVG hover */
@@ -142,42 +128,30 @@ export default function Habits() {
     const todayTotal = habits.length
     const pastDays = monthDays.filter(d => dk(d) <= TODAY)
 
-    // Month completion
     let totalChecks = 0, totalPossible = 0
     pastDays.forEach(d => {
       const ds = dk(d)
-      habits.forEach(h => {
-        totalPossible++
-        if (isChecked(h.id, ds)) totalChecks++
-      })
+      habits.forEach(h => { totalPossible++; if (isChecked(h.id, ds)) totalChecks++ })
     })
     const monthPct = totalPossible > 0 ? Math.round((totalChecks / totalPossible) * 100) : 0
 
-    // Current streak (consecutive days with 100%)
     let currentStreak = 0
     const sortedPast = [...pastDays].sort((a, b) => b.getTime() - a.getTime())
     for (const d of sortedPast) {
-      const ds = dk(d)
-      const allDone = habits.every(h => isChecked(h.id, ds))
-      if (allDone && habits.length > 0) currentStreak++
+      if (habits.length > 0 && habits.every(h => isChecked(h.id, dk(d)))) currentStreak++
       else break
     }
 
-    // Best streak
     let bestStreak = 0, run = 0
     const sortedAsc = [...pastDays].sort((a, b) => a.getTime() - b.getTime())
     for (const d of sortedAsc) {
-      const ds = dk(d)
-      const allDone = habits.every(h => isChecked(h.id, ds))
-      if (allDone && habits.length > 0) { run++; if (run > bestStreak) bestStreak = run }
+      if (habits.length > 0 && habits.every(h => isChecked(h.id, dk(d)))) { run++; if (run > bestStreak) bestStreak = run }
       else run = 0
     }
 
-    // Perfect days this month
     let perfectDays = 0
     pastDays.forEach(d => {
-      const ds = dk(d)
-      if (habits.length > 0 && habits.every(h => isChecked(h.id, ds))) perfectDays++
+      if (habits.length > 0 && habits.every(h => isChecked(h.id, dk(d)))) perfectDays++
     })
 
     return { todayDone, todayTotal, monthPct, currentStreak, bestStreak, perfectDays, daysElapsed: pastDays.length }
@@ -185,8 +159,8 @@ export default function Habits() {
 
   const addHabit = () => {
     if (!newName.trim()) return
-    setHabits(prev => [...prev, { id: Date.now().toString(), name: newName.trim(), color: newColor }])
-    setNewName(''); setNewColor(COLORS[0]); setShowAdd(false)
+    storeAddHabit({ name: newName.trim(), emoji: newEmoji })
+    setNewName(''); setNewEmoji(EMOJI_OPTIONS[0]); setShowAdd(false)
   }
 
   /* ══════════════════════════════════════════════════════════ */
@@ -196,11 +170,11 @@ export default function Habits() {
       {/* ── Header: month switcher left, add button right ── */}
       <div className={styles.header}>
         <div className={styles.monthNav}>
-          <button className={styles.navBtn} onClick={prevMonth}>‹</button>
+          <button className={styles.navBtn} onClick={prevMonth}>&#8249;</button>
           <span className={styles.monthLabel}>
             {MONTH_NAMES[viewMonth.getMonth()]} {viewMonth.getFullYear()}
           </span>
-          <button className={styles.navBtn} onClick={nextMonth}>›</button>
+          <button className={styles.navBtn} onClick={nextMonth}>&#8250;</button>
         </div>
         <button className={styles.addBtn} onClick={() => setShowAdd(true)}>+ New habit</button>
       </div>
@@ -209,8 +183,8 @@ export default function Habits() {
       <div className={styles.gridCard} key={monthKey}>
         {habits.length === 0 ? (
           <div className={styles.empty}>
-            <span style={{ fontSize: 28, opacity: 0.2 }}>◎</span>
-            <span>No habits yet — add your first one above</span>
+            <span style={{ fontSize: 28, opacity: 0.2 }}>&#9678;</span>
+            <span>No habits yet &mdash; add your first one above</span>
           </div>
         ) : (
           <table className={styles.gridTable}>
@@ -232,7 +206,7 @@ export default function Habits() {
               {habits.map((habit, idx) => (
                 <tr key={habit.id} className={`${styles.habitRow} ${idx % 2 === 1 ? styles.habitRowAlt : ''}`}>
                   <td className={styles.nameCell}>
-                    <span className={styles.habitDot} style={{ background: habit.color }} />
+                    <span className={styles.habitEmoji}>{habit.emoji}</span>
                     <span className={styles.habitLabel}>{habit.name}</span>
                   </td>
                   {monthDays.map(d => {
@@ -253,7 +227,7 @@ export default function Habits() {
                           className={cls}
                           onClick={state === 'today' ? () => toggle(habit.id) : undefined}
                         >
-                          {checked && <span className={styles.checkMark}>✓</span>}
+                          {checked && <span className={styles.checkMark}>&#10003;</span>}
                         </span>
                       </td>
                     )
@@ -268,7 +242,7 @@ export default function Habits() {
       {/* ── Bottom row: graph left, stats right ── */}
       <div className={styles.bottomRow}>
 
-        {/* Completion Graph */}
+        {/* Completion Graph — X=days, Y=percentage */}
         <div className={styles.graphCard}>
           <span className={styles.sectionTitle}>Completion rate</span>
           <div className={styles.graphWrap} ref={graphWrapRef}>
@@ -281,35 +255,45 @@ export default function Habits() {
                   onMouseMove={onSvgMove}
                   onMouseLeave={onSvgLeave}
                 >
-                  {/* Vertical grid lines at 0, 25, 50, 75, 100 */}
+                  <defs>
+                    <linearGradient id="habAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="oklch(0.55 0.18 290)" stopOpacity="0.18" />
+                      <stop offset="100%" stopColor="oklch(0.55 0.18 290)" stopOpacity="0.02" />
+                    </linearGradient>
+                  </defs>
+
+                  {/* Horizontal grid lines at 0, 25, 50, 75, 100% */}
                   {PCT_MARKS.map(pct => {
-                    const x = chartSvg.PL + (pct / 100) * chartSvg.chartW
+                    const y = chartSvg.PT + (1 - pct / 100) * chartSvg.chartH
                     return (
                       <g key={pct}>
                         <line
-                          x1={x} y1={chartSvg.PT}
-                          x2={x} y2={chartSvg.PT + chartSvg.chartH}
+                          x1={chartSvg.PL} y1={y}
+                          x2={chartSvg.W - chartSvg.PR} y2={y}
                           stroke="rgba(255,255,255,0.05)"
                           strokeWidth="1"
                         />
-                        <text x={x} y={svgSize.h - 4} className={styles.xLabel} textAnchor="middle">
+                        <text x={chartSvg.PL - 4} y={y + 3} className={styles.yLabel} textAnchor="end">
                           {pct}
                         </text>
                       </g>
                     )
                   })}
 
-                  {/* Y-axis: day labels */}
+                  {/* X-axis: day labels */}
                   {chartData.map((d, i) => {
                     const step = Math.max(1, Math.floor(chartData.length / 8))
                     if (i % step !== 0 && i !== chartData.length - 1) return null
-                    const y = chartSvg.PT + (i / Math.max(chartData.length - 1, 1)) * chartSvg.chartH
+                    const x = chartSvg.PL + (i / Math.max(chartData.length - 1, 1)) * chartSvg.chartW
                     return (
-                      <text key={i} x={chartSvg.PL - 4} y={y + 3} className={styles.yLabel} textAnchor="end">
+                      <text key={i} x={x} y={svgSize.h - 4} className={styles.xLabel} textAnchor="middle">
                         {d.day}
                       </text>
                     )
                   })}
+
+                  {/* Area fill */}
+                  <path d={chartSvg.areaD} fill="url(#habAreaGrad)" />
 
                   {/* Connecting line */}
                   <path
@@ -371,7 +355,6 @@ export default function Habits() {
         <div className={styles.statsCard}>
           <span className={styles.sectionTitle}>Stats</span>
           <div className={styles.statsGrid}>
-            {/* Today's progress ring */}
             <div className={styles.statBlock}>
               <div className={styles.ringWrap}>
                 <svg viewBox="0 0 48 48" className={styles.ringSvg}>
@@ -391,32 +374,22 @@ export default function Habits() {
               </div>
               <span className={styles.statLabel}>Today</span>
             </div>
-
-            {/* Month completion */}
             <div className={styles.statBlock}>
               <span className={styles.statValue}>{stats.monthPct}%</span>
               <span className={styles.statLabel}>This month</span>
             </div>
-
-            {/* Current streak */}
             <div className={styles.statBlock}>
               <span className={styles.statValue}>{stats.currentStreak}<span className={styles.statUnit}>d</span></span>
               <span className={styles.statLabel}>Current streak</span>
             </div>
-
-            {/* Best streak */}
             <div className={styles.statBlock}>
               <span className={styles.statValue}>{stats.bestStreak}<span className={styles.statUnit}>d</span></span>
               <span className={styles.statLabel}>Best streak</span>
             </div>
-
-            {/* Perfect days */}
             <div className={styles.statBlock}>
               <span className={styles.statValue}>{stats.perfectDays}</span>
               <span className={styles.statLabel}>Perfect days</span>
             </div>
-
-            {/* Days elapsed */}
             <div className={styles.statBlock}>
               <span className={styles.statValue}>{stats.daysElapsed}</span>
               <span className={styles.statLabel}>Days tracked</span>
@@ -442,15 +415,16 @@ export default function Habits() {
               />
             </div>
             <div className={styles.field}>
-              <label className={styles.label}>Color</label>
-              <div className={styles.colorRow}>
-                {COLORS.map(c => (
+              <label className={styles.label}>Icon</label>
+              <div className={styles.emojiGrid}>
+                {EMOJI_OPTIONS.map(em => (
                   <span
-                    key={c}
-                    className={`${styles.colorDot} ${newColor === c ? styles.colorDotActive : ''}`}
-                    style={{ background: c }}
-                    onClick={() => setNewColor(c)}
-                  />
+                    key={em}
+                    className={`${styles.emojiOption} ${newEmoji === em ? styles.emojiOptionActive : ''}`}
+                    onClick={() => setNewEmoji(em)}
+                  >
+                    {em}
+                  </span>
                 ))}
               </div>
             </div>
