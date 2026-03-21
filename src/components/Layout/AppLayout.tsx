@@ -25,7 +25,7 @@ for (const pillar of PILLARS) {
 }
 
 export const AppLayout: React.FC = () => {
-  const { sidebarCollapsed, currentPage } = useUIStore()
+  const { sidebarCollapsed, currentPage, mobileMenuOpen, closeMobileMenu } = useUIStore()
 
   const pillarLabel = PAGE_TO_PILLAR[currentPage]
   const pageLabel = PAGE_TITLES[currentPage] ?? currentPage
@@ -35,6 +35,10 @@ export const AppLayout: React.FC = () => {
 
   return (
     <div className={`${styles.layout} ${sidebarCollapsed ? styles.collapsed : ''}`}>
+      {/* Mobile overlay backdrop */}
+      {mobileMenuOpen && (
+        <div className={styles.mobileOverlay} onClick={closeMobileMenu} />
+      )}
       <Sidebar />
       <Topbar breadcrumbs={breadcrumbs} />
       <MainContent />

@@ -58,3 +58,28 @@
 
 @keyframes tFadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes tSlideUp { from { opacity: 0; transform: translateY(12px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+/* ── Responsive ── */
+@media (max-width: $bp-md) {
+  .boardWrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .boardCol {
+    min-width: 240px;
+    flex: 0 0 240px;
+  }
+
+  .header {
+    padding: 16px 16px 10px;
+  }
+
+  .filterRow {
+    padding: 0 16px 8px;
+  }
+
+  .body {
+    padding: 0 16px 16px;
+  }
+}

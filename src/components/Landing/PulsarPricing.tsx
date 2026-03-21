@@ -21,6 +21,15 @@ const CSS = `
 .pp ::-webkit-scrollbar{width:5px}.pp ::-webkit-scrollbar-track{background:transparent}.pp ::-webkit-scrollbar-thumb{background:rgba(167,139,250,.15);border-radius:3px}
 @keyframes ppFadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
 @keyframes ppGlow{0%,100%{box-shadow:0 0 20px rgba(167,139,250,.1)}50%{box-shadow:0 0 40px rgba(167,139,250,.2)}}
+@media(max-width:768px){
+  .pp-section{padding-left:20px!important;padding-right:20px!important}
+  .pp-grid-4{grid-template-columns:1fr 1fr!important}
+  .pp-compare{overflow-x:auto!important}
+  .pp-compare table{min-width:600px!important}
+}
+@media(max-width:480px){
+  .pp-grid-4{grid-template-columns:1fr!important}
+}
 `
 
 const TIERS = [
@@ -82,7 +91,7 @@ export default function PulsarPricing() {
       <LandingNav />
 
       {/* Hero */}
-      <section ref={hero.ref} style={{ padding: '80px 40px 60px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+      <section ref={hero.ref} className="pp-section" style={{ padding: '80px 40px 60px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: '30%', left: '50%', transform: 'translate(-50%,-50%)', width: 700, height: 700, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,58,237,0.06), transparent 60%)', pointerEvents: 'none' }} />
         <div style={{ position: 'relative', zIndex: 1, opacity: hero.v ? 1 : 0, transform: hero.v ? 'none' : 'translateY(24px)', transition: `all 0.8s ${E}` }}>
           <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--ac)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 16 }}>{'// pricing'}</div>
@@ -104,8 +113,8 @@ export default function PulsarPricing() {
       </section>
 
       {/* Cards */}
-      <section style={{ padding: '0 40px 80px', maxWidth: 1200, margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, alignItems: 'stretch' }}>
+      <section className="pp-section" style={{ padding: '0 40px 80px', maxWidth: 1200, margin: '0 auto' }}>
+        <div className="pp-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, alignItems: 'stretch' }}>
           {TIERS.map((t, i) => {
             const price = yearly && t.yearlyPrice ? t.yearlyPrice : t.price
             const period = yearly && t.yearlyPrice ? '/mo, billed yearly' : t.period
@@ -148,13 +157,13 @@ export default function PulsarPricing() {
       </section>
 
       {/* Compare Table */}
-      <section ref={compare.ref} style={{ padding: '80px 40px', background: 'var(--s1)', borderTop: '1px solid var(--bd)', borderBottom: '1px solid var(--bd)' }}>
+      <section ref={compare.ref} className="pp-section" style={{ padding: '80px 40px', background: 'var(--s1)', borderTop: '1px solid var(--bd)', borderBottom: '1px solid var(--bd)' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48, opacity: compare.v ? 1 : 0, transform: compare.v ? 'none' : 'translateY(20px)', transition: `all 0.7s ${E}` }}>
             <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--ac)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>{'// compare'}</div>
             <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 700, letterSpacing: '-0.02em' }}>Feature comparison</h2>
           </div>
-          <div style={{ overflowX: 'auto', borderRadius: 14, border: '1px solid var(--bd2)', background: 'var(--s2)' }}>
+          <div className="pp-compare" style={{ overflowX: 'auto', borderRadius: 14, border: '1px solid var(--bd2)', background: 'var(--s2)' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
               <thead>
                 <tr>

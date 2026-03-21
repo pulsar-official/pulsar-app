@@ -43,7 +43,7 @@ const SEED_NOTIFS: Notif[] = [
 ]
 
 export const Sidebar: React.FC<SidebarProps> = ({ onNavigate }) => {
-  const { sidebarCollapsed, toggleSidebar, setCurrentPage } = useUIStore()
+  const { sidebarCollapsed, toggleSidebar, setCurrentPage, mobileMenuOpen } = useUIStore()
   const [currentPillarIndex, setCurrentPillarIndex] = useState(6)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [isCollapsing, setIsCollapsing] = useState(false)
@@ -120,7 +120,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate }) => {
 
   return (
     <>
-      <aside className={`${styles.sidebar} ${sidebarCollapsed ? styles.collapsed : ''} ${isCollapsing ? styles.collapsing : ''}`}>
+      <aside className={`${styles.sidebar} ${sidebarCollapsed ? styles.collapsed : ''} ${isCollapsing ? styles.collapsing : ''} ${mobileMenuOpen ? styles.mobileOpen : ''}`}>
         <Profile
           streak={14}
           tasksToday={7}

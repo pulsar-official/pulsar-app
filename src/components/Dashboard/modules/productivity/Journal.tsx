@@ -2,12 +2,8 @@
 
 import React, { useState, useMemo } from "react"
 import styles from "./Journal.module.scss"
-
-interface Entry {
-  id: string; title: string; content: string; date: string; mood: string; tags: string[]
-}
-
-function makeId() { return Math.random().toString(36).slice(2) }
+import { useProductivityStore } from '@/stores/productivityStore'
+import type { JournalEntry } from '@/types/productivity'
 
 const MOODS = ["😊","😐","😔","😡","🤩","😴"]
 const TAGS = ["gratitude","reflection","goals","ideas","personal","work"]
@@ -22,28 +18,29 @@ function fmtDate(d: string) {
 }
 
 const today = new Date().toISOString().split("T")[0]
-
-const SAMPLE: Entry[] = [
-  { id:makeId(), title:"Morning reflections", content:"Today I woke up feeling refreshed and motivated. The sunrise was beautiful and I spent 10 minutes just watching it from my window. I want to focus on being more present today.", date:today, mood:"😊", tags:["gratitude","reflection"] },
-  { id:makeId(), title:"Project ideas", content:"Had some great ideas during the team meeting. We should explore: 1. AI-powered search 2. Real-time collaboration 3. Custom dashboards", date:"2025-06-04", mood:"🤩", tags:["ideas","work"] },
-  { id:makeId(), title:"Rough day", content:"Not the best day. Had some conflicts at work and felt drained by the end. Tomorrow will be better.", date:"2025-06-03", mood:"😔", tags:["reflection","personal"] },
-]
 const Journal: React.FC = () => {
-  const [entries, setEntries] = useState<Entry[]>(SAMPLE)
-  const [selectedId, setSelectedId] = useState<string|null>(SAMPLE[0]?.id ?? null)
+  const entries = useProductivityStore(s => s.journalEntries)
+  const storeAddEntry = useProductivityStore(s => s.addJournalEntry)
+  const storeUpdateEntry = useProductivityStore(s => s.updateJournalEntry)
+  const storeDeleteEntry = useProductivityStore(s => s.deleteJournalEntry)
+
+  const [selectedId, setSelectedId] = useState<number|null>(entries[0]?.id ?? null)
 
   const selected = useMemo(() => entries.find(e => e.id === selectedId) ?? null, [entries, selectedId])
 
   const addEntry = () => {
-    const id = makeId()
-    const entry: Entry = { id, title:"", content:"", date:today, mood:"😊", tags:[] }
-    setEntries(es => [entry, ...es])
-    setSelectedId(id)
+    const entry: Omit<JournalEntry, 'id' | 'orgId' | 'userId'> = { title:"", content:"", date:today, mood:"😊", tags:[] }
+    storeAddEntry(entry)
+    // Select the newly added entry (it will be at the front)
+    setTimeout(() => {
+      const latest = useProductivityStore.getState().journalEntries[0]
+      if (latest) setSelectedId(latest.id)
+    }, 0)
   }
 
-  const updateEntry = (field: keyof Entry, value: any) => {
-    if (!selectedId) return
-    setEntries(es => es.map(e => e.id === selectedId ? { ...e, [field]: value } : e))
+  const updateEntry = (field: keyof JournalEntry, value: string | string[]) => {
+    if (!selected) return
+    storeUpdateEntry({ ...selected, [field]: value })
   }
 
   const toggleTag = (tag: string) => {
@@ -53,12 +50,12 @@ const Journal: React.FC = () => {
   }
 
   const deleteEntry = () => {
-    if (!selectedId) return
-    setEntries(es => es.filter(e => e.id !== selectedId))
+    if (selectedId == null) return
+    storeDeleteEntry(selectedId)
     setSelectedId(entries.find(e => e.id !== selectedId)?.id ?? null)
   }
 
-  const wordCount = selected ? selected.content.trim().split(/s+/).filter(Boolean).length : 0
+  const wordCount = selected ? selected.content.trim().split(/\s+/).filter(Boolean).length : 0
   return (
     <div className={styles.wrap}>
       <div className={styles.header}>

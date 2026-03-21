@@ -1,6 +1,11 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import '@/styles/globals.scss'
 import { ClerkProvider } from '@clerk/nextjs'
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+}
 
 export const metadata: Metadata = {
   title: 'Pulsar — AI Productivity Workspace for Notes, Tasks & Goals',
