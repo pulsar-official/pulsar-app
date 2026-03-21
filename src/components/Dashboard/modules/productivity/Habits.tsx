@@ -2,9 +2,11 @@
 import { useState, useMemo, useCallback, useRef, useLayoutEffect } from 'react'
 import styles from './Habits.module.scss'
 
+/* ── Types ── */
 interface Habit { id: string; name: string; color: string }
 type CheckMap = Record<string, Record<string, boolean>>
 
+/* ── Constants ── */
 const COLORS = [
   'oklch(0.55 0.18 290)',
   'oklch(0.65 0.14 150)',
@@ -17,9 +19,9 @@ const COLORS = [
 
 const MONTH_NAMES = ['January','February','March','April','May','June',
   'July','August','September','October','November','December']
-const DAY_NAMES  = ['Su','Mo','Tu','We','Th','Fr','Sa']
-const DAY_SHORT  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
-const MON_SHORT  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+const DAY_NAMES = ['Su','Mo','Tu','We','Th','Fr','Sa']
+const DAY_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+const MON_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
 function dk(d: Date) { return d.toISOString().slice(0, 10) }
 const TODAY = dk(new Date())
@@ -34,14 +36,9 @@ const SAMPLE: Habit[] = [
   { id: '7', name: 'Journal entry',   color: COLORS[6] },
 ]
 
-const Y_LEVELS = [
-  { v: 1,    label: '100%' },
-  { v: 0.75, label: '75%'  },
-  { v: 0.5,  label: '50%'  },
-  { v: 0.25, label: '25%'  },
-  { v: 0,    label: '0%'   },
-] as const
+const PCT_MARKS = [0, 25, 50, 75, 100]
 
+/* ══════════════════════════════════════════════════════════════ */
 export default function Habits() {
   const [habits, setHabits]       = useState<Habit[]>(SAMPLE)
   const [checks, setChecks]       = useState<CheckMap>({})
@@ -51,13 +48,13 @@ export default function Habits() {
   const [newColor, setNewColor]   = useState(COLORS[0])
   const [hoveredPt, setHoveredPt] = useState<number | null>(null)
   const [tipPos, setTipPos]       = useState({ x: 0, y: 0 })
-  const [svgSize, setSvgSize]     = useState({ w: 400, h: 90 })
-  const svgRef                    = useRef<SVGSVGElement>(null)
+  const [svgSize, setSvgSize]     = useState({ w: 360, h: 200 })
   const graphWrapRef              = useRef<HTMLDivElement>(null)
+  const svgRef                    = useRef<SVGSVGElement>(null)
 
   const monthKey = viewMonth.getFullYear() + '-' + viewMonth.getMonth()
 
-  /* Track actual pixel size of graphWrap — eliminates SVG distortion */
+  /* Responsive SVG sizing */
   useLayoutEffect(() => {
     const el = graphWrapRef.current
     if (!el) return
@@ -69,6 +66,7 @@ export default function Habits() {
     return () => ro.disconnect()
   }, [])
 
+  /* Days in current view month */
   const monthDays = useMemo(() => {
     const y = viewMonth.getFullYear(), m = viewMonth.getMonth()
     const last = new Date(y, m + 1, 0).getDate()
@@ -91,66 +89,98 @@ export default function Habits() {
   const getCellState = (dateStr: string): 'today' | 'past' | 'future' =>
     dateStr === TODAY ? 'today' : dateStr < TODAY ? 'past' : 'future'
 
+  /* ── Chart data: one entry per day up to today ── */
   const chartData = useMemo(() => {
     const days = monthDays.filter(d => dk(d) <= TODAY)
     if (!habits.length || !days.length) return []
     return days.map(d => {
       const ds = dk(d)
       const done = habits.filter(h => isChecked(h.id, ds)).length
-      return { day: d.getDate(), pct: done / habits.length, done, total: habits.length, date: d }
+      return { day: d.getDate(), pct: (done / habits.length) * 100, done, total: habits.length, date: d }
     })
   }, [monthDays, habits, isChecked])
 
-  /* SVG geometry — uses actual pixel dims from ResizeObserver (no distortion) */
+  /* ── Chart SVG geometry (horizontal: X=%, Y=days) ── */
   const chartSvg = useMemo(() => {
     if (chartData.length < 1) return null
     const W = svgSize.w, H = svgSize.h
-    const PL = 32, PR = 8, PT = 6, PB = 18
-    const cH = H - PT - PB
+    const PL = 32, PR = 12, PT = 8, PB = 22
+    const chartW = W - PL - PR
+    const chartH = H - PT - PB
+
     const pts: [number, number][] = chartData.map((d, i) => [
-      PL + (i / Math.max(chartData.length - 1, 1)) * (W - PL - PR),
-      PT + (1 - d.pct) * cH,
+      PL + (d.pct / 100) * chartW,
+      PT + (i / Math.max(chartData.length - 1, 1)) * chartH,
     ])
-    const polyline = pts.map(p => p.join(',')).join(' ')
-    const area = 'M' + pts[0][0] + ',' + (PT + cH) + ' ' +
-      pts.map(p => 'L' + p[0] + ',' + p[1]).join(' ') +
-      ' L' + pts[pts.length - 1][0] + ',' + (PT + cH) + ' Z'
-    return { pts, polyline, area, W, H, PL, PR, PT, PB, cH }
+
+    const pathD = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0] + ',' + p[1]).join(' ')
+
+    return { pts, pathD, W, H, PL, PR, PT, PB, chartW, chartH }
   }, [chartData, svgSize])
 
-  /* SVG hover — 1:1 pixel mapping since viewBox = actual size */
+  /* SVG hover */
   const onSvgMove = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     if (!chartSvg || !svgRef.current) return
     const rect = svgRef.current.getBoundingClientRect()
-    const vbX = e.clientX - rect.left
-    const vbY = e.clientY - rect.top
+    const mx = e.clientX - rect.left
+    const my = e.clientY - rect.top
     let best: number | null = null, bestD = Infinity
     chartSvg.pts.forEach(([px, py], i) => {
-      const d = Math.hypot(px - vbX, py - vbY)
-      if (d < bestD && d < 20) { bestD = d; best = i }
+      const d = Math.hypot(px - mx, py - my)
+      if (d < bestD && d < 24) { bestD = d; best = i }
     })
     setHoveredPt(best)
-    if (best !== null) {
-      const [px, py] = chartSvg.pts[best]
-      setTipPos({ x: px, y: py })
-    }
+    if (best !== null) setTipPos({ x: chartSvg.pts[best][0], y: chartSvg.pts[best][1] })
   }, [chartSvg])
 
   const onSvgLeave = useCallback(() => setHoveredPt(null), [])
+  const tip = hoveredPt !== null ? chartData[hoveredPt] : null
 
-  /* Insight: most consistently done habit this month */
-  const insight = useMemo(() => {
-    if (!habits.length) return null
+  /* ── Stats computations ── */
+  const stats = useMemo(() => {
+    const todayDone = habits.filter(h => isChecked(h.id, TODAY)).length
+    const todayTotal = habits.length
     const pastDays = monthDays.filter(d => dk(d) <= TODAY)
-    if (!pastDays.length) return null
-    let best = habits[0], bestCount = 0
-    habits.forEach(h => {
-      const count = pastDays.filter(d => isChecked(h.id, dk(d))).length
-      if (count > bestCount) { bestCount = count; best = h }
+
+    // Month completion
+    let totalChecks = 0, totalPossible = 0
+    pastDays.forEach(d => {
+      const ds = dk(d)
+      habits.forEach(h => {
+        totalPossible++
+        if (isChecked(h.id, ds)) totalChecks++
+      })
     })
-    if (bestCount === 0) return null
-    const pct = Math.round(bestCount / pastDays.length * 100)
-    return { habit: best, count: bestCount, pct, total: pastDays.length }
+    const monthPct = totalPossible > 0 ? Math.round((totalChecks / totalPossible) * 100) : 0
+
+    // Current streak (consecutive days with 100%)
+    let currentStreak = 0
+    const sortedPast = [...pastDays].sort((a, b) => b.getTime() - a.getTime())
+    for (const d of sortedPast) {
+      const ds = dk(d)
+      const allDone = habits.every(h => isChecked(h.id, ds))
+      if (allDone && habits.length > 0) currentStreak++
+      else break
+    }
+
+    // Best streak
+    let bestStreak = 0, run = 0
+    const sortedAsc = [...pastDays].sort((a, b) => a.getTime() - b.getTime())
+    for (const d of sortedAsc) {
+      const ds = dk(d)
+      const allDone = habits.every(h => isChecked(h.id, ds))
+      if (allDone && habits.length > 0) { run++; if (run > bestStreak) bestStreak = run }
+      else run = 0
+    }
+
+    // Perfect days this month
+    let perfectDays = 0
+    pastDays.forEach(d => {
+      const ds = dk(d)
+      if (habits.length > 0 && habits.every(h => isChecked(h.id, ds))) perfectDays++
+    })
+
+    return { todayDone, todayTotal, monthPct, currentStreak, bestStreak, perfectDays, daysElapsed: pastDays.length }
   }, [habits, monthDays, isChecked])
 
   const addHabit = () => {
@@ -159,12 +189,11 @@ export default function Habits() {
     setNewName(''); setNewColor(COLORS[0]); setShowAdd(false)
   }
 
-  const tip = hoveredPt !== null ? chartData[hoveredPt] : null
-
+  /* ══════════════════════════════════════════════════════════ */
   return (
     <div className={styles.wrap}>
 
-      {/* ── Header ── */}
+      {/* ── Header: month switcher left, add button right ── */}
       <div className={styles.header}>
         <div className={styles.monthNav}>
           <button className={styles.navBtn} onClick={prevMonth}>‹</button>
@@ -173,211 +202,232 @@ export default function Habits() {
           </span>
           <button className={styles.navBtn} onClick={nextMonth}>›</button>
         </div>
-        <button className={styles.addBtn} onClick={() => setShowAdd(true)}>+ Add habit</button>
+        <button className={styles.addBtn} onClick={() => setShowAdd(true)}>+ New habit</button>
       </div>
 
-      {/* ── Main area: insight sidebar + monthly grid ── */}
-      <div className={styles.mainArea}>
-
-        {/* Insight sidebar */}
-        <div className={styles.insightSidebar}>
-          <span className={styles.insightTitle}>Insights</span>
-          {insight ? (
-            <>
-              <div className={styles.insightHabitRow}>
-                <span className={styles.insightDot} style={{ background: insight.habit.color }} />
-                <span className={styles.insightHabitName}>{insight.habit.name}</span>
-              </div>
-              <div className={styles.insightPct}>{insight.pct}%</div>
-              <div className={styles.insightBar}>
-                <div className={styles.insightBarFill} style={{ width: insight.pct + '%' }} />
-              </div>
-              <span className={styles.insightSub}>
-                Most consistent this month<br />
-                {insight.count} of {insight.total} days
-              </span>
-            </>
-          ) : (
-            <span className={styles.insightSub}>
-              Check off habits to see your most consistent one here
-            </span>
-          )}
-        </div>
-
-        {/* Monthly grid */}
-        <div className={styles.gridCard} key={monthKey}>
-          {habits.length === 0 ? (
-            <div className={styles.empty}>
-              <span style={{ fontSize: 28, opacity: 0.2 }}>◎</span>
-              <span>No habits yet — add your first one above</span>
-            </div>
-          ) : (
-            <table className={styles.gridTable}>
-              <thead className={styles.thead}>
-                <tr>
-                  <th className={styles.thCorner}>Habit</th>
+      {/* ── Habit Grid: center, big ── */}
+      <div className={styles.gridCard} key={monthKey}>
+        {habits.length === 0 ? (
+          <div className={styles.empty}>
+            <span style={{ fontSize: 28, opacity: 0.2 }}>◎</span>
+            <span>No habits yet — add your first one above</span>
+          </div>
+        ) : (
+          <table className={styles.gridTable}>
+            <thead className={styles.thead}>
+              <tr>
+                <th className={styles.thCorner}>Habit</th>
+                {monthDays.map(d => {
+                  const ds = dk(d)
+                  return (
+                    <th key={ds} className={`${styles.thDay} ${ds === TODAY ? styles.thToday : ''}`}>
+                      <span className={styles.dayNum}>{d.getDate()}</span>
+                      <span className={styles.dayName}>{DAY_NAMES[d.getDay()]}</span>
+                    </th>
+                  )
+                })}
+              </tr>
+            </thead>
+            <tbody>
+              {habits.map((habit, idx) => (
+                <tr key={habit.id} className={`${styles.habitRow} ${idx % 2 === 1 ? styles.habitRowAlt : ''}`}>
+                  <td className={styles.nameCell}>
+                    <span className={styles.habitDot} style={{ background: habit.color }} />
+                    <span className={styles.habitLabel}>{habit.name}</span>
+                  </td>
                   {monthDays.map(d => {
                     const ds = dk(d)
+                    const state = getCellState(ds)
+                    const checked = isChecked(habit.id, ds)
+                    const cls = [
+                      styles.sq,
+                      state === 'today' && checked ? styles.sqCheckedToday :
+                      state === 'today'            ? styles.sqToday :
+                      checked                      ? styles.sqChecked :
+                      state === 'past'             ? styles.sqPast :
+                                                     styles.sqFuture,
+                    ].filter(Boolean).join(' ')
                     return (
-                      <th key={ds} className={styles.thDay + (ds === TODAY ? ' ' + styles.thToday : '')}>
-                        <span className={styles.dayNum}>{d.getDate()}</span>
-                        <span className={styles.dayName}>{DAY_NAMES[d.getDay()]}</span>
-                      </th>
+                      <td key={ds} className={`${styles.cell} ${ds === TODAY ? styles.cellToday : ''}`}>
+                        <span
+                          className={cls}
+                          onClick={state === 'today' ? () => toggle(habit.id) : undefined}
+                        >
+                          {checked && <span className={styles.checkMark}>✓</span>}
+                        </span>
+                      </td>
                     )
                   })}
                 </tr>
-              </thead>
-              <tbody>
-                {habits.map(habit => (
-                  <tr key={habit.id} className={styles.habitRow}>
-                    <td className={styles.nameCell}>
-                      <span className={styles.habitLabel} style={{ color: habit.color }}>
-                        {habit.name}
-                      </span>
-                    </td>
-                    {monthDays.map(d => {
-                      const ds = dk(d)
-                      const state = getCellState(ds)
-                      const checked = isChecked(habit.id, ds)
-                      const cls = [
-                        styles.sq,
-                        state === 'today' && checked ? styles.sqCheckedToday :
-                        state === 'today'            ? styles.sqToday :
-                        checked                      ? styles.sqChecked :
-                        state === 'past'             ? styles.sqPast :
-                                                       styles.sqFuture,
-                      ].join(' ')
-                      return (
-                        <td key={ds} className={styles.cell + (ds === TODAY ? ' ' + styles.cellToday : '')}>
-                          <span
-                            className={cls}
-                            onClick={state === 'today' ? () => toggle(habit.id) : undefined}
-                          >
-                            {checked && <span className={styles.checkMark}>✓</span>}
-                          </span>
-                        </td>
-                      )
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
-      {/* ── Chart strip (full width, bottom) ── */}
-      <div className={styles.chartStrip} key={monthKey + '-chart'}>
-        <span className={styles.chartTitle}>Completion rate</span>
-        <div className={styles.graphWrap} ref={graphWrapRef}>
-          {chartSvg ? (
-            <>
-              <svg
-                ref={svgRef}
-                className={styles.graphSvg}
-                viewBox={`0 0 ${svgSize.w} ${svgSize.h}`}
-                onMouseMove={onSvgMove}
-                onMouseLeave={onSvgLeave}
-                style={{ cursor: 'crosshair' }}
-              >
-                <defs>
-                  <linearGradient id="habGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="oklch(0.55 0.18 290)" stopOpacity="0.20" />
-                    <stop offset="100%" stopColor="oklch(0.55 0.18 290)" stopOpacity="0.02" />
-                  </linearGradient>
-                </defs>
+      {/* ── Bottom row: graph left, stats right ── */}
+      <div className={styles.bottomRow}>
 
-                {/* Y grid lines + labels — 5 levels */}
-                {Y_LEVELS.map(({ v, label }) => {
-                  const y = chartSvg.PT + (1 - v) * chartSvg.cH
-                  return (
-                    <g key={v}>
-                      <line
-                        x1={chartSvg.PL} y1={y}
-                        x2={chartSvg.W - chartSvg.PR} y2={y}
-                        stroke="rgba(255,255,255,0.04)"
-                        strokeWidth="1"
-                      />
-                      <text x={chartSvg.PL - 4} y={y + 3} className={styles.yLabel} textAnchor="end">
-                        {label}
-                      </text>
-                    </g>
-                  )
-                })}
-
-                {/* X axis day labels — every ~8 steps */}
-                {chartData.map((d, i) => {
-                  const step = Math.max(1, Math.floor(chartData.length / 8))
-                  if (i % step !== 0 && i !== chartData.length - 1) return null
-                  const x = chartSvg.PL + (i / Math.max(chartData.length - 1, 1)) * (chartSvg.W - chartSvg.PL - chartSvg.PR)
-                  return (
-                    <text key={i} x={x} y={chartSvg.H - 3} className={styles.xLabel} textAnchor="middle">
-                      {d.day}
-                    </text>
-                  )
-                })}
-
-                <path d={chartSvg.area} fill="url(#habGrad)" />
-                <polyline
-                  points={chartSvg.polyline}
-                  fill="none"
-                  stroke="oklch(0.65 0.16 290)"
-                  strokeWidth="1.2"
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                />
-                {chartSvg.pts.map(([x, y], i) => (
-                  <circle
-                    key={i} cx={x} cy={y}
-                    r={hoveredPt === i ? 4 : 2}
-                    fill={hoveredPt === i ? 'oklch(0.82 0.18 290)' : 'oklch(0.72 0.16 290)'}
-                  />
-                ))}
-              </svg>
-
-              {/* Hover tooltip */}
-              {tip && (
-                <div
-                  className={styles.chartTip}
-                  style={{
-                    left: Math.max(2, tipPos.x - 68),
-                    top: Math.max(2, tipPos.y - 108),
-                  }}
+        {/* Completion Graph */}
+        <div className={styles.graphCard}>
+          <span className={styles.sectionTitle}>Completion rate</span>
+          <div className={styles.graphWrap} ref={graphWrapRef}>
+            {chartSvg ? (
+              <>
+                <svg
+                  ref={svgRef}
+                  className={styles.graphSvg}
+                  viewBox={`0 0 ${svgSize.w} ${svgSize.h}`}
+                  onMouseMove={onSvgMove}
+                  onMouseLeave={onSvgLeave}
                 >
-                  <div className={styles.ctDate}>
-                    {DAY_SHORT[tip.date.getDay()]} {MON_SHORT[tip.date.getMonth()]} {tip.day}
+                  {/* Vertical grid lines at 0, 25, 50, 75, 100 */}
+                  {PCT_MARKS.map(pct => {
+                    const x = chartSvg.PL + (pct / 100) * chartSvg.chartW
+                    return (
+                      <g key={pct}>
+                        <line
+                          x1={x} y1={chartSvg.PT}
+                          x2={x} y2={chartSvg.PT + chartSvg.chartH}
+                          stroke="rgba(255,255,255,0.05)"
+                          strokeWidth="1"
+                        />
+                        <text x={x} y={svgSize.h - 4} className={styles.xLabel} textAnchor="middle">
+                          {pct}
+                        </text>
+                      </g>
+                    )
+                  })}
+
+                  {/* Y-axis: day labels */}
+                  {chartData.map((d, i) => {
+                    const step = Math.max(1, Math.floor(chartData.length / 8))
+                    if (i % step !== 0 && i !== chartData.length - 1) return null
+                    const y = chartSvg.PT + (i / Math.max(chartData.length - 1, 1)) * chartSvg.chartH
+                    return (
+                      <text key={i} x={chartSvg.PL - 4} y={y + 3} className={styles.yLabel} textAnchor="end">
+                        {d.day}
+                      </text>
+                    )
+                  })}
+
+                  {/* Connecting line */}
+                  <path
+                    d={chartSvg.pathD}
+                    fill="none"
+                    stroke="oklch(0.65 0.16 290)"
+                    strokeWidth="1.5"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                  />
+
+                  {/* Data points */}
+                  {chartSvg.pts.map(([x, y], i) => (
+                    <circle
+                      key={i} cx={x} cy={y}
+                      r={hoveredPt === i ? 5 : 2.5}
+                      fill={hoveredPt === i ? 'oklch(0.82 0.18 290)' : 'oklch(0.72 0.16 290)'}
+                      style={{ transition: 'r 0.12s ease' }}
+                    />
+                  ))}
+                </svg>
+
+                {/* Tooltip */}
+                {tip && (
+                  <div
+                    className={styles.chartTip}
+                    style={{
+                      left: Math.min(Math.max(4, tipPos.x - 68), svgSize.w - 148),
+                      top: Math.max(4, tipPos.y - 80),
+                    }}
+                  >
+                    <div className={styles.ctDate}>
+                      {DAY_SHORT[tip.date.getDay()]} {MON_SHORT[tip.date.getMonth()]} {tip.day}
+                    </div>
+                    <div className={styles.ctPct}>{Math.round(tip.pct)}%</div>
+                    <div className={styles.ctBar}>
+                      <div className={styles.ctFill} style={{ width: Math.round(tip.pct) + '%' }} />
+                    </div>
+                    <div className={styles.ctDetail}>
+                      <span className={styles.ctItem}>
+                        <span className={styles.ctDotGreen} />
+                        {tip.done} followed
+                      </span>
+                      <span className={styles.ctItem}>
+                        <span className={styles.ctDotRed} />
+                        {tip.total - tip.done} missed
+                      </span>
+                    </div>
                   </div>
-                  <div className={styles.ctPct}>{Math.round(tip.pct * 100)}%</div>
-                  <div className={styles.ctBar}>
-                    <div className={styles.ctFill} style={{ width: Math.round(tip.pct * 100) + '%' }} />
-                  </div>
-                  <div className={styles.ctDetail}>
-                    <span className={styles.ctItem}>
-                      <span className={styles.ctDot} style={{ background: 'oklch(0.65 0.14 150)' }} />
-                      {tip.done} done
-                    </span>
-                    <span className={styles.ctItem}>
-                      <span className={styles.ctDot} style={{ background: 'oklch(0.65 0.15 20)' }} />
-                      {tip.total - tip.done} missed
-                    </span>
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center',
-              justifyContent: 'center', opacity: 0.25, fontSize: 11 }}>
-              No data yet
+                )}
+              </>
+            ) : (
+              <div className={styles.noData}>No data yet</div>
+            )}
+          </div>
+        </div>
+
+        {/* Stats Panel */}
+        <div className={styles.statsCard}>
+          <span className={styles.sectionTitle}>Stats</span>
+          <div className={styles.statsGrid}>
+            {/* Today's progress ring */}
+            <div className={styles.statBlock}>
+              <div className={styles.ringWrap}>
+                <svg viewBox="0 0 48 48" className={styles.ringSvg}>
+                  <circle cx="24" cy="24" r="19" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3" />
+                  <circle
+                    cx="24" cy="24" r="19" fill="none"
+                    stroke="oklch(0.65 0.14 150)"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeDasharray={`${(stats.todayTotal > 0 ? stats.todayDone / stats.todayTotal : 0) * 119.38} 119.38`}
+                    transform="rotate(-90 24 24)"
+                  />
+                  <text x="24" y="26" textAnchor="middle" className={styles.ringText}>
+                    {stats.todayDone}/{stats.todayTotal}
+                  </text>
+                </svg>
+              </div>
+              <span className={styles.statLabel}>Today</span>
             </div>
-          )}
+
+            {/* Month completion */}
+            <div className={styles.statBlock}>
+              <span className={styles.statValue}>{stats.monthPct}%</span>
+              <span className={styles.statLabel}>This month</span>
+            </div>
+
+            {/* Current streak */}
+            <div className={styles.statBlock}>
+              <span className={styles.statValue}>{stats.currentStreak}<span className={styles.statUnit}>d</span></span>
+              <span className={styles.statLabel}>Current streak</span>
+            </div>
+
+            {/* Best streak */}
+            <div className={styles.statBlock}>
+              <span className={styles.statValue}>{stats.bestStreak}<span className={styles.statUnit}>d</span></span>
+              <span className={styles.statLabel}>Best streak</span>
+            </div>
+
+            {/* Perfect days */}
+            <div className={styles.statBlock}>
+              <span className={styles.statValue}>{stats.perfectDays}</span>
+              <span className={styles.statLabel}>Perfect days</span>
+            </div>
+
+            {/* Days elapsed */}
+            <div className={styles.statBlock}>
+              <span className={styles.statValue}>{stats.daysElapsed}</span>
+              <span className={styles.statLabel}>Days tracked</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* ── Add modal ── */}
+      {/* ── Add Habit Modal ── */}
       {showAdd && (
-        <div className={styles.overlay}
-          onClick={e => { if (e.target === e.currentTarget) setShowAdd(false) }}>
+        <div className={styles.overlay} onClick={e => { if (e.target === e.currentTarget) setShowAdd(false) }}>
           <div className={styles.modal}>
             <span className={styles.modalTitle}>New habit</span>
             <div className={styles.field}>
@@ -397,7 +447,7 @@ export default function Habits() {
                 {COLORS.map(c => (
                   <span
                     key={c}
-                    className={styles.colorDot + (newColor === c ? ' ' + styles.colorDotActive : '')}
+                    className={`${styles.colorDot} ${newColor === c ? styles.colorDotActive : ''}`}
                     style={{ background: c }}
                     onClick={() => setNewColor(c)}
                   />
