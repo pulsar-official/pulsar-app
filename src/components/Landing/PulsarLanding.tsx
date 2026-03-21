@@ -48,6 +48,17 @@ function useTyping(texts: string[], speed = 38, pause = 1400, delSpeed = 20) {
   return display;
 }
 
+function useWindowWidth() {
+  const [w, setW] = useState(0);
+  useEffect(() => {
+    setW(window.innerWidth);
+    const h = () => setW(window.innerWidth);
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
+  }, []);
+  return w;
+}
+
 function useParticles(count: number, ref: React.RefObject<HTMLCanvasElement | null>) {
   const particles = useRef<Particle[]>([]);
   const mouse = useRef({ x: -9999, y: -9999 });
@@ -420,8 +431,13 @@ function WhyItMatters() {
 interface PulsarLandingProps { onEnter: () => void }
 
 export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
+  const vw = useWindowWidth();
+  const particleCount = vw === 0 ? 90 : vw < 480 ? 25 : vw < 768 ? 50 : 90;
+  const orbitScale = vw === 0 ? 1 : vw < 480 ? 0.48 : vw < 768 ? 0.70 : 1;
+  const heroPadding = vw === 0 ? '120px 40px 80px' : vw < 480 ? '100px 20px 60px' : vw < 768 ? '110px 28px 70px' : '120px 40px 80px';
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  useParticles(90, canvasRef);
+  useParticles(particleCount, canvasRef);
   const parallax1 = useParallax(0.12);
   const parallax2 = useParallax(0.06);
 
@@ -490,12 +506,12 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
       <LandingNav variant="fixed" scrolled={scrolled} onGetStarted={onEnter} />
 
       {/* HERO */}
-      <section ref={hero.ref} style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '120px 40px 80px', textAlign: 'center', overflow: 'hidden' }}>
+      <section ref={hero.ref} style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: heroPadding, textAlign: 'center', overflow: 'hidden' }}>
         <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', top: `calc(50% + ${parallax1}px)`, left: '50%', transform: 'translate(-50%,-50%)', width: '460px', height: '460px', borderRadius: '50%', border: '1px solid rgba(167,139,250,0.06)', pointerEvents: 'none', zIndex: 0 }}>
+        <div style={{ position: 'absolute', top: `calc(50% + ${parallax1}px)`, left: '50%', transform: `translate(-50%,-50%) scale(${orbitScale})`, width: '460px', height: '460px', borderRadius: '50%', border: '1px solid rgba(167,139,250,0.06)', pointerEvents: 'none', zIndex: 0 }}>
           <div style={{ position: 'absolute', top: '-5px', left: '50%', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--accent)', animation: 'plOrbit 20s linear infinite', opacity: 0.7, boxShadow: '0 0 14px rgba(167,139,250,0.9)' }} />
         </div>
-        <div style={{ position: 'absolute', top: `calc(50% + ${parallax2}px)`, left: '50%', transform: 'translate(-50%,-50%)', width: '660px', height: '660px', borderRadius: '50%', border: '1px solid rgba(167,139,250,0.03)', pointerEvents: 'none', zIndex: 0 }}>
+        <div style={{ position: 'absolute', top: `calc(50% + ${parallax2}px)`, left: '50%', transform: `translate(-50%,-50%) scale(${orbitScale})`, width: '660px', height: '660px', borderRadius: '50%', border: '1px solid rgba(167,139,250,0.03)', pointerEvents: 'none', zIndex: 0 }}>
           <div style={{ position: 'absolute', top: '-4px', left: '50%', width: '7px', height: '7px', borderRadius: '50%', background: '#e879f9', animation: 'plOrbit2 36s linear infinite reverse', opacity: 0.45, boxShadow: '0 0 12px rgba(232,121,249,0.7)' }} />
         </div>
         <div style={{ position: 'absolute', top: `calc(50% + ${parallax1}px)`, left: '50%', transform: 'translate(-50%,-50%)', width: '1000px', height: '1000px', borderRadius: '50%', background: 'radial-gradient(circle,rgba(124,58,237,0.13) 0%,rgba(124,58,237,0.03) 35%,transparent 65%)', pointerEvents: 'none' }} />
