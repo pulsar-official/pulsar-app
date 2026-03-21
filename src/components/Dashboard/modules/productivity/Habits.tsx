@@ -25,7 +25,15 @@ const PCT_MARKS = [0, 25, 50, 75, 100]
 export default function Habits() {
   const habits = useProductivityStore(s => s.habits)
   const habitChecks = useProductivityStore(s => s.habitChecks)
-  const checkMap = useProductivityStore(s => s.getHabitCheckMap())
+  const checkMap = useMemo(() => {
+    const map: Record<string, Record<string, boolean>> = {}
+    for (const check of habitChecks) {
+      const hid = String(check.habitId)
+      if (!map[hid]) map[hid] = {}
+      map[hid][check.date] = check.checked
+    }
+    return map
+  }, [habitChecks])
   const storeAddHabit = useProductivityStore(s => s.addHabit)
   const storeToggleCheck = useProductivityStore(s => s.toggleHabitCheck)
   const [viewMonth, setViewMonth] = useState(() => new Date())

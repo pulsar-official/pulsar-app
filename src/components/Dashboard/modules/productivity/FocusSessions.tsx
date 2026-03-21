@@ -197,9 +197,9 @@ export default function FocusSessions() {
   const markTaskDone = (id: number) => {
     setTasks((prev) => prev.map((t) => t.id === id ? { ...t, done: true, deferred: false } : t));
     setCompletedInSession((c) => c + 1);
-    // Sync completion back to productivity store
-    const storeTask = storeTasks.find(t => t.id === id)
-    if (storeTask && !storeTask.completed) storeToggleTask(id)
+    // Sync completion back to productivity store (read fresh state to avoid stale closure)
+    const currentTask = useProductivityStore.getState().tasks.find(t => t.id === id)
+    if (currentTask && !currentTask.completed) storeToggleTask(id)
   };
 
   const deferTask = (id: number) => {
