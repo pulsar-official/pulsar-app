@@ -82,7 +82,6 @@ export const PILLARS: Pillar[] = [
         items: [
           { icon: 'check', name: 'Tasks', page: 'tasks', badge: '7' },
           { icon: 'cal', name: 'Calendar', page: 'calendar' },
-          { icon: 'clip', name: 'Project Boards', page: 'projects', badge: '3' },
           { icon: 'timer', name: 'Focus Sessions', page: 'focus' },
         ]
       },
@@ -166,7 +165,7 @@ export const PILLARS: Pillar[] = [
         title: 'Together',
         items: [
           { icon: 'users', name: 'Team Spaces', page: 'teamspaces', badge: '2' },
-          { icon: 'clip', name: 'Multiplayer Boards', page: 'multiboards' },
+          { icon: 'clip', name: 'Project Boards', page: 'projects', badge: '3' },
           { icon: 'target', name: 'Shared Goals', page: 'sharedgoals' },
           { icon: 'stack', name: 'Shared Knowledge', page: 'sharedknowledge' },
         ]
