@@ -158,3 +158,19 @@ export const boardThreads = pgTable('board_threads', {
   toNodeId: integer('to_node_id').references(() => boardNodes.id, { onDelete: 'cascade' }).notNull(),
   label: varchar('label', { length: 255 }),
 })
+
+/* ── Changes Log (audit trail for all updates) ── */
+export const changes = pgTable('changes', {
+  id: serial('id').primaryKey(),
+  orgId: varchar('org_id', { length: 255 }).notNull(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  entityType: varchar('entity_type', { length: 32 }).notNull(), // 'task', 'habit', 'goal', 'journal', 'event', 'note', etc
+  entityId: integer('entity_id').notNull(),
+  field: varchar('field', { length: 128 }).notNull(), // 'title', 'completed', 'priority', etc
+  oldValue: text('old_value'), // JSON stringified
+  newValue: text('new_value'), // JSON stringified
+  operation: varchar('operation', { length: 16 }).default('update'), // 'create', 'update', 'delete'
+  version: integer('version').default(1), // For conflict resolution
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+})

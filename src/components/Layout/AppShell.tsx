@@ -5,6 +5,8 @@ import { useEffect } from 'react'
 import AppLayout from './AppLayout'
 import PulsarLanding from '@/components/Landing/PulsarLanding'
 import { useProductivityStore } from '@/stores/productivityStore'
+import { useServiceWorker } from '@/hooks/useServiceWorker'
+import { useOfflineSync } from '@/hooks/useOfflineSync'
 
 const BETA_OPEN = process.env.NEXT_PUBLIC_BETA_OPEN === 'true'
 
@@ -18,6 +20,10 @@ export default function AppShell() {
 
   const isAdmin = user?.publicMetadata?.role === 'admin'
   const orgId = organization?.id ?? null
+
+  // Initialize service worker and offline support
+  useServiceWorker()
+  useOfflineSync()
 
   // Fetch productivity data when org changes
   useEffect(() => {
