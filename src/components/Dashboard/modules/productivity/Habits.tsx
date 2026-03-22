@@ -477,7 +477,11 @@ export default function Habits({ onNavigate }: { onNavigate?: (page: string) => 
         title="Delete Habit?"
         description={`Are you sure you want to delete this habit? All habit check history will be lost.`}
         itemName={habits.find(h => h.id === confirmDeleteHabitId)?.name || 'this habit'}
-        onConfirm={() => confirmDeleteHabitId && deleteHabit(confirmDeleteHabitId)}
+        onConfirm={async () => {
+          if (confirmDeleteHabitId) {
+            await deleteHabit(confirmDeleteHabitId)
+          }
+        }}
         onCancel={() => setConfirmDeleteHabitId(null)}
         isLoading={isDeleting}
       />

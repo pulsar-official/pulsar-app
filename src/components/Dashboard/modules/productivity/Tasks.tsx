@@ -223,7 +223,11 @@ const Tasks: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
         title="Delete Task?"
         description={`Are you sure you want to delete "${editTask?.title}"? This cannot be undone.`}
         itemName={editTask?.title || 'this task'}
-        onConfirm={() => confirmDeleteTaskId && del(confirmDeleteTaskId)}
+        onConfirm={async () => {
+          if (confirmDeleteTaskId) {
+            await del(confirmDeleteTaskId)
+          }
+        }}
         onCancel={() => setConfirmDeleteTaskId(null)}
         isLoading={isDeleting}
       />
