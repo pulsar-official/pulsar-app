@@ -4,6 +4,7 @@ import React, { useState } from "react"
 import styles from "./Tasks.module.scss"
 import { useProductivityStore } from '@/stores/productivityStore'
 import type { Task, Priority, TaskTag, TaskStatus } from '@/types/productivity'
+import RelatedItems from '../shared/RelatedItems'
 
 type DisplayPriority = "high" | "med" | "low"
 
@@ -17,7 +18,7 @@ function toStorePri(p: DisplayPriority): Priority { return p === 'med' ? 'medium
 interface FormState { title:string; desc:string; priority:DisplayPriority; tag:TaskTag; due:string; status:TaskStatus }
 const DFORM: FormState = { title:"", desc:"", priority:"med", tag:"work", due:"", status:"todo" }
 
-const Tasks: React.FC = () => {
+const Tasks: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }) => {
   const tasks = useProductivityStore(s => s.tasks)
   const storeAddTask = useProductivityStore(s => s.addTask)
   const storeUpdateTask = useProductivityStore(s => s.updateTask)
@@ -199,6 +200,7 @@ const Tasks: React.FC = () => {
                 <input type="date" className={styles.input} value={form.due} onChange={e => setForm(f => ({...f, due: e.target.value}))} />
               </div>
             </div>
+            {editTask && <RelatedItems itemType="task" itemId={editTask.id} onNavigate={onNavigate} />}
             <div className={styles.modalFooter}>
               {editTask && <button className={styles.deleteBtn} onClick={() => del(editTask.id)}>Delete</button>}
               <button className={styles.cancelBtn} onClick={() => setOpen(false)}>Cancel</button>

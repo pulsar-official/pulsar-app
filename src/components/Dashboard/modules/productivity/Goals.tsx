@@ -4,6 +4,7 @@ import React, { useState, useMemo } from "react"
 import styles from "./Goals.module.scss"
 import { useProductivityStore } from '@/stores/productivityStore'
 import type { Goal, GoalCategory, Priority } from '@/types/productivity'
+import RelatedItems from '../shared/RelatedItems'
 
 type Cat = GoalCategory
 type Pri = Priority
@@ -57,7 +58,7 @@ const MiniRing: React.FC<{ pct: number; size?: number; color?: string }> = ({ pc
   )
 }
 
-const Goals: React.FC = () => {
+const Goals: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }) => {
   const goals = useProductivityStore(s => s.goals)
   const storeAddGoal = useProductivityStore(s => s.addGoal)
   const storeUpdateGoal = useProductivityStore(s => s.updateGoal)
@@ -315,6 +316,9 @@ const Goals: React.FC = () => {
                   <button className={styles.addSubBtn} onClick={addSub}>+</button>
                 </div>
               </div>
+
+              {/* Smart connections */}
+              <RelatedItems itemType="goal" itemId={selected.id} onNavigate={onNavigate} />
             </>
           ) : (
             <div className={styles.empty}>Select a goal to view details</div>

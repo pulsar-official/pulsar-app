@@ -1,0 +1,134 @@
+@use '@/styles/variables' as *;
+
+.wrap {
+  margin-top: $sp-2;
+  border: 1px solid $border-subtle;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: $sp-2;
+  padding: $sp-2 $sp-3;
+  width: 100%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  color: $text-2;
+  transition: background $dur-fast $ease;
+
+  &:hover {
+    background: $surface-3;
+  }
+}
+
+.headerLabel {
+  font-size: $font-size-xs;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: $text-3;
+}
+
+.headerCount {
+  font-size: 9px;
+  font-weight: 700;
+  color: $accent-purple;
+  background: rgba(120, 100, 200, 0.12);
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-left: auto;
+}
+
+.chevron {
+  transition: transform $dur-fast $ease;
+  color: $text-3;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: $sp-2;
+  padding: 5px $sp-3;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background $dur-fast $ease;
+
+  &:hover {
+    background: $surface-3;
+  }
+}
+
+.itemIcon {
+  font-size: 12px;
+  flex-shrink: 0;
+  width: 18px;
+  text-align: center;
+}
+
+.itemTitle {
+  font-size: $font-size-sm;
+  color: $text-1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
+}
+
+.itemType {
+  font-size: 9px;
+  font-weight: 600;
+  color: $text-3;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+
+.strengthBar {
+  width: 24px;
+  height: 3px;
+  border-radius: 2px;
+  background: $surface-3;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.strengthFill {
+  height: 100%;
+  border-radius: 2px;
+  background: $accent-purple;
+  transition: width 300ms $ease;
+}
+
+.showMore {
+  padding: 4px $sp-3;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: $font-size-xs;
+  color: $text-3;
+  text-align: left;
+  transition: color $dur-fast $ease;
+
+  &:hover {
+    color: $text-2;
+  }
+}
