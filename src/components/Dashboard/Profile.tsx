@@ -6,18 +6,12 @@ import styles from './Profile.module.scss'
 import { ProfileMenu } from './ProfileMenu'
 
 interface ProfileProps {
-  streak?: number
-  tasksToday?: number
-  focusTimeToday?: number
   onSettingsClick?: () => void
   onShortcutsClick?: () => void
   onManagePlan?: () => void
 }
 
 export const Profile: React.FC<ProfileProps> = ({
-  streak = 0,
-  tasksToday = 0,
-  focusTimeToday = 0,
   onSettingsClick,
   onShortcutsClick,
   onManagePlan,
@@ -48,9 +42,6 @@ export const Profile: React.FC<ProfileProps> = ({
 
       {menuOpen && (
         <ProfileMenu
-          streak={streak}
-          tasksToday={tasksToday}
-          focusTimeToday={focusTimeToday}
           onSettingsClick={onSettingsClick}
           onShortcutsClick={onShortcutsClick}
           onManagePlan={onManagePlan}
