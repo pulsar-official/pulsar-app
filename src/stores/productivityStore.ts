@@ -33,9 +33,29 @@ const SAMPLE_GOALS: Goal[] = [
 ]
 
 const today = new Date().toISOString().split('T')[0]
+function daysAgo(n: number) {
+  const d = new Date(); d.setDate(d.getDate() - n)
+  return d.toISOString().split('T')[0]
+}
 const SAMPLE_JOURNAL: JournalEntry[] = [
-  { id: 1, orgId: '', userId: '', title: 'Morning reflections', content: 'Today I woke up feeling refreshed and motivated.', date: today, mood: '😊', tags: ['gratitude', 'reflection'] },
-  { id: 2, orgId: '', userId: '', title: 'Project ideas', content: 'Had some great ideas during the team meeting.', date: '2025-06-04', mood: '🤩', tags: ['ideas', 'work'] },
+  { id: 1, orgId: '', userId: '', title: 'Morning reflections', content: 'Today I woke up feeling refreshed and motivated. The sun was out and I had a great coffee.', date: today, mood: '😊', tags: ['gratitude', 'reflection'] },
+  { id: 2, orgId: '', userId: '', title: 'Project ideas', content: 'Had some great ideas during the team meeting. We discussed new UI components and architecture patterns.', date: daysAgo(1), mood: '🤩', tags: ['ideas', 'work'] },
+  { id: 3, orgId: '', userId: '', title: 'Challenging day', content: 'Today was tough. Multiple deadlines converging and I felt overwhelmed. Need to prioritize better.', date: daysAgo(2), mood: '😔', tags: ['reflection', 'work'] },
+  { id: 4, orgId: '', userId: '', title: 'Gratitude practice', content: 'Thankful for my health, my team, and the progress we have made this quarter.', date: daysAgo(3), mood: '😊', tags: ['gratitude'] },
+  { id: 5, orgId: '', userId: '', title: 'Weekend plans', content: 'Looking forward to hiking this weekend. Need to prepare gear and check the weather.', date: daysAgo(4), mood: '🤩', tags: ['personal'] },
+  { id: 6, orgId: '', userId: '', title: 'Book notes', content: 'Finished reading Atomic Habits. Key takeaway: focus on systems, not goals.', date: daysAgo(5), mood: '😊', tags: ['ideas', 'personal'] },
+  { id: 7, orgId: '', userId: '', title: 'Work frustrations', content: 'Deployment failed again. Spent 3 hours debugging infrastructure issues.', date: daysAgo(6), mood: '😡', tags: ['work'] },
+  { id: 8, orgId: '', userId: '', title: 'Meditation session', content: 'Did a 20-minute guided meditation. Feeling much calmer and centered now.', date: daysAgo(7), mood: '😊', tags: ['personal', 'reflection'] },
+  { id: 9, orgId: '', userId: '', title: 'Goal review', content: 'Reviewed my quarterly goals. On track for most, need to push harder on fitness.', date: daysAgo(8), mood: '😐', tags: ['goals', 'reflection'] },
+  { id: 10, orgId: '', userId: '', title: 'Creative writing', content: 'Wrote a short story draft. The words flowed easily today.', date: daysAgo(10), mood: '🤩', tags: ['personal', 'ideas'] },
+  { id: 11, orgId: '', userId: '', title: 'Tired day', content: 'Did not sleep well last night. Low energy all day. Going to bed early tonight.', date: daysAgo(12), mood: '😴', tags: ['personal'] },
+  { id: 12, orgId: '', userId: '', title: 'Team celebration', content: 'We shipped the feature! Team lunch to celebrate. Feeling proud of everyone.', date: daysAgo(14), mood: '🤩', tags: ['work', 'gratitude'] },
+  { id: 13, orgId: '', userId: '', title: 'Quiet Sunday', content: 'Spent the day reading and cooking. Sometimes doing less is more.', date: daysAgo(16), mood: '😊', tags: ['personal', 'reflection'] },
+  { id: 14, orgId: '', userId: '', title: 'Learning new things', content: 'Started learning Rust. The ownership model is challenging but elegant.', date: daysAgo(18), mood: '😐', tags: ['ideas', 'goals'] },
+  { id: 15, orgId: '', userId: '', title: 'Stressful meeting', content: 'Difficult stakeholder meeting. Need to improve communication skills.', date: daysAgo(20), mood: '😡', tags: ['work', 'reflection'] },
+  { id: 16, orgId: '', userId: '', title: 'Morning run', content: 'Ran 5km in the park. Personal best time! The consistency is paying off.', date: daysAgo(22), mood: '🤩', tags: ['personal', 'goals'] },
+  { id: 17, orgId: '', userId: '', title: 'Lazy afternoon', content: 'Took a long nap after lunch. Sometimes rest is productive too.', date: daysAgo(25), mood: '😴', tags: ['personal'] },
+  { id: 18, orgId: '', userId: '', title: 'Planning ahead', content: 'Mapped out the next sprint. Feeling organized and prepared.', date: daysAgo(28), mood: '😊', tags: ['work', 'goals'] },
 ]
 
 /* ── Store interface ── */
@@ -85,11 +105,18 @@ interface ProductivityState {
   updateEvent: (event: CalEvent) => Promise<void>
   deleteEvent: (id: number) => Promise<void>
 
+  // Journal cross-component navigation
+  selectedJournalEntryId: number | null
+  setSelectedJournalEntryId: (id: number | null) => void
+
   // Selectors
   getHabitCheckMap: () => HabitCheckMap
   getTodaysTasks: () => Task[]
   getOverdueTasks: () => Task[]
   getActiveGoals: () => Goal[]
+  getJournalEntriesByDate: (date: string) => JournalEntry[]
+  getJournalMoodDistribution: () => Record<string, number>
+  getJournalStreak: () => { current: number; longest: number; totalDays: number; dates: Set<string> }
 }
 
 async function apiFetch<T>(url: string, options?: RequestInit): Promise<T | null> {
@@ -113,6 +140,8 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
   orgId: null,
   loading: false,
   initialized: false,
+  selectedJournalEntryId: null,
+  setSelectedJournalEntryId: (id) => set({ selectedJournalEntryId: id }),
 
   fetchAll: async (orgId: string) => {
     set({ loading: true, orgId })
@@ -347,4 +376,45 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
   },
 
   getActiveGoals: () => get().goals.filter(g => !g.done),
+
+  getJournalEntriesByDate: (date: string) =>
+    get().journalEntries.filter(e => e.date === date),
+
+  getJournalMoodDistribution: () => {
+    const dist: Record<string, number> = {}
+    for (const e of get().journalEntries) {
+      dist[e.mood] = (dist[e.mood] || 0) + 1
+    }
+    return dist
+  },
+
+  getJournalStreak: () => {
+    const entries = get().journalEntries
+    const dates = new Set(entries.map(e => e.date))
+    const todayStr = new Date().toISOString().split('T')[0]
+
+    // Current streak: count consecutive days backwards from today
+    let current = 0
+    const d = new Date()
+    while (true) {
+      const ds = d.toISOString().split('T')[0]
+      if (dates.has(ds)) { current++; d.setDate(d.getDate() - 1) }
+      else break
+    }
+
+    // Longest streak: walk all sorted dates
+    const sorted = [...dates].sort()
+    let longest = 0, run = 1
+    for (let i = 1; i < sorted.length; i++) {
+      const prev = new Date(sorted[i - 1])
+      const curr = new Date(sorted[i])
+      const diff = (curr.getTime() - prev.getTime()) / 86400000
+      if (diff === 1) { run++; if (run > longest) longest = run }
+      else run = 1
+    }
+    if (sorted.length > 0 && longest === 0) longest = 1
+    if (run > longest) longest = run
+
+    return { current, longest, totalDays: dates.size, dates }
+  },
 }))

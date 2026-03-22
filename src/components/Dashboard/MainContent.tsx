@@ -32,7 +32,12 @@ import ProjectBoards from './modules/productivity/ProjectBoards'
 import FocusSessions from './modules/productivity/FocusSessions'
 import Habits from './modules/productivity/Habits'
 import Goals from './modules/productivity/Goals'
-import Journal from './modules/productivity/Journal'
+import JournalEditor from './modules/productivity/JournalEditor'
+import JournalCalendar from './modules/productivity/JournalCalendar'
+import JournalTemplates from './modules/productivity/JournalTemplates'
+import MoodTracker from './modules/productivity/MoodTracker'
+import JournalPrompts from './modules/productivity/JournalPrompts'
+import JournalStreaks from './modules/productivity/JournalStreaks'
 
 // Insights
 import ProdScore from './modules/insights/ProdScore'
@@ -105,7 +110,12 @@ const MODULES: Record<string, React.ComponentType<any>> = {
   focus: FocusSessions,
   habits: Habits,
   goals: Goals,
-  journal: Journal,
+  journal: JournalEditor,
+  journalcalendar: JournalCalendar,
+  journaltemplates: JournalTemplates,
+  moodtracker: MoodTracker,
+  journalprompts: JournalPrompts,
+  journalstreaks: JournalStreaks,
   // insights
   prodscore: ProdScore,
   heatmap: FocusHeatmap,

@@ -68,6 +68,22 @@ export interface JournalEntry {
   tags: string[]
 }
 
+export interface JournalTemplate {
+  id: string
+  name: string
+  description: string
+  icon: string
+  category: 'reflection' | 'planning' | 'gratitude' | 'review' | 'creative'
+  prompts: string[]
+  defaultTags: string[]
+}
+
+export interface JournalPrompt {
+  id: string
+  text: string
+  category: 'self-reflection' | 'gratitude' | 'goals' | 'creativity' | 'mindfulness' | 'growth'
+}
+
 export interface CalEvent {
   id: number
   orgId: string
