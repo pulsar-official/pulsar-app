@@ -36,8 +36,8 @@ const TYPE_ICON: Record<NotifType, string> = {
 const SEED_NOTIFS: Notif[] = []
 
 export const Sidebar: React.FC<SidebarProps> = ({ onNavigate }) => {
-  const { sidebarCollapsed, toggleSidebar, setCurrentPage, mobileMenuOpen } = useUIStore()
-  const [currentPillarIndex, setCurrentPillarIndex] = useState(6)
+  const { sidebarCollapsed, toggleSidebar, setCurrentPage, currentPillarIndex, setCurrentPillarIndex, mobileMenuOpen } = useUIStore()
+  const [localPillarIndex, setLocalPillarIndex] = useState(currentPillarIndex)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [isCollapsing, setIsCollapsing] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
@@ -80,6 +80,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate }) => {
     return () => window.removeEventListener('keydown', handleKey)
   }, [dropdownOpen, notifOpen, feedbackOpen])
 
+  // Sync pillar index with store and calculate correct pillar when page changes
+  useEffect(() => {
+    setLocalPillarIndex(currentPillarIndex)
+  }, [currentPillarIndex])
+
   const handleNavAction = (id: string) => {
     switch (id) {
       case 'marketplace':      setCurrentPage('marketplace'); break
@@ -121,10 +126,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate }) => {
         />
         <Search />
         <Carousel
-          currentIndex={currentPillarIndex}
+          currentIndex={localPillarIndex}
           onOpenDropdown={() => { if (!sidebarCollapsed) setDropdownOpen(true) }}
           onCloseDropdown={() => setDropdownOpen(false)}
-          onRotate={setCurrentPillarIndex}
+          onRotate={(index) => {
+            setLocalPillarIndex(index)
+            setCurrentPillarIndex(index)
+          }}
           collapsed={sidebarCollapsed}
         />
         <NavItems items={BOTTOM_NAV} collapsed={sidebarCollapsed} onNavigate={handleNavAction} />
