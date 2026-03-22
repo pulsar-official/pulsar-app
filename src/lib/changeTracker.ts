@@ -1,5 +1,6 @@
 import { db } from './db'
 import { changes } from '@/db/schema'
+import { eq, and, gt } from 'drizzle-orm'
 
 export interface ChangeLog {
   orgId: string
@@ -47,10 +48,11 @@ export async function getEntityChanges(
   return await db.select()
     .from(changes)
     .where(
-      (t) =>
-        t.orgId === orgId &&
-        t.entityType === entityType &&
-        t.entityId === entityId
+      and(
+        eq(changes.orgId, orgId),
+        eq(changes.entityType, entityType),
+        eq(changes.entityId, entityId)
+      )
     )
 }
 
@@ -65,12 +67,13 @@ export async function getChangesSince(
   return await db.select()
     .from(changes)
     .where(
-      (t) =>
-        t.orgId === orgId &&
-        t.userId === userId &&
-        t.createdAt > since
+      and(
+        eq(changes.orgId, orgId),
+        eq(changes.userId, userId),
+        gt(changes.createdAt, since)
+      )
     )
-    .orderBy((t) => t.createdAt)
+    .orderBy(changes.createdAt)
 }
 
 /**
@@ -83,11 +86,12 @@ export async function getEntityVersion(
   const result = await db.select()
     .from(changes)
     .where(
-      (t) =>
-        t.entityType === entityType &&
-        t.entityId === entityId
+      and(
+        eq(changes.entityType, entityType),
+        eq(changes.entityId, entityId)
+      )
     )
-    .orderBy((t) => t.version)
+    .orderBy(changes.version)
     .limit(1)
 
   return result[0]?.version || 1
