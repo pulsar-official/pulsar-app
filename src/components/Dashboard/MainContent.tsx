@@ -1,8 +1,10 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import styles from './MainContent.module.scss'
 import { useUIStore } from '@/stores/uiStore'
+import { pageToUrl } from '@/lib/routing'
 
 // Dashboard
 import Dashboard from './modules/dashboard/Dashboard'
@@ -153,10 +155,19 @@ const MODULES: Record<string, React.ComponentType<any>> = {
 const FULLSCREEN_MODULES = new Set(['calendar'])
 
 export const MainContent: React.FC = () => {
+  const router = useRouter()
   const { currentPage, setCurrentPage } = useUIStore()
 
   const Component = MODULES[currentPage]
   const isFull = FULLSCREEN_MODULES.has(currentPage)
+
+  // Sync URL with currentPage changes
+  useEffect(() => {
+    if (currentPage) {
+      const url = pageToUrl(currentPage)
+      router.push(url)
+    }
+  }, [currentPage, router])
 
   if (!Component) return (
     <main className={styles.main}>

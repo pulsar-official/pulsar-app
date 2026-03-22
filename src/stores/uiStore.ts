@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
 interface UIState {
   sidebarCollapsed: boolean
@@ -13,15 +14,28 @@ interface UIState {
   setSubBreadcrumb: (label: string | null) => void
 }
 
-export const useUIStore = create<UIState>((set) => ({
-  sidebarCollapsed: false,
-  toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
-  currentPage: 'dashboard',
-  // Clear sub-breadcrumb whenever navigating to a new top-level page
-  setCurrentPage: (page) => set({ currentPage: page, mobileMenuOpen: false, subBreadcrumb: null }),
-  mobileMenuOpen: false,
-  toggleMobileMenu: () => set((state) => ({ mobileMenuOpen: !state.mobileMenuOpen })),
-  closeMobileMenu: () => set({ mobileMenuOpen: false }),
-  subBreadcrumb: null,
-  setSubBreadcrumb: (label) => set({ subBreadcrumb: label }),
-}))
+export const useUIStore = create<UIState>()(
+  persist(
+    (set) => ({
+      sidebarCollapsed: false,
+      toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
+      currentPage: 'dashboard',
+      // Clear sub-breadcrumb whenever navigating to a new top-level page
+      setCurrentPage: (page) => set({ currentPage: page, mobileMenuOpen: false, subBreadcrumb: null }),
+      mobileMenuOpen: false,
+      toggleMobileMenu: () => set((state) => ({ mobileMenuOpen: !state.mobileMenuOpen })),
+      closeMobileMenu: () => set({ mobileMenuOpen: false }),
+      subBreadcrumb: null,
+      setSubBreadcrumb: (label) => set({ subBreadcrumb: label }),
+    }),
+    {
+      name: 'pulsar-ui-state',
+      partialize: (state) => ({
+        currentPage: state.currentPage,
+        sidebarCollapsed: state.sidebarCollapsed,
+        subBreadcrumb: state.subBreadcrumb,
+        // Explicitly exclude: mobileMenuOpen (should close on reload)
+      }),
+    }
+  )
+)
