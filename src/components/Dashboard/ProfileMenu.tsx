@@ -40,9 +40,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
   const plan = (user?.publicMetadata?.plan as string) || 'Free'
   const planActive = plan !== 'Free'
   const displayName = user?.fullName || user?.firstName || 'User'
-  const email = user?.emailAddresses[0]?.emailAddress || ''
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
-  const avatarUrl = user?.imageUrl || null
 
   const workspaceLimit = WORKSPACE_LIMITS[plan] ?? 1
   const orgList = userMemberships?.data ?? []
@@ -135,20 +133,8 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
   return (
     <div ref={menuRef} className={styles.menu} style={{ top: position.top + 'px', left: position.left + 'px' }}>
 
-      {/* User identity */}
+      {/* Plan */}
       <div className={styles.planSection}>
-        <div className={styles.userIdentity}>
-          <div className={styles.avatar}>
-            {avatarUrl
-              ? <img src={avatarUrl} alt={displayName} className={styles.avatarImg} />
-              : <span>{initials}</span>
-            }
-          </div>
-          <div className={styles.userInfo}>
-            <div className={styles.userName}>{displayName}</div>
-            <div className={styles.userEmail}>{email}</div>
-          </div>
-        </div>
         <div className={styles.planContent}>
           <div className={styles.planName}>{plan === 'Free' ? 'Free plan' : plan + ' plan'}</div>
           <div className={styles.planBadge} style={{ background: planActive ? 'rgba(110,231,183,0.15)' : undefined, color: planActive ? '#6ee7b7' : undefined }}>{planActive ? 'Active' : 'Free tier'}</div>

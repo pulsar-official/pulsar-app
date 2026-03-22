@@ -1,4 +1,4 @@
-import type { CalendarView, EventTag, CalEvent } from '@/types/calendar';
+import type { CalendarView, EventTag } from '@/types/calendar';
 
 // ─── Views ────────────────────────────────────────────────────────────────────
 
@@ -102,82 +102,3 @@ export const PILL_HIDE_DELAY = 120;
 /** Maximum number of dot indicators shown in the month pill before "+N" */
 export const MAX_DOTS = 7;
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-/** Generates seed events relative to the current week for local development */
-export function generateMockEvents(): CalEvent[] {
-  const ev: CalEvent[] = [];
-  let id = 1;
-
-  const wd = (o: number): string => {
-    const d = new Date();
-    d.setDate(d.getDate() - d.getDay() + o + 7);
-    return fmt(d);
-  };
-  const wdPrev = (o: number): string => {
-    const d = new Date();
-    d.setDate(d.getDate() - d.getDay() + o);
-    return fmt(d);
-  };
-
-  [1, 2, 3, 4].forEach(day => {
-    const d = wd(day);
-    ev.push(
-      { id: 'e' + (id++), title: 'Workout',      date: d, dateEnd: null, start: '04:30', end: '05:00', tag: 'health',  recur: null },
-      { id: 'e' + (id++), title: 'Math Study',   date: d, dateEnd: null, start: '05:10', end: '05:40', tag: 'skill',   recur: null },
-      { id: 'e' + (id++), title: 'Piano',        date: d, dateEnd: null, start: '05:50', end: '06:20', tag: 'skill',   recur: null },
-      { id: 'e' + (id++), title: 'Science',      date: d, dateEnd: null, start: '06:25', end: '06:55', tag: 'skill',   recur: null },
-      { id: 'e' + (id++), title: 'School',       date: d, dateEnd: null, start: '07:30', end: '16:00', tag: 'school',  recur: null },
-      { id: 'e' + (id++), title: 'Skill Growth', date: d, dateEnd: null, start: '19:00', end: '20:30', tag: 'skill',   recur: null },
-      { id: 'e' + (id++), title: 'Pulsar',       date: d, dateEnd: null, start: '20:30', end: '23:00', tag: 'pulsar',  recur: null },
-    );
-  });
-
-  const fri = wd(5);
-  ev.push(
-    { id: 'e' + (id++), title: 'Workout',  date: fri, dateEnd: null, start: '04:30', end: '05:00', tag: 'health',  recur: null },
-    { id: 'e' + (id++), title: 'School',   date: fri, dateEnd: null, start: '07:30', end: '13:00', tag: 'school',  recur: null },
-    { id: 'e' + (id++), title: 'Jumuah',   date: fri, dateEnd: null, start: '13:00', end: '15:00', tag: 'worship', recur: null },
-    { id: 'e' + (id++), title: 'Work',     date: fri, dateEnd: null, start: '17:00', end: '21:00', tag: 'work',    recur: null },
-    { id: 'e' + (id++), title: 'Valorant', date: fri, dateEnd: null, start: '23:00', end: '23:59', tag: 'fun',     recur: null },
-  );
-
-  const sat = wd(6);
-  ev.push(
-    { id: 'e' + (id++), title: 'Workout',  date: sat, dateEnd: null, start: '04:30', end: '05:00', tag: 'health',  recur: null },
-    { id: 'e' + (id++), title: 'Piano',    date: sat, dateEnd: null, start: '05:10', end: '06:00', tag: 'skill',   recur: null },
-    { id: 'e' + (id++), title: 'Work',     date: sat, dateEnd: null, start: '11:00', end: '15:00', tag: 'work',    recur: null },
-    { id: 'e' + (id++), title: 'Pulsar',   date: sat, dateEnd: null, start: '15:00', end: '17:30', tag: 'pulsar',  recur: null },
-    { id: 'e' + (id++), title: 'Valorant', date: sat, dateEnd: null, start: '21:00', end: '22:30', tag: 'fun',     recur: null },
-  );
-
-  const sun = wd(0);
-  ev.push(
-    { id: 'e' + (id++), title: 'Pulsar', date: sun, dateEnd: null, start: '06:00', end: '08:00', tag: 'pulsar', recur: null },
-    { id: 'e' + (id++), title: 'Piano',  date: sun, dateEnd: null, start: '08:30', end: '10:30', tag: 'skill',  recur: null },
-    { id: 'e' + (id++), title: 'Math',   date: sun, dateEnd: null, start: '11:00', end: '12:00', tag: 'skill',  recur: null },
-    { id: 'e' + (id++), title: 'Pulsar', date: sun, dateEnd: null, start: '15:00', end: '17:00', tag: 'pulsar', recur: null },
-    { id: 'e' + (id++), title: 'Gaming', date: sun, dateEnd: null, start: '21:00', end: '23:00', tag: 'fun',    recur: null },
-  );
-
-  // Single timed
-  ev.push(
-    { id: 'e' + (id++), title: 'BiteRight Sync', date: wd(3), dateEnd: null, start: '18:00', end: '18:30', tag: 'meeting', recur: null },
-  );
-
-  // Multi-day / all-day
-  ev.push(
-    { id: 'e' + (id++), title: 'InVenture Prize',  date: wd(4),     dateEnd: wd(6),  start: null, end: null, tag: 'urgent', recur: null },
-    { id: 'e' + (id++), title: 'Spring Break',     date: wdPrev(1), dateEnd: wd(5),  start: null, end: null, tag: 'fun',    recur: null },
-    { id: 'e' + (id++), title: 'BiteRight Sprint', date: wd(1),     dateEnd: wd(3),  start: null, end: null, tag: 'pulsar', recur: null },
-    { id: 'e' + (id++), title: 'GT Hackathon',     date: wd(6),     dateEnd: wd(7),  start: null, end: null, tag: 'work',   recur: null },
-  );
-
-  return ev;
-}
-
-// ─── Utility (used inside constants to build mock data) ───────────────────────
-
-function fmt(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
