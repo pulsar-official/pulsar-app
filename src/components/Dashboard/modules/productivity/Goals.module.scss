@@ -138,4 +138,25 @@
   .hdr {
     padding: 12px 16px 10px;
   }
+
+  .gaTag, .gaPri {
+    padding: 6px 7px;
+  }
+
+  .gaSubCk {
+    width: 24px;
+    height: 24px;
+  }
+
+  .gaUndo button {
+    padding: 6px 10px;
+  }
+
+  .gaSubToggle {
+    font-size: 12px;
+  }
+
+  .gaActions {
+    opacity: 1;
+  }
 }

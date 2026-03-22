@@ -1392,4 +1392,12 @@
     gap: 14px;
     padding-bottom: 12px;
   }
+
+  .clockLabel, .yearMiniGrid, .dotOverflow, .allDayLabel {
+    font-size: 0.75rem;
+  }
+
+  .clockAmPm, .weekDayName, .allDayStripLabel, .dayHourLabel, .insightsHeader, .notesLabel {
+    font-size: 0.75rem;
+  }
 }

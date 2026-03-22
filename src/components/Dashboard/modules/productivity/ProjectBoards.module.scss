@@ -898,4 +898,32 @@ $r-xs:  6px;
   .grid {
     grid-template-columns: 1fr;
   }
+
+  .backBtn {
+    padding: 8px 12px;
+  }
+
+  .toolBtn {
+    padding: 8px 12px;
+  }
+
+  .nodeTypeBadge {
+    padding: 5px 6px;
+  }
+
+  .nodeTitleInput, .nodeBodyInput {
+    padding: 6px 7px;
+  }
+
+  .sChip {
+    padding: 5px 8px;
+  }
+
+  .node {
+    width: 240px;
+  }
+
+  .canvasWrap {
+    touch-action: none;
+  }
 }

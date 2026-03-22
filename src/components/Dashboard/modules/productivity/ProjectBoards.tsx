@@ -20,11 +20,12 @@ interface NodeCardProps {
   node:     BoardNode;
   selected: boolean;
   onMouseDown: (e: React.MouseEvent, id: string) => void;
+  onTouchStart: (e: React.TouchEvent, id: string) => void;
   onSelect:    (id: string) => void;
   onUpdate:    (n: BoardNode) => void;
 }
 
-function NodeCard({ node, selected, onMouseDown, onSelect, onUpdate }: NodeCardProps) {
+function NodeCard({ node, selected, onMouseDown, onTouchStart, onSelect, onUpdate }: NodeCardProps) {
   const nt = NODE_TYPES[node.type];
   const sm = STATUS_META[node.status];
   const [editing, setEditing] = useState(false);
@@ -42,6 +43,7 @@ function NodeCard({ node, selected, onMouseDown, onSelect, onUpdate }: NodeCardP
       className={`${styles.node}${selected ? ` ${styles.selected}` : ''}`}
       style={{ left: node.x, top: node.y }}
       onMouseDown={e => { e.stopPropagation(); onMouseDown(e, node.id); onSelect(node.id); }}
+      onTouchStart={e => { e.stopPropagation(); onTouchStart(e, node.id); onSelect(node.id); }}
       onDoubleClick={e => { e.stopPropagation(); setEditing(true); setTimeout(() => inp.current?.focus(), 0); }}
     >
       <div className={styles.nodeAccent} style={{ background: nt.c }} />
@@ -153,6 +155,53 @@ function BoardCanvas({ board, onBack, onUpdate }: CanvasProps) {
   }, [panning, panStart, drag, s2c]);
 
   const onMU = () => { setPanning(false); setPanStart(null); setDrag(null); };
+
+  /* ── Touch handlers (mirror mouse handlers for mobile) ── */
+  const onTouchStartWrap = (e: React.TouchEvent) => {
+    const tgt = e.target as HTMLElement;
+    if (tgt.closest('[data-node]') || tgt.closest('[data-menu]')) return;
+    const t = e.touches[0];
+    setPanning(true);
+    setPanStart({ x: t.clientX - pan.x, y: t.clientY - pan.y });
+    setSel(null);
+    setAddPt(null);
+  };
+
+  const onTouchMoveWrap = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    const t = e.touches[0];
+    if (panning && panStart) setPan({ x: t.clientX - panStart.x, y: t.clientY - panStart.y });
+    if (drag) {
+      const cp = s2c(t.clientX, t.clientY);
+      setNodes(p => p.map(n =>
+        n.id === drag.id
+          ? { ...n,
+              x: Math.round((cp.x - drag.ox) / CANVAS_DEFAULTS.snapSz) * CANVAS_DEFAULTS.snapSz,
+              y: Math.round((cp.y - drag.oy) / CANVAS_DEFAULTS.snapSz) * CANVAS_DEFAULTS.snapSz }
+          : n
+      ));
+    }
+  }, [panning, panStart, drag, s2c]);
+
+  const onTouchEndWrap = () => { setPanning(false); setPanStart(null); setDrag(null); };
+
+  const onNodeTouchStart = (e: React.TouchEvent, id: string) => {
+    if (cnMode) {
+      if (!cnFrom) { setCnFrom(id); return; }
+      if (cnFrom !== id && !threads.some(t =>
+        (t.from === cnFrom && t.to === id) || (t.from === id && t.to === cnFrom)
+      )) {
+        setThreads(p => [...p, { id: nextThreadId(), from: cnFrom, to: id, label: '' }]);
+      }
+      setCnFrom(null);
+      return;
+    }
+    const n = nodes.find(x => x.id === id);
+    if (!n) return;
+    const t = e.touches[0];
+    const cp = s2c(t.clientX, t.clientY);
+    setDrag({ id, ox: cp.x - n.x, oy: cp.y - n.y });
+  };
 
   const onNodeMD = (e: React.MouseEvent, id: string) => {
     if (cnMode) {
@@ -308,6 +357,9 @@ function BoardCanvas({ board, onBack, onUpdate }: CanvasProps) {
         onMouseMove={onMM}
         onMouseUp={onMU}
         onMouseLeave={onMU}
+        onTouchStart={onTouchStartWrap}
+        onTouchMove={onTouchMoveWrap}
+        onTouchEnd={onTouchEndWrap}
         onDoubleClick={onDblClick}
         onWheel={onWheel}
         onContextMenu={e => e.preventDefault()}
@@ -361,6 +413,7 @@ function BoardCanvas({ board, onBack, onUpdate }: CanvasProps) {
               node={n}
               selected={sel === n.id}
               onMouseDown={onNodeMD}
+              onTouchStart={onNodeTouchStart}
               onSelect={setSel}
               onUpdate={updated => setNodes(p => p.map(x => x.id === updated.id ? updated : x))}
             />
