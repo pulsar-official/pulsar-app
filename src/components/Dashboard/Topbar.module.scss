@@ -83,6 +83,14 @@
   padding: 1px 3px;
 }
 
+.ellipsis {
+  color: $text-3;
+  padding: 1px 3px;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  user-select: none;
+}
+
 /* ── RIGHT SECTION ── */
 .rightSection {
   display: flex;

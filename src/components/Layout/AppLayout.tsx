@@ -25,13 +25,25 @@ for (const pillar of PILLARS) {
 }
 
 export const AppLayout: React.FC = () => {
-  const { sidebarCollapsed, currentPage, mobileMenuOpen, closeMobileMenu } = useUIStore()
+  const { sidebarCollapsed, currentPage, mobileMenuOpen, closeMobileMenu, subBreadcrumb } = useUIStore()
 
   const pillarLabel = PAGE_TO_PILLAR[currentPage]
-  const pageLabel = PAGE_TITLES[currentPage] ?? currentPage
-  const breadcrumbs = pillarLabel && pillarLabel !== pageLabel
-    ? [{ label: pillarLabel }, { label: pageLabel }]
-    : [{ label: pageLabel }]
+  const pageLabel   = PAGE_TITLES[currentPage] ?? currentPage
+
+  // Build full breadcrumb list
+  const fullCrumbs: Array<{ label: string; onClick?: () => void }> = []
+  if (pillarLabel && pillarLabel !== pageLabel) {
+    fullCrumbs.push({ label: pillarLabel })
+  }
+  fullCrumbs.push({ label: pageLabel })
+  if (subBreadcrumb) {
+    fullCrumbs.push({ label: subBreadcrumb })
+  }
+
+  // Smart truncation: if breadcrumb gets long (>3 segments), collapse middle to "…"
+  const breadcrumbs = fullCrumbs.length > 3
+    ? [fullCrumbs[0], { label: '…' }, fullCrumbs[fullCrumbs.length - 1]]
+    : fullCrumbs
 
   return (
     <div className={`${styles.layout} ${sidebarCollapsed ? styles.collapsed : ''}`}>

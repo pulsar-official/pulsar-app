@@ -149,7 +149,11 @@
 .habitRow {
   transition: background $dur-fast $ease;
 
-  .nameCell,
+  /* nameCell must stay opaque so it covers scrolled cells behind the sticky column */
+  .nameCell {
+    background: oklch(0.10 0.02 290);
+  }
+
   .cell {
     background: transparent;
   }
@@ -657,5 +661,27 @@
 
   .ringText {
     font-size: 11px;
+  }
+
+  /* ── Mobile: double the checkbox touch target ── */
+  .sq {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    font-size: 18px;
+  }
+
+  .checkMark {
+    font-size: 18px;
+  }
+
+  /* Widen day columns to fit the larger squares */
+  .thDay {
+    min-width: 50px;
+    width: 50px;
+  }
+
+  .cell {
+    padding: 4px 2px;
   }
 }

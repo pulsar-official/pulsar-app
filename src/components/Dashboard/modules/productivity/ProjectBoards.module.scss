@@ -887,12 +887,39 @@ $r-xs:  6px;
     border-radius: 0;
   }
 
+  // Top bar: allow two rows on mobile so all actions are reachable
   .topBar {
-    padding: 0 12px;
+    height: auto;
+    flex-wrap: wrap;
+    padding: 8px 12px;
+    gap: 6px;
+    row-gap: 6px;
   }
 
+  // Metrics: visible on mobile, scrollable horizontally in a full-width row
   .metrics {
-    display: none;
+    display: flex;
+    margin-left: 0;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 4px;
+    padding-bottom: 2px;
+    &::-webkit-scrollbar { height: 0; }
+  }
+
+  .metricPill {
+    flex-shrink: 0;
+    padding: 4px 8px;
+  }
+  .metricVal   { font-size: 13px; }
+  .metricLabel { font-size: 9px; }
+  .progressPill { flex-shrink: 0; }
+
+  .toolBtn {
+    padding: 6px 10px;
+    font-size: 10px;
+    flex-shrink: 0;
   }
 
   .grid {
@@ -900,10 +927,6 @@ $r-xs:  6px;
   }
 
   .backBtn {
-    padding: 8px 12px;
-  }
-
-  .toolBtn {
     padding: 8px 12px;
   }
 
@@ -926,4 +949,44 @@ $r-xs:  6px;
   .canvasWrap {
     touch-action: none;
   }
+
+  // Zoom controls: larger touch targets on mobile
+  .zoomControls {
+    bottom: 24px;
+    right: 16px;
+  }
+  .zoomBtn {
+    width: 44px;
+    height: 44px;
+  }
+
+  // Floating add-node button (shown only on mobile via JS class)
+  .fabAdd {
+    display: flex;
+  }
+}
+
+// ── Floating add button (mobile only) ──
+.fabAdd {
+  display: none;
+  position: absolute;
+  bottom: 84px; // above zoom controls
+  right: 16px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: $ac;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 300;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  box-shadow: 0 4px 16px rgba(124, 92, 252, 0.4);
+  transition: transform 150ms $ease, box-shadow 150ms $ease;
+  font-family: $font;
+  &:hover { transform: scale(1.06); box-shadow: 0 6px 24px rgba(124, 92, 252, 0.5); }
+  &:active { transform: scale(0.94); }
 }
