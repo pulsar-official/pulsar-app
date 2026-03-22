@@ -663,25 +663,25 @@
     font-size: 11px;
   }
 
-  /* ── Mobile: double the checkbox touch target ── */
-  .sq {
-    width: 44px;
-    height: 44px;
-    border-radius: 8px;
-    font-size: 18px;
+  /* ── Mobile: keep checkboxes at 22×22 (same as desktop) ── */
+  /* No sq override — desktop default already applies */
+
+  /* Let the whole habits module scroll so bottomRow doesn't crush the grid */
+  .wrap {
+    overflow-y: auto;
+    height: auto;
+    min-height: 100%;
   }
 
-  .checkMark {
-    font-size: 18px;
-  }
-
-  /* Widen day columns to fit the larger squares */
-  .thDay {
-    min-width: 50px;
-    width: 50px;
-  }
-
-  .cell {
-    padding: 4px 2px;
+  /*
+   * Grid: fixed size so exactly 5 rows are visible without scrolling.
+   * Row height = 22px sq + 4px padding-top + 4px padding-bottom = 30px.
+   * Thead ≈ 34px. 5 rows × 30px + 34px thead = 184px → use 200px for breathing room.
+   */
+  .gridCard {
+    flex: 0 0 auto;
+    min-height: 200px;
+    max-height: 200px;
+    overflow-y: hidden; /* rows show; horizontal scroll via overflow: auto still works */
   }
 }
