@@ -1427,11 +1427,13 @@
     padding-bottom: 12px;
   }
 
-  // ── Day view: hour slots 4× taller for better event visibility ──
-  // (HOUR_H = 52px in constants; 4× = 208px; !important overrides the inline style)
+  // ── Day view: hour slots 2× taller (was 4×/208px, halved to 104px) ──
+  // HOUR_H = 52px in constants; 104px ≈ 2 hours visible per ~half-screen,
+  // ~5 hours visible in a typical mobile scroll window.
+  // !important overrides the inline style set by the TSX.
   .dayHourLabel,
   .dayHourSlot {
-    height: 208px !important;
+    height: 104px !important;
   }
 
   .clockLabel, .yearMiniGrid, .dotOverflow, .allDayLabel {
