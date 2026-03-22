@@ -647,10 +647,12 @@
     flex-direction: column;
     height: auto;
     min-height: unset;
+    gap: $sp-6;
   }
 
   .graphCard {
     order: 0; // graph on top
+    min-height: 600px;
   }
 
   .statsCard {

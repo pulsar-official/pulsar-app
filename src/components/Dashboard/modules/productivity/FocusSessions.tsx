@@ -25,6 +25,7 @@ export default function FocusSessions() {
   // Seed tasks from productivity store, falling back to INITIAL_TASKS
   const storeTasks = useProductivityStore(s => s.tasks)
   const storeToggleTask = useProductivityStore(s => s.toggleTask)
+  const storeEvents = useProductivityStore(s => s.events)
   const initialTasks = useMemo<Task[]>(() => {
     const fromStore = storeTasks.filter(t => !t.completed).map(t => ({
       id: t.id,
@@ -104,6 +105,18 @@ export default function FocusSessions() {
   );
 
   const undoneTasks = tasks.filter((t) => !t.done);
+
+  // ── INITIALIZE STREAK from actual focus events today ──
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0]
+    const todaysFocusEvents = storeEvents.filter(
+      (e) => e.date === today && (e.title?.toLowerCase().includes('focus') || e.tag?.toLowerCase().includes('focus'))
+    )
+    const focusSessionCount = todaysFocusEvents.length
+    if (focusSessionCount > 0) {
+      setStreak(focusSessionCount)
+    }
+  }, [storeEvents])
 
   // ── TIMER TICK ──
   useEffect(() => {

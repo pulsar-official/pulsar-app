@@ -6,6 +6,8 @@ interface UIState {
   toggleSidebar: () => void
   currentPage: string
   setCurrentPage: (page: string) => void
+  currentPillarIndex: number
+  setCurrentPillarIndex: (index: number) => void
   mobileMenuOpen: boolean
   toggleMobileMenu: () => void
   closeMobileMenu: () => void
@@ -22,6 +24,8 @@ export const useUIStore = create<UIState>()(
       currentPage: 'dashboard',
       // Clear sub-breadcrumb whenever navigating to a new top-level page
       setCurrentPage: (page) => set({ currentPage: page, mobileMenuOpen: false, subBreadcrumb: null }),
+      currentPillarIndex: 0,
+      setCurrentPillarIndex: (index) => set({ currentPillarIndex: index }),
       mobileMenuOpen: false,
       toggleMobileMenu: () => set((state) => ({ mobileMenuOpen: !state.mobileMenuOpen })),
       closeMobileMenu: () => set({ mobileMenuOpen: false }),
@@ -32,6 +36,7 @@ export const useUIStore = create<UIState>()(
       name: 'pulsar-ui-state',
       partialize: (state) => ({
         currentPage: state.currentPage,
+        currentPillarIndex: state.currentPillarIndex,
         sidebarCollapsed: state.sidebarCollapsed,
         subBreadcrumb: state.subBreadcrumb,
         // Explicitly exclude: mobileMenuOpen (should close on reload)
