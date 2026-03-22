@@ -37,7 +37,7 @@
 .avatar {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
+  border-radius: 6px;
   background: linear-gradient(135deg, #a78bfa, #7c3aed);
   display: grid;
   place-items: center;
@@ -52,7 +52,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 50%;
+  border-radius: 6px;
 }
 
 .userInfo {
@@ -136,40 +136,6 @@
     background: oklch(0.22 0.06 260);
     color: oklch(0.75 0.12 260);
   }
-}
-
-/* ── STATS ROW ── */
-.statsRow {
-  display: flex;
-  gap: 0;
-  padding: $sp-2 $sp-3;
-  border-bottom: 1px solid $border-subtle;
-}
-
-.statItem {
-  flex: 1;
-  text-align: center;
-  padding: 4px 0;
-
-  &:not(:last-child) {
-    border-right: 1px solid $border-subtle;
-  }
-}
-
-.statValue {
-  font-size: 14px;
-  font-weight: 700;
-  color: $text-1;
-  line-height: 1.2;
-}
-
-.statLabel {
-  font-size: 9px;
-  font-weight: 600;
-  color: $text-3;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-top: 1px;
 }
 
 /* ── DIVIDER ── */

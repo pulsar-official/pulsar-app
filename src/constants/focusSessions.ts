@@ -36,15 +36,7 @@ export const TIMER_TYPES: TimerType[] = [
 ];
 
 // ─── INITIAL TASKS ───
-export const INITIAL_TASKS: Task[] = [
-  { id: 1, title: 'Finish Pulsar carousel animations',  priority: 'high',   done: false, deferred: false },
-  { id: 2, title: 'Write BiteRight competition pitch',  priority: 'high',   done: false, deferred: false },
-  { id: 3, title: 'Review PR #47 — auth flow',         priority: 'medium', done: false, deferred: false },
-  { id: 4, title: 'Refactor Zustand store structure',  priority: 'medium', done: false, deferred: false },
-  { id: 5, title: 'Design onboarding questionnaire',   priority: 'low',    done: false, deferred: false },
-  { id: 6, title: 'Fix TypeScript errors in Switcher', priority: 'high',   done: false, deferred: false },
-  { id: 7, title: 'Update SCSS module tokens',         priority: 'low',    done: false, deferred: false },
-];
+export const INITIAL_TASKS: Task[] = [];
 
 // ─── PRIORITY COLORS ───
 export const PRIORITY_COLORS: Record<Priority, string> = {
@@ -80,7 +72,7 @@ export const fmt = (s: number): string => {
 export const CIRC = 2 * Math.PI * 120;
 
 // Module-level mutable ID counter
-export let nextTaskId = INITIAL_TASKS.length + 1;
+export let nextTaskId = 1;
 export const bumpTaskId = () => nextTaskId++;
 
 // ─── RESOURCES ───

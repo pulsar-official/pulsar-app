@@ -14,9 +14,6 @@ const WORKSPACE_LIMITS: Record<string, number> = {
 
 interface ProfileMenuProps {
   onClose?: () => void
-  streak?: number
-  tasksToday?: number
-  focusTimeToday?: number
   onSettingsClick?: () => void
   onShortcutsClick?: () => void
   onSignOut?: () => void
@@ -25,7 +22,7 @@ interface ProfileMenuProps {
 }
 
 export const ProfileMenu: React.FC<ProfileMenuProps> = ({
-  onClose, streak = 0, tasksToday = 0, focusTimeToday = 0,
+  onClose,
   onSettingsClick, onShortcutsClick, onSignOut, onManagePlan, triggerRef,
 }) => {
   const { signOut } = useClerk()
@@ -159,22 +156,6 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
         <button className={styles.planAction} onClick={() => { onManagePlan?.(); onClose?.() }}>
           {plan === 'Free' ? 'Upgrade' : 'Manage'}
         </button>
-      </div>
-
-      {/* Stats row */}
-      <div className={styles.statsRow}>
-        <div className={styles.statItem}>
-          <div className={styles.statValue}>{streak}</div>
-          <div className={styles.statLabel}>Streak</div>
-        </div>
-        <div className={styles.statItem}>
-          <div className={styles.statValue}>{tasksToday}</div>
-          <div className={styles.statLabel}>Tasks</div>
-        </div>
-        <div className={styles.statItem}>
-          <div className={styles.statValue}>{focusTimeToday}m</div>
-          <div className={styles.statLabel}>Focus</div>
-        </div>
       </div>
 
       <div className={styles.divider} />

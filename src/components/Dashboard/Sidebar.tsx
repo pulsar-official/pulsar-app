@@ -33,14 +33,7 @@ const TYPE_ICON: Record<NotifType, string> = {
   system: '🔔',
 }
 
-const SEED_NOTIFS: Notif[] = [
-  { id: '1', type: 'focus',  title: 'Focus session complete',     body: '2h 30m deep work session ended — great run.',    time: '5m ago',   group: 'Today',   unread: true  },
-  { id: '2', type: 'goal',   title: 'Goal milestone reached',     body: "You're 75% toward Launch MVP. Keep going.",      time: '1h ago',   group: 'Today',   unread: true  },
-  { id: '3', type: 'streak', title: 'Daily streak',               body: '14 days in a row — your longest ever!',          time: '3h ago',   group: 'Today',   unread: true  },
-  { id: '4', type: 'task',   title: 'Task overdue',               body: '"Review PR #41" passed its due date.',           time: '6h ago',   group: 'Today',   unread: false },
-  { id: '5', type: 'system', title: 'Pulsar v0.1.4 deployed',     body: 'New: Board view in Tasks, Calendar week fixes.', time: 'Yesterday',group: 'Earlier', unread: false },
-  { id: '6', type: 'goal',   title: 'Goal created',               body: 'You added "Ship mobile app" to your goals.',    time: '2 days ago',group: 'Earlier', unread: false },
-]
+const SEED_NOTIFS: Notif[] = []
 
 export const Sidebar: React.FC<SidebarProps> = ({ onNavigate }) => {
   const { sidebarCollapsed, toggleSidebar, setCurrentPage, mobileMenuOpen } = useUIStore()
@@ -122,9 +115,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate }) => {
     <>
       <aside className={`${styles.sidebar} ${sidebarCollapsed ? styles.collapsed : ''} ${isCollapsing ? styles.collapsing : ''} ${mobileMenuOpen ? styles.mobileOpen : ''}`}>
         <Profile
-          streak={14}
-          tasksToday={7}
-          focusTimeToday={2.4}
           onSettingsClick={() => setCurrentPage('settings')}
           onShortcutsClick={() => setCurrentPage('shortcuts')}
           onManagePlan={() => { window.location.href = '/pricing' }}
