@@ -72,9 +72,14 @@ interface ProductivityState {
 async function apiFetch<T>(url: string, options?: RequestInit): Promise<T | null> {
   try {
     const res = await fetch(url, options)
-    if (!res.ok) return null
+    if (!res.ok) {
+      const errorText = await res.text()
+      console.error(`[API ERROR] ${options?.method || 'GET'} ${url} - Status: ${res.status}`, errorText)
+      return null
+    }
     return res.json()
-  } catch {
+  } catch (error) {
+    console.error(`[API FETCH ERROR] ${url}`, error)
     return null
   }
 }

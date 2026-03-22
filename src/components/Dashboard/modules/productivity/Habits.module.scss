@@ -213,6 +213,24 @@
   vertical-align: middle;
 }
 
+.deleteHabitBtn {
+  margin-left: 8px;
+  padding: 2px 6px;
+  border: none;
+  background: transparent;
+  color: #999;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 150ms ease;
+  vertical-align: middle;
+
+  &:hover {
+    background: oklch(0.2 0.05 20);
+    color: oklch(0.72 0.14 20);
+  }
+}
+
 .cell {
   text-align: center;
   padding: 4px 3px;
