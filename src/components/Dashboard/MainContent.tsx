@@ -33,7 +33,7 @@ import FocusSessions from './modules/productivity/FocusSessions'
 import Habits from './modules/productivity/Habits'
 import Goals from './modules/productivity/Goals'
 import JournalEditor from './modules/productivity/JournalEditor'
-import JournalCalendar from './modules/productivity/JournalCalendar'
+import JournalEntries from './modules/productivity/JournalEntries'
 import JournalTemplates from './modules/productivity/JournalTemplates'
 import MoodTracker from './modules/productivity/MoodTracker'
 import JournalPrompts from './modules/productivity/JournalPrompts'
@@ -111,7 +111,7 @@ const MODULES: Record<string, React.ComponentType<any>> = {
   habits: Habits,
   goals: Goals,
   journal: JournalEditor,
-  journalcalendar: JournalCalendar,
+  journalentries: JournalEntries,
   journaltemplates: JournalTemplates,
   moodtracker: MoodTracker,
   journalprompts: JournalPrompts,

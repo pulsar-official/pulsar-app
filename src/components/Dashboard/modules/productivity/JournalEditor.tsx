@@ -93,7 +93,7 @@ const JournalEditor: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNa
         <div className={styles.headerRight}>
           {onNavigate && (
             <>
-              <button className={styles.navLink} onClick={() => onNavigate('journalcalendar')}>Calendar</button>
+              <button className={styles.navLink} onClick={() => onNavigate('journalentries')}>Past Entries</button>
               <button className={styles.navLink} onClick={() => onNavigate('journaltemplates')}>Templates</button>
             </>
           )}
