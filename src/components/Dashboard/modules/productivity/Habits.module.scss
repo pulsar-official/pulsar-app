@@ -671,13 +671,15 @@
 
   /* Fill the fixed-height parent (mainFull: overflow:hidden) and scroll within it */
   .wrap {
-    overflow-y: auto;
+    overflow-y: hidden;
     height: 100%;
   }
 
-  /* Let the grid size naturally to its content — wrap handles the vertical scroll */
+  /* Grid fills remaining space (after header + bottomRow) and scrolls rows vertically.
+     min-height ensures at least ~4 rows are visible even when bottomRow stacks tall. */
   .gridCard {
-    flex: none;
+    flex: 1;
+    min-height: 160px;
     overflow: auto;
     -webkit-overflow-scrolling: touch;
     max-height: unset;
