@@ -3,6 +3,7 @@ import { useState, useMemo, useCallback, useRef, useLayoutEffect } from 'react'
 import styles from './Habits.module.scss'
 import { useProductivityStore } from '@/stores/productivityStore'
 import RelatedItems from '../shared/RelatedItems'
+import DeleteConfirmModal from '../shared/DeleteConfirmModal'
 
 /* ── Emoji palette for habit picker ── */
 const EMOJI_OPTIONS = [
@@ -37,10 +38,13 @@ export default function Habits({ onNavigate }: { onNavigate?: (page: string) => 
   }, [habitChecks])
   const storeAddHabit = useProductivityStore(s => s.addHabit)
   const storeToggleCheck = useProductivityStore(s => s.toggleHabitCheck)
+  const storeDeleteHabit = useProductivityStore(s => s.deleteHabit)
   const [viewMonth, setViewMonth] = useState(() => new Date())
   const [showAdd, setShowAdd]     = useState(false)
   const [newName, setNewName]     = useState('')
   const [newEmoji, setNewEmoji]   = useState(EMOJI_OPTIONS[0])
+  const [confirmDeleteHabitId, setConfirmDeleteHabitId] = useState<number | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [hoveredPt, setHoveredPt] = useState<number | null>(null)
   const [tipPos, setTipPos]       = useState({ x: 0, y: 0 })
   const [svgSize, setSvgSize]     = useState({ w: 360, h: 200 })
@@ -172,6 +176,13 @@ export default function Habits({ onNavigate }: { onNavigate?: (page: string) => 
     setNewName(''); setNewEmoji(EMOJI_OPTIONS[0]); setShowAdd(false)
   }
 
+  const deleteHabit = async (id: number) => {
+    setIsDeleting(true)
+    await storeDeleteHabit(id)
+    setIsDeleting(false)
+    setConfirmDeleteHabitId(null)
+  }
+
   /* ══════════════════════════════════════════════════════════ */
   return (
     <div className={styles.wrap}>
@@ -217,6 +228,13 @@ export default function Habits({ onNavigate }: { onNavigate?: (page: string) => 
                   <td className={styles.nameCell}>
                     <span className={styles.habitEmoji}>{habit.emoji}</span>
                     <span className={styles.habitLabel}>{habit.name}</span>
+                    <button
+                      className={styles.deleteHabitBtn}
+                      onClick={() => setConfirmDeleteHabitId(habit.id)}
+                      title="Delete habit"
+                    >
+                      ✕
+                    </button>
                   </td>
                   {monthDays.map(d => {
                     const ds = dk(d)
@@ -454,6 +472,15 @@ export default function Habits({ onNavigate }: { onNavigate?: (page: string) => 
           </div>
         </div>
       )}
+      <DeleteConfirmModal
+        isOpen={!!confirmDeleteHabitId}
+        title="Delete Habit?"
+        description={`Are you sure you want to delete this habit? All habit check history will be lost.`}
+        itemName={habits.find(h => h.id === confirmDeleteHabitId)?.name || 'this habit'}
+        onConfirm={() => confirmDeleteHabitId && deleteHabit(confirmDeleteHabitId)}
+        onCancel={() => setConfirmDeleteHabitId(null)}
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

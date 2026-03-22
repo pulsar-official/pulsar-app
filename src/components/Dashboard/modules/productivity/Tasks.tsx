@@ -5,6 +5,7 @@ import styles from "./Tasks.module.scss"
 import { useProductivityStore } from '@/stores/productivityStore'
 import type { Task, Priority, TaskTag, TaskStatus } from '@/types/productivity'
 import RelatedItems from '../shared/RelatedItems'
+import DeleteConfirmModal from '../shared/DeleteConfirmModal'
 
 type DisplayPriority = "high" | "med" | "low"
 
@@ -30,6 +31,8 @@ const Tasks: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
   const [open, setOpen] = useState(false)
   const [editTask, setEditTask] = useState<Task|null>(null)
   const [form, setForm] = useState<FormState>(DFORM)
+  const [confirmDeleteTaskId, setConfirmDeleteTaskId] = useState<number | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const filtered = filter === "all" ? tasks : tasks.filter(t => t.tag === filter)
 
@@ -54,7 +57,13 @@ const Tasks: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
     setOpen(false)
   }
 
-  const del = (id: number) => { storeDeleteTask(id); setOpen(false) }
+  const del = async (id: number) => {
+    setIsDeleting(true)
+    await storeDeleteTask(id)
+    setIsDeleting(false)
+    setConfirmDeleteTaskId(null)
+    setOpen(false)
+  }
   const renderListView = () => {
     const active = filtered.filter(t => !t.completed)
     const completed = filtered.filter(t => t.completed)
@@ -202,13 +211,22 @@ const Tasks: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
             </div>
             {editTask && <RelatedItems itemType="task" itemId={editTask.id} onNavigate={onNavigate} />}
             <div className={styles.modalFooter}>
-              {editTask && <button className={styles.deleteBtn} onClick={() => del(editTask.id)}>Delete</button>}
+              {editTask && <button className={styles.deleteBtn} onClick={() => setConfirmDeleteTaskId(editTask.id)}>Delete</button>}
               <button className={styles.cancelBtn} onClick={() => setOpen(false)}>Cancel</button>
               <button className={styles.saveBtn} onClick={save}>Save</button>
             </div>
           </div>
         </div>
       )}
+      <DeleteConfirmModal
+        isOpen={!!confirmDeleteTaskId}
+        title="Delete Task?"
+        description={`Are you sure you want to delete "${editTask?.title}"? This cannot be undone.`}
+        itemName={editTask?.title || 'this task'}
+        onConfirm={() => confirmDeleteTaskId && del(confirmDeleteTaskId)}
+        onCancel={() => setConfirmDeleteTaskId(null)}
+        isLoading={isDeleting}
+      />
     </div>
   )
 }
