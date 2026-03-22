@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import styles from './MainContent.module.scss'
 import { useUIStore } from '@/stores/uiStore'
 import { pageToUrl } from '@/lib/routing'
@@ -161,13 +161,17 @@ export const MainContent: React.FC = () => {
   const Component = MODULES[currentPage]
   const isFull = FULLSCREEN_MODULES.has(currentPage)
 
-  // Sync URL with currentPage changes
+  // Sync URL with currentPage changes (only if URL doesn't already match)
+  const pathname = usePathname()
   useEffect(() => {
     if (currentPage) {
-      const url = pageToUrl(currentPage)
-      router.push(url)
+      const targetUrl = pageToUrl(currentPage)
+      // Only push if the URL doesn't already match the target
+      if (pathname !== targetUrl) {
+        router.push(targetUrl)
+      }
     }
-  }, [currentPage, router])
+  }, [currentPage, pathname, router])
 
   if (!Component) return (
     <main className={styles.main}>
