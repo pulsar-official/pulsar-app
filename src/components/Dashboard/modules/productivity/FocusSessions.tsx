@@ -260,23 +260,25 @@ export default function FocusSessions() {
       {/* ════ DASHBOARD ════ */}
       {phase === 'dashboard' && (
         <div className={styles.dashboard}>
+
+          {/* ── Header: sits above the 2-col grid on all viewports ── */}
+          <div className={cx(styles.panel, styles.headerPanel)}>
+            <div className={styles.header}>
+              <h1>Focus Sessions</h1>
+              <p>Commit to deep work. No shortcuts.</p>
+              {streak > 0 && (
+                <div className={styles.streakBadge}>
+                  <span className={styles.streakDot} />
+                  {streak} session streak
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className={styles.dashboardCols}>
 
-            {/* ── LEFT: header + tasks ── */}
+            {/* ── LEFT: tasks only ── */}
             <div className={styles.colLeft}>
-
-              <div className={cx(styles.panel, styles.headerPanel)}>
-                <div className={styles.header}>
-                  <h1>Focus Sessions</h1>
-                  <p>Commit to deep work. No shortcuts.</p>
-                  {streak > 0 && (
-                    <div className={styles.streakBadge}>
-                      <span className={styles.streakDot} />
-                      {streak} session streak
-                    </div>
-                  )}
-                </div>
-              </div>
 
               <div className={cx(styles.panel, styles.tasksPanel)}>
                 <div className={styles.tasksSection}>

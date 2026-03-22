@@ -116,8 +116,7 @@ $amber-glow:    rgba(251, 191, 36, 0.12);
   align-items: stretch;
   flex: 1;
   min-height: 0;
-  // On mobile switch to flex-column so we can order items via CSS order
-  @media (max-width: 768px) { display: flex; flex-direction: column; }
+  @media (max-width: 768px) { grid-template-columns: 1fr; }
 }
 
 .colLeft {
@@ -125,17 +124,14 @@ $amber-glow:    rgba(251, 191, 36, 0.12);
   flex-direction: column;
   gap: 24px;
   min-height: 0;
-  // Become "transparent" on mobile so headerPanel and tasksPanel
-  // are direct flex children of dashboardCols and can be individually ordered
-  @media (max-width: 768px) { display: contents; }
 }
 .colRight {
   display: flex;
   flex-direction: column;
   gap: 20px;
   min-height: 0;
-  // Rhythm panel sits between title (order:1) and tasks (order:3)
-  @media (max-width: 768px) { order: 2; }
+  // On mobile: rhythm panel appears above tasks (header is already above dashboardCols via JSX)
+  @media (max-width: 768px) { order: -1; }
 }
 
 // ── Header ──
@@ -947,6 +943,28 @@ $amber-glow:    rgba(251, 191, 36, 0.12);
     max-height: 40vh;
   }
 
+  // Dashboard: allow scrolling on mobile so nothing is clipped
+  .dashboard {
+    overflow-y: auto;
+    height: auto;
+    min-height: 100%;
+    padding-bottom: 24px;
+  }
+
+  // dashboardCols: don't stretch to fill remaining height — let content size naturally
+  .dashboardCols {
+    flex: none;
+  }
+
+  .headerPanel {
+    padding: 18px 16px 14px;
+    flex-shrink: 0;
+  }
+
+  .tasksPanel {
+    min-height: 280px;
+  }
+
   .typesGrid {
     grid-template-columns: 1fr;
     // Compact: show ~1 timer card at a time, allow scrolling through the rest
@@ -970,29 +988,6 @@ $amber-glow:    rgba(251, 191, 36, 0.12);
   }
   .typeLabel { font-size: 12px; }
   .typeDesc  { font-size: 10px; margin-bottom: 6px; }
-
-  // rhythmPanel: don't grow on mobile, let it size naturally around the compact grid
-  .rhythmPanel {
-    flex: 0 0 auto;
-  }
-
-  // Dashboard bottom gap matches horizontal padding (24px)
-  .dashboard {
-    padding-bottom: 24px;
-  }
-
-  // Title goes first on mobile (order:1)
-  // colRight is order:2 (set inline above)
-  // Tasks go last (order:3) and get extra height (~2.5× typical)
-  .headerPanel {
-    order: 1;
-    padding: 18px 16px 14px;
-  }
-
-  .tasksPanel {
-    order: 3;
-    min-height: 320px;
-  }
 
   .statsRow {
     gap: 8px;
