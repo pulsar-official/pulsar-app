@@ -28,7 +28,6 @@ import KnowledgeInsights from './modules/knowledge/KnowledgeInsights'
 // Productivity
 import Tasks from './modules/productivity/Tasks'
 import Calendar from './modules/productivity/Calendar'
-import ProjectBoards from './modules/productivity/ProjectBoards'
 import FocusSessions from './modules/productivity/FocusSessions'
 import Habits from './modules/productivity/Habits'
 import Goals from './modules/productivity/Goals'
@@ -59,7 +58,7 @@ import ViewTemplates from './modules/customization/ViewTemplates'
 
 // Collaboration
 import TeamSpaces from './modules/collaboration/TeamSpaces'
-import MultiplayerBoards from './modules/collaboration/MultiplayerBoards'
+import ProjectBoards from './modules/collaboration/ProjectBoards'
 import SharedGoals from './modules/collaboration/SharedGoals'
 import SharedKnowledge from './modules/collaboration/SharedKnowledge'
 import Comments from './modules/collaboration/Comments'
@@ -106,7 +105,6 @@ const MODULES: Record<string, React.ComponentType<any>> = {
   // productivity
   tasks: Tasks,
   calendar: Calendar,
-  projects: ProjectBoards,
   focus: FocusSessions,
   habits: Habits,
   goals: Goals,
@@ -134,7 +132,7 @@ const MODULES: Record<string, React.ComponentType<any>> = {
   viewtemplates: ViewTemplates,
   // collaboration
   teamspaces: TeamSpaces,
-  multiboards: MultiplayerBoards,
+  projects: ProjectBoards,
   sharedgoals: SharedGoals,
   sharedknowledge: SharedKnowledge,
   comments: Comments,

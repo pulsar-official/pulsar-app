@@ -23,7 +23,7 @@
 .ctMood { font-size: 14px; font-weight: 600; color: $text-1; margin-bottom: 2px; }
 .ctTitle { font-size: 11px; color: $text-3; }
 
-.bottomRow { flex-shrink: 0; display: flex; gap: 10px; padding: 0 14px 14px; min-height: 160px; height: 180px; }
+.bottomRow { flex-shrink: 0; display: flex; gap: 10px; padding: 0 14px 14px; min-height: 140px; height: auto; }
 
 .distCard { flex: 0 0 280px; border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; background: rgba(255,255,255,0.02); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
 .distBars { display: flex; flex-direction: column; gap: 4px; flex: 1; justify-content: center; }

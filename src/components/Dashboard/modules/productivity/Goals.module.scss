@@ -121,7 +121,7 @@
 
 /* ── Modal ── */
 .overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(6px); z-index: $z-modal; display: flex; align-items: center; justify-content: center; animation: fadeIn 150ms ease; }
-.modal { background: $surface-1; border: 1px solid oklch(0.28 0.06 280); border-radius: 14px; padding: 24px; width: 420px; max-width: 95vw; max-height: 88vh; overflow-y: auto; animation: slideUp 200ms $ease; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); }
+.modal { background: $surface-1; border: 1px solid oklch(0.28 0.06 280); border-radius: 14px; padding: 24px; width: 420px; max-width: 95vw; max-height: 85dvh; overflow-y: auto; animation: slideUp 200ms $ease; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); }
 .modalTitle { font-size: 16px; font-weight: 700; color: $text-1; margin: 0; }
 .field { display: flex; flex-direction: column; gap: 4px; }
 .fieldRow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -159,9 +159,9 @@
 /* ── Responsive ── */
 @media (max-width: $bp-md) {
   .body { flex-direction: column; overflow-y: auto; }
-  .listPanel { width: 100%; border-right: none; border-bottom: 1px solid $border; padding: 0 16px 12px; max-height: 240px; overflow-y: auto; }
+  .listPanel { width: 100%; border-right: none; border-bottom: 1px solid $border; padding: 0 16px 12px; max-height: 40vh; overflow-y: auto; }
   .detailPanel { border-right: none; border-bottom: 1px solid $border; padding: 12px 16px; }
-  .statsPanel { width: 100%; padding: 12px 16px; }
+  .statsPanel { width: 100%; padding: 12px 16px; max-height: 40vh; overflow-y: auto; }
   .header { padding: 12px 16px 10px; }
   .goalCard { margin-right: 0; }
   .statsRingWrap { justify-content: flex-start; }

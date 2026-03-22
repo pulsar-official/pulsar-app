@@ -40,7 +40,7 @@
 .boardCardMeta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 @keyframes tCheckPop { 0% { transform: scale(0.7); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); z-index: 50; display: flex; align-items: center; justify-content: center; animation: tFadeIn 200ms ease; }
-.modal { width: 460px; max-width: 95vw; background: $surface-1; border: 1px solid $border; border-radius: 12px; display: flex; flex-direction: column; max-height: 85vh; overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,0.5); animation: tSlideUp 250ms ease; }
+.modal { width: 460px; max-width: 95vw; background: $surface-1; border: 1px solid $border; border-radius: 12px; display: flex; flex-direction: column; max-height: 85dvh; overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,0.5); animation: tSlideUp 250ms ease; }
 .modalTop { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid $border; flex-shrink: 0; }
 .modalTitle { font-size: 14px; font-weight: 700; color: $text-1; }
 .modalClose { background: none; border: none; color: $text-3; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 6px; &:hover { background: $surface-3; color: $text-1; } }
