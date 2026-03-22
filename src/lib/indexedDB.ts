@@ -167,7 +167,7 @@ export async function getUnsyncedActions(): Promise<QueuedAction[]> {
     const transaction = database.transaction(['syncQueue'], 'readonly')
     const store = transaction.objectStore('syncQueue')
     const index = store.index('synced')
-    const request = index.getAll(false)
+    const request = index.getAll(false as any)
 
     return new Promise((resolve, reject) => {
       request.onsuccess = () => {
