@@ -23,7 +23,6 @@ import {
   WORK_TAGS, LEISURE_TAGS, WORK_KEYWORDS, LEISURE_KEYWORDS,
   BANNER_H, BANNER_GAP, ALLDAY_BAR_H, ALLDAY_BAR_GAP,
   PILL_HIDE_DELAY, MAX_DOTS,
-  generateMockEvents,
 } from '@/constants/calendar';
 
 // ─── CSS custom properties injected on .root ──────────────────────────────────
@@ -983,7 +982,7 @@ export default function PulsarCalendar() {
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth());
   const [day, setDay] = useState(new Date().getDate());
-  const [events, setEvents] = useState<CalEvent[]>(generateMockEvents);
+  const [events, setEvents] = useState<CalEvent[]>([]);
   const [use24h, setUse24h] = useState(true);
   const [anim, setAnim] = useState<CalendarAnim>('');
   const [animKey, setAnimKey] = useState(0);
