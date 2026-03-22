@@ -181,5 +181,3 @@ export const MainContent: React.FC = () => {
     </main>
   )
 }
-
-export default MainContent
