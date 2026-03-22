@@ -4,24 +4,31 @@
 .headerLeft { display: flex; align-items: center; gap: 12px; }
 .headerRight { display: flex; align-items: center; gap: 8px; }
 .pageTitle { font-size: 20px; font-weight: 700; color: $text-1; letter-spacing: -0.3px; }
+.navLink { background: none; border: 1px solid $border-subtle; color: $text-2; font-size: 11px; font-weight: 500; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-family: inherit; transition: all 100ms ease; &:hover { color: $text-1; border-color: $border; background: $surface-2; } }
 .addBtn { height: 32px; padding: 0 13px; border-radius: 6px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: inherit; background: oklch(0.62 0.16 80); color: #fff; box-shadow: 0 2px 12px oklch(0.35 0.12 80 / 0.4); &:hover { background: oklch(0.67 0.16 80); } }
 .body { flex: 1; overflow: hidden; padding: 0 24px 24px; display: flex; gap: 20px; }
-.sidebar { width: 220px; flex-shrink: 0; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
-.sidebarTitle { font-size: 11px; font-weight: 600; color: $text-3; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; flex-shrink: 0; }
+.sidebar { width: 240px; flex-shrink: 0; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+.sidebarControls { display: flex; gap: 6px; margin-bottom: 8px; flex-shrink: 0; }
+.searchInput { flex: 1; padding: 6px 10px; border-radius: 6px; border: 1px solid $border-subtle; background: $surface-2; color: $text-1; font-size: 11px; font-family: inherit; outline: none; &:focus { border-color: oklch(0.62 0.16 80); } &::placeholder { color: $text-3; } }
+.sortBtn { padding: 5px 8px; border-radius: 6px; border: 1px solid $border-subtle; background: none; color: $text-3; font-size: 10px; font-family: inherit; cursor: pointer; white-space: nowrap; &:hover { color: $text-2; border-color: $border; } }
+.sidebarTitle { font-size: 11px; font-weight: 600; color: $text-3; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; flex-shrink: 0; }
 .entryItem { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; cursor: pointer; transition: background 100ms ease, border-color 100ms ease; border: 1px solid transparent; &:hover { background: $surface-2; } &.active { background: $surface-2; border-color: $border; } }
 .entryDot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .entryItemInfo { flex: 1; min-width: 0; }
 .entryItemTitle { font-size: 12px; font-weight: 500; color: $text-1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.entryItemDate { font-size: 11px; color: $text-3; margin-top: 1px; }
+.entryItemMeta { display: flex; gap: 8px; font-size: 11px; color: $text-3; margin-top: 1px; }
 .editor { flex: 1; display: flex; flex-direction: column; background: $surface-2; border: 1px solid $border-subtle; border-radius: 10px; overflow: hidden; }
-.editorHeader { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid $border-subtle; flex-shrink: 0; gap: 12px; }
+.editorHeader { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid $border-subtle; flex-shrink: 0; gap: 12px; flex-wrap: wrap; }
 .editorTitle { font-size: 16px; font-weight: 700; color: $text-1; border: none; background: transparent; outline: none; flex: 1; min-width: 0; font-family: inherit; &::placeholder { color: $text-3; } }
 .editorMeta { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.dateInput { background: $surface-3; border: 1px solid $border-subtle; color: $text-2; font-size: 11px; padding: 4px 8px; border-radius: 5px; font-family: inherit; outline: none; &:focus { border-color: oklch(0.62 0.16 80); } }
 .moodRow { display: flex; gap: 4px; }
 .moodBtn { font-size: 18px; padding: 5px 8px; border-radius: 4px; cursor: pointer; border: 2px solid transparent; background: none; transition: all 100ms ease; &:hover { background: $surface-3; transform: scale(1.1); } &.active { border-color: oklch(0.62 0.16 80); background: $surface-3; } }
 .editorBody { flex: 1; padding: 18px; overflow-y: auto; }
 .editorTextarea { width: 100%; height: 100%; min-height: 300px; background: transparent; border: none; outline: none; color: $text-1; font-size: 14px; font-family: inherit; line-height: 1.7; resize: none; &::placeholder { color: $text-3; } }
-.editorFooter { display: flex; align-items: center; justify-content: space-between; padding: 10px 18px; border-top: 1px solid $border-subtle; flex-shrink: 0; }
+.editorFooter { display: flex; align-items: center; justify-content: space-between; padding: 10px 18px; border-top: 1px solid $border-subtle; flex-shrink: 0; flex-wrap: wrap; gap: 8px; }
+.footerRight { display: flex; align-items: center; gap: 12px; }
+.saveIndicator { font-size: 10px; color: oklch(0.60 0.14 150); font-weight: 500; }
 .wordCount { font-size: 11px; color: $text-3; }
 .tagRow { display: flex; gap: 4px; flex-wrap: wrap; }
 .tag { font-size: 11px; padding: 5px 12px; border-radius: 99px; background: $surface-3; color: $text-2; cursor: pointer; border: 1px solid transparent; font-family: inherit; transition: all 100ms ease; &:hover { color: $text-1; border-color: $border; } }
@@ -29,42 +36,13 @@
 .empty { text-align: center; padding: 60px 20px; color: $text-3; font-size: 13px; flex: 1; display: flex; align-items: center; justify-content: center; }
 .deleteEntryBtn { background: none; border: none; color: $text-3; cursor: pointer; font-size: 11px; font-family: inherit; &:hover { color: oklch(0.65 0.15 20); } }
 
-/* ── Responsive ── */
 @media (max-width: $bp-md) {
-  .body {
-    flex-direction: column;
-  }
-
-  .sidebar {
-    width: 100%;
-    max-height: 180px;
-    overflow-y: auto;
-    border-bottom: 1px solid $border;
-    padding-bottom: 12px;
-  }
-
-  .editor {
-    flex: 1;
-    min-height: 0;
-  }
-
-  .header {
-    padding: 16px 16px 10px;
-  }
-
-  .body {
-    padding: 0 16px 16px;
-  }
-
-  .moodBtn {
-    padding: 8px 10px;
-  }
-
-  .tag {
-    padding: 8px 12px;
-  }
-
-  .deleteEntryBtn {
-    padding: 8px 12px;
-  }
+  .body { flex-direction: column; }
+  .sidebar { width: 100%; max-height: 180px; overflow-y: auto; border-bottom: 1px solid $border; padding-bottom: 12px; }
+  .editor { flex: 1; min-height: 0; }
+  .header { padding: 16px 16px 10px; }
+  .body { padding: 0 16px 16px; }
+  .moodBtn { padding: 8px 10px; }
+  .tag { padding: 8px 12px; }
+  .deleteEntryBtn { padding: 8px 12px; }
 }

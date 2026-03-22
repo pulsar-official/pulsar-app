@@ -1,0 +1,51 @@
+@use "@/styles/variables" as *;
+.wrap { width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; gap: 10px; }
+.header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 4px; flex-shrink: 0; }
+.pageTitle { font-size: 20px; font-weight: 700; color: $text-1; letter-spacing: -0.3px; }
+.backBtn { background: none; border: 1px solid $border-subtle; color: $text-2; font-size: 11px; font-weight: 500; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-family: inherit; &:hover { color: $text-1; border-color: $border; } }
+
+.sectionTitle { font-size: 10px; color: $text-3; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+
+.chartSection { flex: 1; margin: 0 14px; border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; background: rgba(255,255,255,0.02); padding: 12px 14px 8px; display: flex; flex-direction: column; gap: 6px; min-height: 180px; }
+.chartHeader { display: flex; align-items: center; justify-content: space-between; }
+.monthNav { display: flex; align-items: center; gap: 2px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; padding: 3px 6px; }
+.navBtn { width: 24px; height: 24px; border: none; background: transparent; color: $text-3; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; border-radius: 4px; &:hover { background: rgba(255,255,255,0.07); color: $text-1; } }
+.monthLabel { font-size: 11px; font-weight: 600; color: $text-2; min-width: 110px; text-align: center; }
+
+.graphWrap { flex: 1; position: relative; min-height: 0; }
+.graphSvg { width: 100%; height: 100%; display: block; cursor: crosshair; }
+.yLabel { font-size: 10px; fill: $text-3; }
+.xLabel { font-size: 8px; fill: $text-3; font-family: monospace; }
+.noData { flex: 1; display: flex; align-items: center; justify-content: center; opacity: 0.25; font-size: 11px; color: $text-3; }
+
+.chartTip { position: absolute; z-index: 10; background: oklch(0.12 0.04 60); border: 1px solid rgba(255,255,255,0.10); border-radius: 10px; padding: 10px 12px; pointer-events: none; min-width: 120px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+.ctDate { font-size: 9px; font-family: monospace; color: $text-3; margin-bottom: 3px; }
+.ctMood { font-size: 14px; font-weight: 600; color: $text-1; margin-bottom: 2px; }
+.ctTitle { font-size: 11px; color: $text-3; }
+
+.bottomRow { flex-shrink: 0; display: flex; gap: 10px; padding: 0 14px 14px; min-height: 160px; height: 180px; }
+
+.distCard { flex: 0 0 280px; border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; background: rgba(255,255,255,0.02); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.distBars { display: flex; flex-direction: column; gap: 4px; flex: 1; justify-content: center; }
+.distRow { display: flex; align-items: center; gap: 8px; }
+.distEmoji { font-size: 14px; width: 22px; text-align: center; }
+.distBarWrap { flex: 1; height: 8px; background: rgba(255,255,255,0.04); border-radius: 4px; overflow: hidden; }
+.distBar { height: 100%; border-radius: 4px; transition: width 300ms ease; min-width: 2px; }
+.distCount { font-size: 10px; color: $text-3; font-family: monospace; min-width: 50px; text-align: right; }
+
+.corrCard { flex: 1; border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; background: rgba(255,255,255,0.02); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; overflow: auto; }
+.corrTable { font-size: 10px; }
+.corrHeader { display: flex; gap: 1px; margin-bottom: 1px; }
+.corrCorner { width: 28px; flex-shrink: 0; }
+.corrTag { flex: 1; text-align: center; color: $text-3; font-weight: 500; padding: 3px 0; font-size: 9px; overflow: hidden; text-overflow: ellipsis; }
+.corrRow { display: flex; gap: 1px; margin-bottom: 1px; }
+.corrMood { width: 28px; flex-shrink: 0; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+.corrCell { flex: 1; text-align: center; padding: 6px 2px; border-radius: 3px; color: $text-2; font-family: monospace; font-size: 10px; }
+
+@media (max-width: $bp-md) {
+  .bottomRow { flex-direction: column; height: auto; min-height: unset; }
+  .distCard { flex: 0 0 auto; }
+  .header { padding: 16px 16px 4px; }
+  .chartSection { margin: 0 16px; }
+  .bottomRow { padding: 0 16px 16px; }
+}
