@@ -97,7 +97,7 @@ export const PILLARS: Pillar[] = [
         title: 'Journal',
         items: [
           { icon: 'note', name: 'Journal', page: 'journal' },
-          { icon: 'cal', name: 'Calendar', page: 'journalcalendar' },
+          { icon: 'stack', name: 'Past Entries', page: 'journalentries' },
           { icon: 'card', name: 'Templates', page: 'journaltemplates' },
           { icon: 'trend', name: 'Mood Tracker', page: 'moodtracker' },
           { icon: 'zap', name: 'Prompts', page: 'journalprompts' },
