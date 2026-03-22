@@ -5,6 +5,7 @@ import styles from "./JournalEditor.module.scss"
 import { useProductivityStore } from '@/stores/productivityStore'
 import type { JournalEntry } from '@/types/productivity'
 import { MOODS, MOOD_COLORS, TAGS } from '@/constants/journal'
+import RelatedItems from '../shared/RelatedItems'
 
 function fmtDate(d: string) {
   const dt = new Date(d)
@@ -172,6 +173,7 @@ const JournalEditor: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNa
                 <button className={styles.deleteEntryBtn} onClick={deleteEntry}>Delete</button>
               </div>
             </div>
+            <RelatedItems itemType="journal" itemId={selected.id} onNavigate={onNavigate} />
           </div>
         ) : (
           <div className={styles.empty}>Select or create an entry to get started</div>

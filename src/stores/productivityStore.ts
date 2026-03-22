@@ -4,6 +4,8 @@ import type {
   JournalEntry, CalEvent, Board, BoardNode, BoardThread,
   TaskStatus, Priority, TaskTag, GoalCategory,
 } from '@/types/productivity'
+import type { Connection } from '@/types/connections'
+import { computeConnections } from '@/lib/connectionEngine'
 
 /* ── Sample fallback data (used when API unavailable) ── */
 const SAMPLE_TASKS: Task[] = [
@@ -117,6 +119,7 @@ interface ProductivityState {
   getJournalEntriesByDate: (date: string) => JournalEntry[]
   getJournalMoodDistribution: () => Record<string, number>
   getJournalStreak: () => { current: number; longest: number; totalDays: number; dates: Set<string> }
+  getSmartConnections: () => Connection[]
 }
 
 async function apiFetch<T>(url: string, options?: RequestInit): Promise<T | null> {
@@ -416,5 +419,10 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
     if (run > longest) longest = run
 
     return { current, longest, totalDays: dates.size, dates }
+  },
+
+  getSmartConnections: () => {
+    const { tasks, goals, habits, journalEntries, events } = get()
+    return computeConnections(tasks, goals, habits, journalEntries, events)
   },
 }))

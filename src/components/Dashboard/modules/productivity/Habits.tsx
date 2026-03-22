@@ -2,6 +2,7 @@
 import { useState, useMemo, useCallback, useRef, useLayoutEffect } from 'react'
 import styles from './Habits.module.scss'
 import { useProductivityStore } from '@/stores/productivityStore'
+import RelatedItems from '../shared/RelatedItems'
 
 /* ── Emoji palette for habit picker ── */
 const EMOJI_OPTIONS = [
@@ -22,7 +23,7 @@ const TODAY = dk(new Date())
 const PCT_MARKS = [0, 25, 50, 75, 100]
 
 /* ══════════════════════════════════════════════════════════════ */
-export default function Habits() {
+export default function Habits({ onNavigate }: { onNavigate?: (page: string) => void }) {
   const habits = useProductivityStore(s => s.habits)
   const habitChecks = useProductivityStore(s => s.habitChecks)
   const checkMap = useMemo(() => {
@@ -404,6 +405,16 @@ export default function Habits() {
             </div>
           </div>
         </div>
+
+        {/* Smart connections for habits */}
+        {habits.length > 0 && (
+          <div className={styles.connectionsCard}>
+            <span className={styles.sectionTitle}>Connections</span>
+            {habits.slice(0, 3).map(h => (
+              <RelatedItems key={h.id} itemType="habit" itemId={h.id} onNavigate={onNavigate} maxItems={2} />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── Add Habit Modal ── */}
