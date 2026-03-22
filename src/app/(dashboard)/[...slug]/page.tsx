@@ -4,7 +4,6 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useUIStore } from '@/stores/uiStore'
 import { urlToPage, pageExists } from '@/lib/routing'
-import MainContent from '@/components/Dashboard/MainContent'
 
 interface PageProps {
   params: {
@@ -30,5 +29,7 @@ export default function DynamicModulePage({ params }: PageProps) {
     setCurrentPage(page)
   }, [page, router, setCurrentPage])
 
-  return <MainContent />
+  // Layout handles rendering AppShell and MainContent
+  // This page component just updates the store
+  return null
 }

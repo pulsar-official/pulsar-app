@@ -3,8 +3,15 @@ import { PILLARS } from '@/constants/pillars'
 /**
  * Builds a reverse lookup map from page name → { pillarId, pillarLabel }
  * This allows quick resolution of which pillar contains a given page
+ * Cached for performance to avoid rebuilding on every call
  */
-function buildPageMap(): Record<string, { pillarId: string; pillarLabel: string }> {
+let pageMapCache: Record<string, { pillarId: string; pillarLabel: string }> | null = null
+
+function getPageMap(): Record<string, { pillarId: string; pillarLabel: string }> {
+  if (pageMapCache) {
+    return pageMapCache
+  }
+
   const map: Record<string, { pillarId: string; pillarLabel: string }> = {}
 
   PILLARS.forEach((pillar) => {
@@ -18,6 +25,7 @@ function buildPageMap(): Record<string, { pillarId: string; pillarLabel: string 
     })
   })
 
+  pageMapCache = map
   return map
 }
 
@@ -27,7 +35,7 @@ function buildPageMap(): Record<string, { pillarId: string; pillarLabel: string 
  * @returns The URL path (e.g., '/dashboard/productivity/tasks')
  */
 export function pageToUrl(page: string): string {
-  const pageMap = buildPageMap()
+  const pageMap = getPageMap()
   const pageInfo = pageMap[page]
 
   if (!pageInfo) {
