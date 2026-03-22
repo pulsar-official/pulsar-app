@@ -41,12 +41,15 @@ export const Topbar: React.FC<TopbarProps> = ({
       {/* Left: Breadcrumb */}
       <nav className={styles.breadcrumb}>
         {breadcrumbs.map((crumb, idx) => {
-          const isLast = idx === breadcrumbs.length - 1
+          const isLast     = idx === breadcrumbs.length - 1
+          const isEllipsis = crumb.label === '…'
           return (
             <React.Fragment key={idx}>
               {idx > 0 && <span className={styles.separator}>/</span>}
-              {isLast ? (
-                <span className={styles.current}>{crumb.label}</span>
+              {isLast || isEllipsis ? (
+                <span className={isEllipsis ? styles.ellipsis : styles.current}>
+                  {crumb.label}
+                </span>
               ) : (
                 <button
                   className={styles.link}

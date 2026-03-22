@@ -8,6 +8,7 @@ import type {
   Board, BoardNode, BoardThread, ResolvedThread,
   DragState, PanState, BoardStats,
 } from '@/types/projectBoards';
+import { useUIStore } from '@/stores/uiStore';
 
 declare module 'react' {
   interface CSSProperties {
@@ -116,7 +117,9 @@ function BoardCanvas({ board, onBack, onUpdate }: CanvasProps) {
   const [addPt,    setAddPt]    = useState<{ x: number; y: number; sx: number; sy: number } | null>(null);
   const [cnMode,   setCnMode]   = useState(false);
   const [cnFrom,   setCnFrom]   = useState<string | null>(null);
-  const wrapRef = useRef<HTMLDivElement>(null);
+  const wrapRef        = useRef<HTMLDivElement>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressMoved = useRef(false);
 
   // sync to parent on change
   const prevStr = useRef('');
@@ -161,6 +164,17 @@ function BoardCanvas({ board, onBack, onUpdate }: CanvasProps) {
     const tgt = e.target as HTMLElement;
     if (tgt.closest('[data-node]') || tgt.closest('[data-menu]')) return;
     const t = e.touches[0];
+    longPressMoved.current = false;
+    // Long-press (500 ms) opens the add-node menu at the touch point
+    longPressTimer.current = setTimeout(() => {
+      if (!longPressMoved.current) {
+        const r = wrapRef.current?.getBoundingClientRect() ?? { left: 0, top: 0 };
+        const cp = s2c(t.clientX, t.clientY);
+        setAddPt({ ...cp, sx: t.clientX - r.left, sy: t.clientY - r.top });
+        setPanning(false);
+        setPanStart(null);
+      }
+    }, 500);
     setPanning(true);
     setPanStart({ x: t.clientX - pan.x, y: t.clientY - pan.y });
     setSel(null);
@@ -169,6 +183,8 @@ function BoardCanvas({ board, onBack, onUpdate }: CanvasProps) {
 
   const onTouchMoveWrap = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
+    longPressMoved.current = true;
+    if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
     const t = e.touches[0];
     if (panning && panStart) setPan({ x: t.clientX - panStart.x, y: t.clientY - panStart.y });
     if (drag) {
@@ -183,7 +199,10 @@ function BoardCanvas({ board, onBack, onUpdate }: CanvasProps) {
     }
   }, [panning, panStart, drag, s2c]);
 
-  const onTouchEndWrap = () => { setPanning(false); setPanStart(null); setDrag(null); };
+  const onTouchEndWrap = () => {
+    if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
+    setPanning(false); setPanStart(null); setDrag(null);
+  };
 
   const onNodeTouchStart = (e: React.TouchEvent, id: string) => {
     if (cnMode) {
@@ -439,10 +458,26 @@ function BoardCanvas({ board, onBack, onUpdate }: CanvasProps) {
         {/* empty hint */}
         {nodes.length === 0 && (
           <div className={styles.canvasHint}>
-            Double-click to add a node
-            <span className={styles.canvasHintSub}>Drag to pan · Scroll to zoom · Del to remove</span>
+            Double-click (or long-press) to add a node
+            <span className={styles.canvasHintSub}>Drag to pan · Pinch/scroll to zoom · Del to remove</span>
           </div>
         )}
+
+        {/* Floating add button — visible on mobile via CSS, triggers add-node menu at canvas centre */}
+        <button
+          className={styles.fabAdd}
+          data-menu="1"
+          onClick={() => {
+            const r = wrapRef.current?.getBoundingClientRect() ?? { left: 0, top: 0, width: 0, height: 0 };
+            const cx = r.width / 2;
+            const cy = r.height / 2;
+            const cp = s2c(r.left + cx, r.top + cy);
+            setAddPt({ ...cp, sx: cx, sy: cy });
+          }}
+          aria-label="Add node"
+        >
+          +
+        </button>
 
         {/* zoom controls */}
         <div className={styles.zoomControls}>
@@ -714,20 +749,34 @@ function NewBoardModal({ onClose, onSave }: ModalProps) {
 
 // ─── ROOT ────────────────────────────────────────────────
 export default function ProjectBoards() {
-  const [boards,  setBoards]  = useState<Board[]>(SEED_BOARDS);
+  const [boards,   setBoards]   = useState<Board[]>(SEED_BOARDS);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [showNew, setShowNew] = useState(false);
+  const [showNew,  setShowNew]  = useState(false);
+
+  // Push the active board name into the global breadcrumb
+  const setSubBreadcrumb = useUIStore(s => s.setSubBreadcrumb);
 
   const activeBoard = boards.find(b => b.id === activeId) ?? null;
 
   const updateBoard = (updated: Board) =>
     setBoards(p => p.map(b => b.id === updated.id ? updated : b));
 
+  const openBoard = (id: string) => {
+    const board = boards.find(b => b.id === id);
+    setActiveId(id);
+    if (board) setSubBreadcrumb(board.name);
+  };
+
+  const closeBoard = () => {
+    setActiveId(null);
+    setSubBreadcrumb(null);
+  };
+
   if (activeBoard) {
     return (
       <BoardCanvas
         board={activeBoard}
-        onBack={() => setActiveId(null)}
+        onBack={closeBoard}
         onUpdate={updateBoard}
       />
     );
@@ -737,13 +786,13 @@ export default function ProjectBoards() {
     <>
       <Home
         boards={boards}
-        onOpen={setActiveId}
+        onOpen={openBoard}
         onNew={() => setShowNew(true)}
       />
       {showNew && (
         <NewBoardModal
           onClose={() => setShowNew(false)}
-          onSave={b => { setBoards(p => [...p, b]); setActiveId(b.id); }}
+          onSave={b => { setBoards(p => [...p, b]); openBoard(b.id); }}
         />
       )}
     </>

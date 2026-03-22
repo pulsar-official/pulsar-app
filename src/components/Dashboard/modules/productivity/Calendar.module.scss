@@ -1345,10 +1345,44 @@
 // ─── Responsive ──────────────────────────────────────────────────────────────
 
 @media (max-width: 768px) {
+  // ── Header: tabs row first, then title + action buttons below ──
   .header {
-    padding: 12px 14px;
-    gap: 8px;
     flex-wrap: wrap;
+    padding: 10px 12px;
+    gap: 8px;
+    row-gap: 6px;
+  }
+
+  // Tabs take a full-width row at the top (order:-1 = before everything)
+  .tabs {
+    order: -1;
+    width: 100%;
+    justify-content: stretch;
+  }
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 7px 10px;
+  }
+
+  // Title shrinks so it shares a line with Today + New Event
+  .headerTitle {
+    font-size: 1rem;
+    min-width: unset;
+    flex: 1;
+  }
+
+  // Compact action buttons
+  .todayBtn,
+  .newBtn {
+    height: 32px;
+    padding: 0 12px;
+    font-size: 0.75rem;
+  }
+
+  .navBtn {
+    width: 32px;
+    height: 32px;
   }
 
   .viewPane {
@@ -1391,6 +1425,13 @@
   .dayHeader {
     gap: 14px;
     padding-bottom: 12px;
+  }
+
+  // ── Day view: hour slots 4× taller for better event visibility ──
+  // (HOUR_H = 52px in constants; 4× = 208px; !important overrides the inline style)
+  .dayHourLabel,
+  .dayHourSlot {
+    height: 208px !important;
   }
 
   .clockLabel, .yearMiniGrid, .dotOverflow, .allDayLabel {
