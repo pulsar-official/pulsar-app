@@ -22,26 +22,37 @@ async function initRedis() {
   try {
     // Try Upstash Redis first (best for serverless)
     if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-      const { Redis } = await import('@upstash/redis')
-      redisClient = new Redis({
-        url: process.env.UPSTASH_REDIS_REST_URL,
-        token: process.env.UPSTASH_REDIS_REST_TOKEN,
-      })
-      isAvailable = true
-      console.log('[Redis] Using Upstash Redis')
-      return
+      try {
+        // @ts-ignore - @upstash/redis is optional
+        const upstashModule = await import('@upstash/redis')
+        const Redis = upstashModule.Redis
+        redisClient = new Redis({
+          url: process.env.UPSTASH_REDIS_REST_URL,
+          token: process.env.UPSTASH_REDIS_REST_TOKEN,
+        })
+        isAvailable = true
+        console.log('[Redis] Using Upstash Redis')
+        return
+      } catch (upstashError) {
+        console.warn('[Redis] @upstash/redis not installed, trying standard redis...')
+      }
     }
 
     // Fall back to standard redis package if available
     if (process.env.REDIS_URL) {
-      const redis = await import('redis')
-      redisClient = redis.createClient({
-        url: process.env.REDIS_URL,
-      })
-      await redisClient.connect()
-      isAvailable = true
-      console.log('[Redis] Using standard Redis')
-      return
+      try {
+        // @ts-ignore - redis is optional
+        const redisModule = await import('redis')
+        redisClient = redisModule.createClient({
+          url: process.env.REDIS_URL,
+        })
+        await redisClient.connect()
+        isAvailable = true
+        console.log('[Redis] Using standard Redis')
+        return
+      } catch (redisError) {
+        console.warn('[Redis] redis package not installed')
+      }
     }
 
     console.warn('[Redis] No Redis configured, caching disabled')
