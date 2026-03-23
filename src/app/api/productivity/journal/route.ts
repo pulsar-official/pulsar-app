@@ -14,6 +14,8 @@ export async function POST(req: Request) {
   const { orgId, userId } = await auth()
   if (!orgId || !userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await req.json()
+  if (!body.title?.trim()) return Response.json({ error: 'title required' }, { status: 400 })
+  if (!body.date) return Response.json({ error: 'date required' }, { status: 400 })
   const [row] = await db.insert(journalEntries).values({
     orgId, userId,
     title: body.title,
@@ -29,6 +31,7 @@ export async function PUT(req: Request) {
   const { orgId } = await auth()
   if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await req.json()
+  if (!body.id) return Response.json({ error: 'id required' }, { status: 400 })
   const [row] = await db.update(journalEntries)
     .set({
       title: body.title,
@@ -47,6 +50,7 @@ export async function DELETE(req: Request) {
   const { orgId } = await auth()
   if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
   const { id } = await req.json()
+  if (!id) return Response.json({ error: 'id required' }, { status: 400 })
   await db.delete(journalEntries).where(and(eq(journalEntries.id, id), eq(journalEntries.orgId, orgId)))
   return Response.json({ ok: true })
 }

@@ -78,12 +78,9 @@ export async function saveAppState(data: Record<string, any>) {
     const transaction = database.transaction(['appState'], 'readwrite')
     const store = transaction.objectStore('appState')
 
-    // Clear old state
-    store.clear()
-
-    // Save new state
+    // Upsert state entries (put = insert-or-replace, avoids clear() data loss)
     Object.entries(data).forEach(([key, value]) => {
-      store.add({ id: key, data: value })
+      store.put({ id: key, data: value })
     })
 
     return new Promise((resolve, reject) => {
@@ -257,6 +254,61 @@ export async function getCachedResponse(key: string): Promise<any | null> {
   } catch (error) {
     console.error('Error getting cached response:', error)
     return null
+  }
+}
+
+/**
+ * Update retry attempts for a queued action
+ */
+export async function updateActionAttempts(id: number, attempts: number) {
+  try {
+    const database = await getDB()
+    const transaction = database.transaction(['syncQueue'], 'readwrite')
+    const store = transaction.objectStore('syncQueue')
+    const request = store.get(id)
+
+    request.onsuccess = () => {
+      const action = request.result
+      if (action) {
+        action.attempts = attempts
+        store.put(action)
+      }
+    }
+
+    return new Promise((resolve, reject) => {
+      transaction.oncomplete = () => resolve(true)
+      transaction.onerror = () => reject(transaction.error)
+    })
+  } catch (error) {
+    console.error('Error updating action attempts:', error)
+  }
+}
+
+/**
+ * Clean up expired cache entries
+ */
+export async function cleanupExpiredCache() {
+  try {
+    const database = await getDB()
+    const transaction = database.transaction(['cache'], 'readwrite')
+    const store = transaction.objectStore('cache')
+    const idx = store.index('expiry')
+    const range = IDBKeyRange.upperBound(Date.now())
+    const request = idx.openCursor(range)
+
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => {
+        const cursor = request.result
+        if (cursor) {
+          store.delete(cursor.primaryKey)
+          cursor.continue()
+        }
+      }
+      transaction.oncomplete = () => resolve(true)
+      transaction.onerror = () => reject(transaction.error)
+    })
+  } catch (error) {
+    console.error('Error cleaning expired cache:', error)
   }
 }
 

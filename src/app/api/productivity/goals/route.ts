@@ -1,7 +1,7 @@
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { goals, goalSubs } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, inArray } from 'drizzle-orm'
 
 export async function GET() {
   const { orgId } = await auth()
@@ -10,12 +10,11 @@ export async function GET() {
   const goalIds = goalRows.map(g => g.id)
   let subRows: typeof goalSubs.$inferSelect[] = []
   if (goalIds.length > 0) {
-    subRows = await db.select().from(goalSubs)
+    subRows = await db.select().from(goalSubs).where(inArray(goalSubs.goalId, goalIds))
   }
-  const goalIdSet = new Set(goalIds)
   const goalsWithSubs = goalRows.map(g => ({
     ...g,
-    subs: subRows.filter(s => goalIdSet.has(s.goalId) && s.goalId === g.id),
+    subs: subRows.filter(s => s.goalId === g.id),
   }))
   return Response.json(goalsWithSubs)
 }
@@ -25,8 +24,12 @@ export async function POST(req: Request) {
   if (!orgId || !userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await req.json()
 
-  // Add sub-goal
+  // Add sub-goal — verify goal belongs to org
   if (body.action === 'addSub') {
+    if (!body.goalId || !body.text?.trim()) return Response.json({ error: 'goalId and text required' }, { status: 400 })
+    const [goal] = await db.select({ id: goals.id }).from(goals)
+      .where(and(eq(goals.id, body.goalId), eq(goals.orgId, orgId)))
+    if (!goal) return Response.json({ error: 'Not found' }, { status: 404 })
     const [row] = await db.insert(goalSubs).values({
       goalId: body.goalId,
       text: body.text,
@@ -35,8 +38,15 @@ export async function POST(req: Request) {
     return Response.json(row, { status: 201 })
   }
 
-  // Toggle sub-goal
+  // Toggle sub-goal — verify parent goal belongs to org
   if (body.action === 'toggleSub') {
+    if (!body.subId) return Response.json({ error: 'subId required' }, { status: 400 })
+    const [sub] = await db.select({ id: goalSubs.id, goalId: goalSubs.goalId }).from(goalSubs)
+      .where(eq(goalSubs.id, body.subId))
+    if (!sub) return Response.json({ error: 'Not found' }, { status: 404 })
+    const [goal] = await db.select({ id: goals.id }).from(goals)
+      .where(and(eq(goals.id, sub.goalId), eq(goals.orgId, orgId)))
+    if (!goal) return Response.json({ error: 'Not found' }, { status: 404 })
     const [row] = await db.update(goalSubs)
       .set({ done: body.done })
       .where(eq(goalSubs.id, body.subId))
@@ -45,6 +55,7 @@ export async function POST(req: Request) {
   }
 
   // Create goal
+  if (!body.title?.trim()) return Response.json({ error: 'title required' }, { status: 400 })
   const [row] = await db.insert(goals).values({
     orgId, userId,
     title: body.title,
@@ -62,6 +73,7 @@ export async function PUT(req: Request) {
   const { orgId } = await auth()
   if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await req.json()
+  if (!body.id) return Response.json({ error: 'id required' }, { status: 400 })
   const [row] = await db.update(goals)
     .set({
       title: body.title,
@@ -83,6 +95,7 @@ export async function DELETE(req: Request) {
   const { orgId } = await auth()
   if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
   const { id } = await req.json()
+  if (!id) return Response.json({ error: 'id required' }, { status: 400 })
   await db.delete(goals).where(and(eq(goals.id, id), eq(goals.orgId, orgId)))
   return Response.json({ ok: true })
 }

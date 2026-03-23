@@ -3,7 +3,7 @@
  * Handles offline action queuing and syncing when back online
  */
 
-import { getUnsyncedActions, markActionSynced, queueAction as dbQueueAction, QueuedAction } from './indexedDB'
+import { getUnsyncedActions, markActionSynced, queueAction as dbQueueAction, updateActionAttempts, QueuedAction } from './indexedDB'
 
 interface SyncQueueListener {
   onSync: (action: QueuedAction) => void
@@ -72,12 +72,13 @@ export async function syncQueue() {
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error))
 
-        // Retry logic - increment attempts
+        // Retry logic — persist attempt count to IndexedDB
         if (action.attempts < 3) {
           action.attempts++
-          // Could implement exponential backoff here
+          await updateActionAttempts(action.id!, action.attempts)
         } else {
-          // Max retries reached
+          // Max retries reached — mark synced to stop infinite retries
+          await markActionSynced(action.id!)
           syncListeners.forEach((listener) => listener.onError(action, err))
         }
       }

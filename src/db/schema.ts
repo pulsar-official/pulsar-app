@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, timestamp, varchar, boolean, json, real, date } from 'drizzle-orm/pg-core'
+import { pgTable, serial, integer, text, timestamp, varchar, boolean, json, real, date, index } from 'drizzle-orm/pg-core'
 
 /* ── Users ── */
 export const users = pgTable('users', {
@@ -35,7 +35,9 @@ export const notes = pgTable('notes', {
   tags: json('tags'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-})
+}, (t) => [
+  index('notes_org_id_idx').on(t.orgId),
+])
 
 /* ── Tasks ── */
 export const tasks = pgTable('tasks', {
@@ -51,7 +53,9 @@ export const tasks = pgTable('tasks', {
   dueDate: varchar('due_date', { length: 32 }),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-})
+}, (t) => [
+  index('tasks_org_id_idx').on(t.orgId),
+])
 
 /* ── Habits ── */
 export const habits = pgTable('habits', {
@@ -62,7 +66,9 @@ export const habits = pgTable('habits', {
   emoji: varchar('emoji', { length: 16 }).notNull().default('✅'),
   sortOrder: integer('sort_order').default(0),
   createdAt: timestamp('created_at').defaultNow(),
-})
+}, (t) => [
+  index('habits_org_id_idx').on(t.orgId),
+])
 
 /* ── Habit Checks ── */
 export const habitChecks = pgTable('habit_checks', {
@@ -71,7 +77,9 @@ export const habitChecks = pgTable('habit_checks', {
   date: varchar('date', { length: 10 }).notNull(),
   checked: boolean('checked').default(true),
   createdAt: timestamp('created_at').defaultNow(),
-})
+}, (t) => [
+  index('habit_checks_habit_id_idx').on(t.habitId),
+])
 
 /* ── Goals ── */
 export const goals = pgTable('goals', {
@@ -87,7 +95,9 @@ export const goals = pgTable('goals', {
   progress: real('progress').default(0),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-})
+}, (t) => [
+  index('goals_org_id_idx').on(t.orgId),
+])
 
 /* ── Goal Sub-tasks ── */
 export const goalSubs = pgTable('goal_subs', {
@@ -95,7 +105,9 @@ export const goalSubs = pgTable('goal_subs', {
   goalId: integer('goal_id').references(() => goals.id, { onDelete: 'cascade' }).notNull(),
   text: varchar('text', { length: 500 }).notNull(),
   done: boolean('done').default(false),
-})
+}, (t) => [
+  index('goal_subs_goal_id_idx').on(t.goalId),
+])
 
 /* ── Journal Entries ── */
 export const journalEntries = pgTable('journal_entries', {
@@ -109,7 +121,9 @@ export const journalEntries = pgTable('journal_entries', {
   tags: json('tags'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-})
+}, (t) => [
+  index('journal_entries_org_id_idx').on(t.orgId),
+])
 
 /* ── Calendar Events ── */
 export const calEvents = pgTable('cal_events', {
@@ -125,7 +139,9 @@ export const calEvents = pgTable('cal_events', {
   recur: varchar('recur', { length: 16 }),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-})
+}, (t) => [
+  index('cal_events_org_id_idx').on(t.orgId),
+])
 
 /* ── Project Boards ── */
 export const boards = pgTable('boards', {
@@ -138,7 +154,9 @@ export const boards = pgTable('boards', {
   icon: varchar('icon', { length: 16 }),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-})
+}, (t) => [
+  index('boards_org_id_idx').on(t.orgId),
+])
 
 /* ── Board Nodes ── */
 export const boardNodes = pgTable('board_nodes', {
@@ -152,7 +170,9 @@ export const boardNodes = pgTable('board_nodes', {
   status: varchar('status', { length: 16 }).default('todo'),
   priority: varchar('priority', { length: 16 }).default('medium'),
   createdAt: timestamp('created_at').defaultNow(),
-})
+}, (t) => [
+  index('board_nodes_board_id_idx').on(t.boardId),
+])
 
 /* ── Board Threads (connections between nodes) ── */
 export const boardThreads = pgTable('board_threads', {
@@ -161,7 +181,9 @@ export const boardThreads = pgTable('board_threads', {
   fromNodeId: integer('from_node_id').references(() => boardNodes.id, { onDelete: 'cascade' }).notNull(),
   toNodeId: integer('to_node_id').references(() => boardNodes.id, { onDelete: 'cascade' }).notNull(),
   label: varchar('label', { length: 255 }),
-})
+}, (t) => [
+  index('board_threads_board_id_idx').on(t.boardId),
+])
 
 /* ── Changes Log (audit trail for all updates) ── */
 export const changes = pgTable('changes', {
@@ -177,4 +199,7 @@ export const changes = pgTable('changes', {
   version: integer('version').default(1), // For conflict resolution
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-})
+}, (t) => [
+  index('changes_org_id_idx').on(t.orgId),
+  index('changes_entity_idx').on(t.entityType, t.entityId),
+])

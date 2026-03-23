@@ -6,6 +6,7 @@
 const CACHE_NAME = 'pulsar-v1'
 const ASSET_CACHE = 'pulsar-assets-v1'
 const API_CACHE = 'pulsar-api-v1'
+const API_CACHE_MAX_AGE = 5 * 60 * 1000 // 5 minutes
 
 // Assets to pre-cache on install
 const PRECACHE_URLS = [
@@ -30,24 +31,55 @@ self.addEventListener('install', (event) => {
 })
 
 /**
- * Activate event - clean up old caches
+ * Activate event - clean up old caches and expired API entries
  */
 self.addEventListener('activate', (event) => {
   console.log('[SW] Activating service worker')
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (![CACHE_NAME, ASSET_CACHE, API_CACHE].includes(cacheName)) {
-            console.log('[SW] Deleting old cache:', cacheName)
-            return caches.delete(cacheName)
-          }
-        })
-      )
-    })
+    Promise.all([
+      // Delete old cache versions
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (![CACHE_NAME, ASSET_CACHE, API_CACHE].includes(cacheName)) {
+              console.log('[SW] Deleting old cache:', cacheName)
+              return caches.delete(cacheName)
+            }
+          })
+        )
+      }),
+      // Clean expired API cache entries
+      cleanExpiredApiCache(),
+    ])
   )
   self.clients.claim() // Take control immediately
 })
+
+/**
+ * Remove API cache entries older than API_CACHE_MAX_AGE
+ */
+async function cleanExpiredApiCache() {
+  try {
+    const cache = await caches.open(API_CACHE)
+    const requests = await cache.keys()
+    const now = Date.now()
+
+    for (const request of requests) {
+      const response = await cache.match(request)
+      if (response) {
+        const dateHeader = response.headers.get('date')
+        if (dateHeader) {
+          const age = now - new Date(dateHeader).getTime()
+          if (age > API_CACHE_MAX_AGE) {
+            await cache.delete(request)
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[SW] Error cleaning API cache:', err)
+  }
+}
 
 /**
  * Fetch event - cache-first with network fallback
@@ -66,7 +98,7 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // API requests - network first, then cache
+  // API requests - network first, then cache (with expiry)
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
       fetch(request)
@@ -81,9 +113,17 @@ self.addEventListener('fetch', (event) => {
           return response
         })
         .catch(() => {
-          // Fall back to cached API response
+          // Fall back to cached API response, but check expiry
           return caches.match(request).then((response) => {
             if (response) {
+              const dateHeader = response.headers.get('date')
+              if (dateHeader) {
+                const age = Date.now() - new Date(dateHeader).getTime()
+                if (age > API_CACHE_MAX_AGE) {
+                  // Stale cache — don't serve expired data
+                  return new Response('Offline - cached data expired', { status: 503 })
+                }
+              }
               console.log('[SW] Serving API from cache:', request.url)
               return response
             }
