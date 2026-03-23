@@ -31,7 +31,7 @@ export function useServiceWorker() {
 
         // Register background sync tag so the SW can wake up and flush the queue
         if ('sync' in reg) {
-          reg.sync.register('sync-queue').catch(() => {})
+          ;(reg as any).sync.register('sync-queue').catch(() => {})
         }
 
         // Listen for SYNC_QUEUE messages from the SW background sync event
