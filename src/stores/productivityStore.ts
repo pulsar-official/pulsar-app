@@ -6,6 +6,7 @@ import type {
 } from '@/types/productivity'
 import type { Connection } from '@/types/connections'
 import { computeConnections } from '@/lib/connectionEngine'
+import { saveAppState, getAppState } from '@/lib/indexedDB'
 
 /* ── Store interface ── */
 interface ProductivityState {
@@ -84,6 +85,13 @@ async function apiFetch<T>(url: string, options?: RequestInit): Promise<T | null
   }
 }
 
+type StoreData = Pick<ProductivityState, 'tasks' | 'habits' | 'habitChecks' | 'goals' | 'journalEntries' | 'events' | 'boards'>
+
+function persistToIndexedDB(data: StoreData) {
+  if (typeof window === 'undefined') return
+  saveAppState(data).catch((err) => console.warn('[IndexedDB] persist failed:', err))
+}
+
 export const useProductivityStore = create<ProductivityState>((set, get) => ({
   tasks: [],
   habits: [],
@@ -100,6 +108,29 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
 
   fetchAll: async (orgId: string) => {
     set({ loading: true, orgId })
+
+    // 1. Load cached state from IndexedDB immediately so UI isn't blank on reload
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = await getAppState()
+        if (cached) {
+          set({
+            tasks: cached.tasks ?? [],
+            habits: cached.habits ?? [],
+            habitChecks: cached.habitChecks ?? [],
+            goals: cached.goals ?? [],
+            journalEntries: cached.journalEntries ?? [],
+            events: cached.events ?? [],
+            boards: cached.boards ?? [],
+            initialized: true,
+          })
+        }
+      } catch {
+        // IndexedDB unavailable — proceed without cache
+      }
+    }
+
+    // 2. Fetch fresh data from server
     const [tasksRes, habitsRes, goalsRes, journalRes, eventsRes, boardsRes] = await Promise.all([
       apiFetch<Task[]>('/api/productivity/tasks'),
       apiFetch<{ habits: Habit[]; checks: HabitCheck[] }>('/api/productivity/habits'),
@@ -108,17 +139,23 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
       apiFetch<CalEvent[]>('/api/productivity/events'),
       apiFetch<Board[]>('/api/productivity/boards'),
     ])
-    set({
-      tasks: tasksRes ?? [],
-      habits: habitsRes?.habits ?? [],
-      habitChecks: habitsRes?.checks ?? [],
-      goals: goalsRes ?? [],
-      journalEntries: journalRes ?? [],
-      events: eventsRes ?? [],
-      boards: boardsRes ?? [],
-      loading: false,
-      initialized: true,
-    })
+
+    // Fall back to cached values if server returns null (e.g. offline)
+    const current = get()
+    const freshData: StoreData = {
+      tasks: tasksRes ?? current.tasks,
+      habits: habitsRes?.habits ?? current.habits,
+      habitChecks: habitsRes?.checks ?? current.habitChecks,
+      goals: goalsRes ?? current.goals,
+      journalEntries: journalRes ?? current.journalEntries,
+      events: eventsRes ?? current.events,
+      boards: boardsRes ?? current.boards,
+    }
+
+    set({ ...freshData, loading: false, initialized: true })
+
+    // 3. Update IndexedDB cache with latest server data
+    persistToIndexedDB(freshData)
   },
 
   // ── Task actions ──
@@ -132,10 +169,12 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
       const id = Date.now()
       set(s => ({ tasks: [...s.tasks, { ...task, id, orgId: s.orgId ?? '', userId: '' } as Task] }))
     }
+    persistToIndexedDB(get())
   },
 
   updateTask: async (task) => {
     set(s => ({ tasks: s.tasks.map(t => t.id === task.id ? task : t) }))
+    persistToIndexedDB(get())
     await apiFetch('/api/productivity/tasks', {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(task),
@@ -144,6 +183,7 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
 
   deleteTask: async (id) => {
     set(s => ({ tasks: s.tasks.filter(t => t.id !== id) }))
+    persistToIndexedDB(get())
     await apiFetch('/api/productivity/tasks', {
       method: 'DELETE', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),
@@ -154,6 +194,7 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
     set(s => ({
       tasks: s.tasks.map(t => t.id === id ? { ...t, completed: !t.completed, status: (!t.completed ? 'done' : 'todo') as TaskStatus } : t),
     }))
+    persistToIndexedDB(get())
     const task = get().tasks.find(t => t.id === id)
     if (task) {
       apiFetch('/api/productivity/tasks', {
@@ -174,10 +215,12 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
       const id = Date.now()
       set(s => ({ habits: [...s.habits, { id, orgId: s.orgId ?? '', userId: '', name, emoji, sortOrder: s.habits.length }] }))
     }
+    persistToIndexedDB(get())
   },
 
   deleteHabit: async (id) => {
     set(s => ({ habits: s.habits.filter(h => h.id !== id), habitChecks: s.habitChecks.filter(c => c.habitId !== id) }))
+    persistToIndexedDB(get())
     await apiFetch('/api/productivity/habits', {
       method: 'DELETE', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),
@@ -192,6 +235,7 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
       const tempId = Date.now()
       set(s => ({ habitChecks: [...s.habitChecks, { id: tempId, habitId, date, checked: true }] }))
     }
+    persistToIndexedDB(get())
     await apiFetch('/api/productivity/habits', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'toggle', habitId, date }),
@@ -209,10 +253,12 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
       const id = Date.now()
       set(s => ({ goals: [...s.goals, { ...goal, id, orgId: s.orgId ?? '', userId: '', subs: [] } as Goal] }))
     }
+    persistToIndexedDB(get())
   },
 
   updateGoal: async (goal) => {
     set(s => ({ goals: s.goals.map(g => g.id === goal.id ? goal : g) }))
+    persistToIndexedDB(get())
     await apiFetch('/api/productivity/goals', {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(goal),
@@ -221,6 +267,7 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
 
   deleteGoal: async (id) => {
     set(s => ({ goals: s.goals.filter(g => g.id !== id) }))
+    persistToIndexedDB(get())
     await apiFetch('/api/productivity/goals', {
       method: 'DELETE', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),
@@ -234,6 +281,7 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
         subs: g.subs.map(sub => sub.id === subId ? { ...sub, done } : sub),
       })),
     }))
+    persistToIndexedDB(get())
     await apiFetch('/api/productivity/goals', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'toggleSub', subId, done }),
@@ -249,6 +297,7 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
     set(s => ({
       goals: s.goals.map(g => g.id === goalId ? { ...g, subs: [...g.subs, newSub] } : g),
     }))
+    persistToIndexedDB(get())
   },
 
   // ── Journal actions ──
@@ -262,10 +311,12 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
       const id = Date.now()
       set(s => ({ journalEntries: [{ ...entry, id, orgId: s.orgId ?? '', userId: '' } as JournalEntry, ...s.journalEntries] }))
     }
+    persistToIndexedDB(get())
   },
 
   updateJournalEntry: async (entry) => {
     set(s => ({ journalEntries: s.journalEntries.map(e => e.id === entry.id ? entry : e) }))
+    persistToIndexedDB(get())
     await apiFetch('/api/productivity/journal', {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(entry),
@@ -274,6 +325,7 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
 
   deleteJournalEntry: async (id) => {
     set(s => ({ journalEntries: s.journalEntries.filter(e => e.id !== id) }))
+    persistToIndexedDB(get())
     await apiFetch('/api/productivity/journal', {
       method: 'DELETE', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),
@@ -291,10 +343,12 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
       const id = Date.now()
       set(s => ({ events: [...s.events, { ...event, id, orgId: s.orgId ?? '', userId: '' } as CalEvent] }))
     }
+    persistToIndexedDB(get())
   },
 
   updateEvent: async (event) => {
     set(s => ({ events: s.events.map(e => e.id === event.id ? event : e) }))
+    persistToIndexedDB(get())
     await apiFetch('/api/productivity/events', {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(event),
@@ -303,6 +357,7 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
 
   deleteEvent: async (id) => {
     set(s => ({ events: s.events.filter(e => e.id !== id) }))
+    persistToIndexedDB(get())
     await apiFetch('/api/productivity/events', {
       method: 'DELETE', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),
