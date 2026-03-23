@@ -132,28 +132,17 @@ self.addEventListener('fetch', (event) => {
 })
 
 /**
- * Background sync - sync queued actions when back online
+ * Background sync - tell the client to flush its IndexedDB sync queue
  */
 self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-queue') {
     event.waitUntil(
-      fetch('/api/productivity/sync-queue', {
-        method: 'POST',
+      self.clients.matchAll({ includeUncontrolled: true, type: 'window' }).then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({ type: 'SYNC_QUEUE' })
+        })
+        console.log('[SW] Background sync: notified', clients.length, 'client(s)')
       })
-        .then(() => {
-          console.log('[SW] Background sync successful')
-          // Notify clients
-          self.clients.matchAll().then((clients) => {
-            clients.forEach((client) => {
-              client.postMessage({
-                type: 'SYNC_COMPLETE',
-              })
-            })
-          })
-        })
-        .catch((error) => {
-          console.error('[SW] Background sync error:', error)
-        })
     )
   }
 })

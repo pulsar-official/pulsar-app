@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { isOnline, syncQueue, subscribeSyncQueue, setupAutoSync } from '@/lib/syncQueue'
 import { getUnsyncedActions } from '@/lib/indexedDB'
+import { useProductivityStore } from '@/stores/productivityStore'
 
 /**
  * Hook for managing offline sync in components
@@ -11,6 +12,8 @@ export function useOfflineSync() {
   const [syncing, setSyncing] = useState(false)
   const [unsyncedCount, setUnsyncedCount] = useState(0)
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null)
+  const fetchAll = useProductivityStore(s => s.fetchAll)
+  const orgId = useProductivityStore(s => s.orgId)
 
   // Check initial online status
   useEffect(() => {
@@ -59,6 +62,8 @@ export function useOfflineSync() {
         setSyncing(false)
         setLastSyncTime(new Date())
         updateUnsyncedCount()
+        // Re-fetch from server so temp IDs from offline creates are replaced with real server IDs
+        if (orgId) fetchAll(orgId)
       },
     })
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { syncQueue } from '@/lib/syncQueue'
 
 /**
  * Hook to register and manage the Service Worker
@@ -27,6 +28,19 @@ export function useServiceWorker() {
         console.log('[SW] Registered successfully')
         setSwReady(true)
         setRegistration(reg)
+
+        // Register background sync tag so the SW can wake up and flush the queue
+        if ('sync' in reg) {
+          ;(reg as any).sync.register('sync-queue').catch(() => {})
+        }
+
+        // Listen for SYNC_QUEUE messages from the SW background sync event
+        navigator.serviceWorker.addEventListener('message', (event) => {
+          if (event.data?.type === 'SYNC_QUEUE') {
+            console.log('[SW] Background sync triggered by service worker')
+            syncQueue().catch(console.error)
+          }
+        })
 
         // Check for updates periodically
         const updateInterval = setInterval(() => {
