@@ -7,6 +7,7 @@ import type {
 import type { Connection } from '@/types/connections'
 import { computeConnections } from '@/lib/connectionEngine'
 import { saveAppState, getAppState } from '@/lib/indexedDB'
+import { queueOfflineAction, isOnline } from '@/lib/syncQueue'
 
 /* ── Store interface ── */
 interface ProductivityState {
@@ -85,6 +86,24 @@ async function apiFetch<T>(url: string, options?: RequestInit): Promise<T | null
   }
 }
 
+// Sends a mutation to the server, or queues it for later if offline.
+// Returns the server response, or null (offline/error) so the caller can apply an optimistic update.
+async function mutationFetch<T>(
+  endpoint: string,
+  method: 'POST' | 'PUT' | 'DELETE',
+  body: any,
+): Promise<T | null> {
+  if (!isOnline()) {
+    queueOfflineAction(endpoint, method, body).catch(() => {})
+    return null
+  }
+  return apiFetch<T>(endpoint, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+}
+
 type StoreData = Pick<ProductivityState, 'tasks' | 'habits' | 'habitChecks' | 'goals' | 'journalEntries' | 'events' | 'boards'>
 
 function persistToIndexedDB(data: StoreData) {
@@ -160,10 +179,7 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
 
   // ── Task actions ──
   addTask: async (task) => {
-    const res = await apiFetch<Task>('/api/productivity/tasks', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(task),
-    })
+    const res = await mutationFetch<Task>('/api/productivity/tasks', 'POST', task)
     if (res) set(s => ({ tasks: [...s.tasks, res] }))
     else {
       const id = Date.now()
@@ -175,19 +191,13 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
   updateTask: async (task) => {
     set(s => ({ tasks: s.tasks.map(t => t.id === task.id ? task : t) }))
     persistToIndexedDB(get())
-    await apiFetch('/api/productivity/tasks', {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(task),
-    })
+    await mutationFetch('/api/productivity/tasks', 'PUT', task)
   },
 
   deleteTask: async (id) => {
     set(s => ({ tasks: s.tasks.filter(t => t.id !== id) }))
     persistToIndexedDB(get())
-    await apiFetch('/api/productivity/tasks', {
-      method: 'DELETE', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    })
+    await mutationFetch('/api/productivity/tasks', 'DELETE', { id })
   },
 
   toggleTask: (id) => {
@@ -196,20 +206,12 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
     }))
     persistToIndexedDB(get())
     const task = get().tasks.find(t => t.id === id)
-    if (task) {
-      apiFetch('/api/productivity/tasks', {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(task),
-      })
-    }
+    if (task) mutationFetch('/api/productivity/tasks', 'PUT', task)
   },
 
   // ── Habit actions ──
   addHabit: async ({ name, emoji }) => {
-    const res = await apiFetch<Habit>('/api/productivity/habits', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, emoji }),
-    })
+    const res = await mutationFetch<Habit>('/api/productivity/habits', 'POST', { name, emoji })
     if (res) set(s => ({ habits: [...s.habits, res] }))
     else {
       const id = Date.now()
@@ -221,10 +223,7 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
   deleteHabit: async (id) => {
     set(s => ({ habits: s.habits.filter(h => h.id !== id), habitChecks: s.habitChecks.filter(c => c.habitId !== id) }))
     persistToIndexedDB(get())
-    await apiFetch('/api/productivity/habits', {
-      method: 'DELETE', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    })
+    await mutationFetch('/api/productivity/habits', 'DELETE', { id })
   },
 
   toggleHabitCheck: async (habitId, date) => {
@@ -236,18 +235,12 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
       set(s => ({ habitChecks: [...s.habitChecks, { id: tempId, habitId, date, checked: true }] }))
     }
     persistToIndexedDB(get())
-    await apiFetch('/api/productivity/habits', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'toggle', habitId, date }),
-    })
+    await mutationFetch('/api/productivity/habits', 'POST', { action: 'toggle', habitId, date })
   },
 
   // ── Goal actions ──
   addGoal: async (goal) => {
-    const res = await apiFetch<Goal>('/api/productivity/goals', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(goal),
-    })
+    const res = await mutationFetch<Goal>('/api/productivity/goals', 'POST', goal)
     if (res) set(s => ({ goals: [...s.goals, { ...res, subs: [] }] }))
     else {
       const id = Date.now()
@@ -259,19 +252,13 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
   updateGoal: async (goal) => {
     set(s => ({ goals: s.goals.map(g => g.id === goal.id ? goal : g) }))
     persistToIndexedDB(get())
-    await apiFetch('/api/productivity/goals', {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(goal),
-    })
+    await mutationFetch('/api/productivity/goals', 'PUT', goal)
   },
 
   deleteGoal: async (id) => {
     set(s => ({ goals: s.goals.filter(g => g.id !== id) }))
     persistToIndexedDB(get())
-    await apiFetch('/api/productivity/goals', {
-      method: 'DELETE', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    })
+    await mutationFetch('/api/productivity/goals', 'DELETE', { id })
   },
 
   toggleSubGoal: async (subId, done) => {
@@ -282,17 +269,11 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
       })),
     }))
     persistToIndexedDB(get())
-    await apiFetch('/api/productivity/goals', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'toggleSub', subId, done }),
-    })
+    await mutationFetch('/api/productivity/goals', 'POST', { action: 'toggleSub', subId, done })
   },
 
   addSubGoal: async (goalId, text) => {
-    const res = await apiFetch<SubGoal>('/api/productivity/goals', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'addSub', goalId, text }),
-    })
+    const res = await mutationFetch<SubGoal>('/api/productivity/goals', 'POST', { action: 'addSub', goalId, text })
     const newSub = res ?? { id: Date.now(), goalId, text, done: false }
     set(s => ({
       goals: s.goals.map(g => g.id === goalId ? { ...g, subs: [...g.subs, newSub] } : g),
@@ -302,10 +283,7 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
 
   // ── Journal actions ──
   addJournalEntry: async (entry) => {
-    const res = await apiFetch<JournalEntry>('/api/productivity/journal', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(entry),
-    })
+    const res = await mutationFetch<JournalEntry>('/api/productivity/journal', 'POST', entry)
     if (res) set(s => ({ journalEntries: [res, ...s.journalEntries] }))
     else {
       const id = Date.now()
@@ -317,27 +295,18 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
   updateJournalEntry: async (entry) => {
     set(s => ({ journalEntries: s.journalEntries.map(e => e.id === entry.id ? entry : e) }))
     persistToIndexedDB(get())
-    await apiFetch('/api/productivity/journal', {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(entry),
-    })
+    await mutationFetch('/api/productivity/journal', 'PUT', entry)
   },
 
   deleteJournalEntry: async (id) => {
     set(s => ({ journalEntries: s.journalEntries.filter(e => e.id !== id) }))
     persistToIndexedDB(get())
-    await apiFetch('/api/productivity/journal', {
-      method: 'DELETE', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    })
+    await mutationFetch('/api/productivity/journal', 'DELETE', { id })
   },
 
   // ── Event actions ──
   addEvent: async (event) => {
-    const res = await apiFetch<CalEvent>('/api/productivity/events', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(event),
-    })
+    const res = await mutationFetch<CalEvent>('/api/productivity/events', 'POST', event)
     if (res) set(s => ({ events: [...s.events, res] }))
     else {
       const id = Date.now()
@@ -349,19 +318,13 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
   updateEvent: async (event) => {
     set(s => ({ events: s.events.map(e => e.id === event.id ? event : e) }))
     persistToIndexedDB(get())
-    await apiFetch('/api/productivity/events', {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(event),
-    })
+    await mutationFetch('/api/productivity/events', 'PUT', event)
   },
 
   deleteEvent: async (id) => {
     set(s => ({ events: s.events.filter(e => e.id !== id) }))
     persistToIndexedDB(get())
-    await apiFetch('/api/productivity/events', {
-      method: 'DELETE', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    })
+    await mutationFetch('/api/productivity/events', 'DELETE', { id })
   },
 
   // ── Selectors ──
