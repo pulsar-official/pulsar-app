@@ -233,7 +233,7 @@ export default function SignUpPage() {
               {agreed && <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="var(--ac)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3.5 8.5 6.5 11.5 12.5 4.5" /></svg>}
             </div>
             <span style={{ fontSize: '0.82rem', color: 'var(--t3)', lineHeight: 1.5 }}>
-              I agree to the <a href="#" style={{ color: 'var(--ac)', textDecoration: 'none' }}>Terms of Service</a> and <a href="#" style={{ color: 'var(--ac)', textDecoration: 'none' }}>Privacy Policy</a>
+              I agree to the <a href="/terms" target="_blank" style={{ color: 'var(--ac)', textDecoration: 'none' }}>Terms of Service</a> and <a href="/privacy" target="_blank" style={{ color: 'var(--ac)', textDecoration: 'none' }}>Privacy Policy</a>
             </span>
           </div>
           <button onClick={submit} disabled={loading} style={{ width: '100%', padding: 14, borderRadius: 10, border: 'none', background: loading ? 'var(--s4)' : 'linear-gradient(135deg,#a78bfa,#7c3aed)', color: '#fff', fontSize: '0.98rem', fontWeight: 600, cursor: loading ? 'wait' : 'pointer', fontFamily: 'var(--ft)', transition: `all 0.25s ${E}`, boxShadow: '0 4px 16px rgba(167,139,250,0.15)' }}

@@ -41,7 +41,8 @@ export async function POST(req: Request) {
       }
     }
     return new Response('ok', { status: 200 })
-  } catch {
+  } catch (err) {
+    console.error('[clerk-webhook] DB upsert failed:', err)
     return new Response('error', { status: 500 })
   }
 }

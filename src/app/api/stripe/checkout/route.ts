@@ -1,16 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
+import { auth } from '@clerk/nextjs/server'
+import { db } from '@/lib/db'
+import { users } from '@/db/schema'
+import { eq } from 'drizzle-orm'
 
 export async function POST(req: NextRequest) {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
   try {
+    const { userId } = await auth()
     const { priceId, planName, email, phone } = await req.json()
 
     const customer = await stripe.customers.create({
       email: email || undefined,
       phone: phone || undefined,
-      metadata: { planName, phone2fa: phone || '' },
+      metadata: { planName, clerkId: userId || '' },
     })
+
+    // Persist Stripe customer ID in our DB so webhooks can find this user
+    if (userId) {
+      await db.update(users)
+        .set({ stripeCustomerId: customer.id, updatedAt: new Date() })
+        .where(eq(users.clerkId, userId))
+    }
 
     const subscription = await stripe.subscriptions.create({
       customer: customer.id,
@@ -21,6 +33,7 @@ export async function POST(req: NextRequest) {
         payment_method_types: ['card'],
       },
       expand: ['latest_invoice.payment_intent'],
+      metadata: { planName },
     })
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

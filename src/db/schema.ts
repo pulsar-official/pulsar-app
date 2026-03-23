@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp, varchar, boolean, json, integer, real, date } from 'drizzle-orm/pg-core'
+import { pgTable, serial, integer, text, timestamp, varchar, boolean, json, real, date } from 'drizzle-orm/pg-core'
 
 /* ── Users ── */
 export const users = pgTable('users', {
@@ -8,6 +8,10 @@ export const users = pgTable('users', {
   username: varchar('username', { length: 255 }),
   phone: varchar('phone', { length: 32 }),
   stripeCustomerId: varchar('stripe_customer_id', { length: 255 }),
+  subscriptionStatus: varchar('subscription_status', { length: 32 }).default('free'),
+  planTier: varchar('plan_tier', { length: 32 }).default('free'),
+  stripeSubscriptionId: varchar('stripe_subscription_id', { length: 255 }),
+  subscriptionPeriodEnd: timestamp('subscription_period_end'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 })

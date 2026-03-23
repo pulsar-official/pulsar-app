@@ -323,6 +323,14 @@
   &:disabled { opacity: 0.4; cursor: default; }
 }
 
+.feedbackDisclosure {
+  font-size: 0.7rem;
+  color: oklch(0.45 0 0);
+  text-align: center;
+  line-height: 1.4;
+  margin: 0;
+}
+
 .feedbackThanks {
   display: flex;
   flex-direction: column;

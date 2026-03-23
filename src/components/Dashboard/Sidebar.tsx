@@ -249,6 +249,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate }) => {
                 >
                   {feedbackState === 'sending' ? 'Sending…' : 'Send Feedback'}
                 </button>
+                <p className={styles.feedbackDisclosure}>Feedback is shared with our team. Your name and email may be included.</p>
               </>
             )}
           </div>
