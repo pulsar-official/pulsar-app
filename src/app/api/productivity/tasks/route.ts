@@ -5,19 +5,17 @@ import { eq, and } from 'drizzle-orm'
 
 export async function GET() {
   const { orgId, userId } = await auth()
-  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  const oid = orgId ?? userId
-  const rows = await db.select().from(tasks).where(eq(tasks.orgId, oid))
+  if (!orgId || !userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const rows = await db.select().from(tasks).where(eq(tasks.orgId, orgId))
   return Response.json(rows)
 }
 
 export async function POST(req: Request) {
   const { orgId, userId } = await auth()
-  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  const oid = orgId ?? userId
+  if (!orgId || !userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await req.json()
   const [row] = await db.insert(tasks).values({
-    orgId: oid, userId,
+    orgId, userId,
     title: body.title,
     description: body.description ?? '',
     completed: body.completed ?? false,
@@ -30,9 +28,8 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
-  const { orgId, userId } = await auth()
-  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  const oid = orgId ?? userId
+  const { orgId } = await auth()
+  if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await req.json()
   const [row] = await db.update(tasks)
     .set({
@@ -45,17 +42,16 @@ export async function PUT(req: Request) {
       dueDate: body.dueDate,
       updatedAt: new Date(),
     })
-    .where(and(eq(tasks.id, body.id), eq(tasks.orgId, oid)))
+    .where(and(eq(tasks.id, body.id), eq(tasks.orgId, orgId)))
     .returning()
   if (!row) return Response.json({ error: 'Not found' }, { status: 404 })
   return Response.json(row)
 }
 
 export async function DELETE(req: Request) {
-  const { orgId, userId } = await auth()
-  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  const oid = orgId ?? userId
+  const { orgId } = await auth()
+  if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
   const { id } = await req.json()
-  await db.delete(tasks).where(and(eq(tasks.id, id), eq(tasks.orgId, oid)))
+  await db.delete(tasks).where(and(eq(tasks.id, id), eq(tasks.orgId, orgId)))
   return Response.json({ ok: true })
 }

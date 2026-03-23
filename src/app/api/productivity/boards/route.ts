@@ -4,10 +4,9 @@ import { boards, boardNodes, boardThreads } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 
 export async function GET() {
-  const { orgId, userId } = await auth()
-  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  const oid = orgId ?? userId
-  const boardRows = await db.select().from(boards).where(eq(boards.orgId, oid))
+  const { orgId } = await auth()
+  if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const boardRows = await db.select().from(boards).where(eq(boards.orgId, orgId))
   const boardIds = boardRows.map(b => b.id)
   const boardIdSet = new Set(boardIds)
   let nodeRows: typeof boardNodes.$inferSelect[] = []
@@ -26,8 +25,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const { orgId, userId } = await auth()
-  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  const oid = orgId ?? userId
+  if (!orgId || !userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await req.json()
 
   // Add node
@@ -58,7 +56,7 @@ export async function POST(req: Request) {
 
   // Create board
   const [row] = await db.insert(boards).values({
-    orgId: oid, userId,
+    orgId, userId,
     name: body.name,
     description: body.description ?? '',
     color: body.color ?? '',
@@ -68,9 +66,8 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
-  const { orgId, userId } = await auth()
-  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  const oid = orgId ?? userId
+  const { orgId } = await auth()
+  if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await req.json()
 
   // Update node
@@ -85,16 +82,15 @@ export async function PUT(req: Request) {
   // Update board
   const [row] = await db.update(boards)
     .set({ name: body.name, description: body.description, color: body.color, icon: body.icon, updatedAt: new Date() })
-    .where(and(eq(boards.id, body.id), eq(boards.orgId, oid)))
+    .where(and(eq(boards.id, body.id), eq(boards.orgId, orgId)))
     .returning()
   if (!row) return Response.json({ error: 'Not found' }, { status: 404 })
   return Response.json(row)
 }
 
 export async function DELETE(req: Request) {
-  const { orgId, userId } = await auth()
-  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  const oid = orgId ?? userId
+  const { orgId } = await auth()
+  if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await req.json()
   if (body.action === 'deleteNode') {
     await db.delete(boardNodes).where(eq(boardNodes.id, body.nodeId))
@@ -104,6 +100,6 @@ export async function DELETE(req: Request) {
     await db.delete(boardThreads).where(eq(boardThreads.id, body.threadId))
     return Response.json({ ok: true })
   }
-  await db.delete(boards).where(and(eq(boards.id, body.id), eq(boards.orgId, oid)))
+  await db.delete(boards).where(and(eq(boards.id, body.id), eq(boards.orgId, orgId)))
   return Response.json({ ok: true })
 }
