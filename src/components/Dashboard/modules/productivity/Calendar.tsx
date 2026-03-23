@@ -10,7 +10,7 @@ import { useProductivityStore } from '@/stores/productivityStore';
 
 import type {
   CalEvent, CalEventForm, CalendarView, CalendarAnim,
-  EventTag, PositionedEvent, SpanningEvent, MonthCell,
+  EventTag, RecurRule, PositionedEvent, SpanningEvent, MonthCell,
   DayBalance,
   YearViewProps, MonthViewProps, WeekViewProps, DayViewProps,
   EventModalProps, ClockProps, ClockDigitProps, InsightRowProps,
@@ -960,7 +960,10 @@ const EventModal = ({ open, editing, form, onFormChange, onSave, onDelete, onClo
 
         <div className={styles.modalFooter}>
           {editing && (
-            <button className={styles.deleteBtn} onClick={onDelete}>Delete</button>
+            <button className={styles.deleteBtn} onClick={onDelete} title="Delete event">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              Delete
+            </button>
           )}
           <button
             className={styles.saveBtn}
@@ -982,7 +985,20 @@ export default function PulsarCalendar() {
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth());
   const [day, setDay] = useState(new Date().getDate());
-  const [events, setEvents] = useState<CalEvent[]>([]);
+  const storeEvents = useProductivityStore(s => s.events);
+  const storeAddEvent = useProductivityStore(s => s.addEvent);
+  const storeUpdateEvent = useProductivityStore(s => s.updateEvent);
+  const storeDeleteEvent = useProductivityStore(s => s.deleteEvent);
+  const events = useMemo<CalEvent[]>(() => storeEvents.map(e => ({
+    id: String(e.id),
+    title: e.title,
+    date: e.date,
+    dateEnd: e.dateEnd ?? null,
+    start: e.startTime ?? null,
+    end: e.endTime ?? null,
+    tag: (e.tag || 'default') as EventTag,
+    recur: (e.recur ?? null) as RecurRule,
+  })), [storeEvents]);
   const [use24h, setUse24h] = useState(true);
   const [anim, setAnim] = useState<CalendarAnim>('');
   const [animKey, setAnimKey] = useState(0);
@@ -1099,25 +1115,22 @@ export default function PulsarCalendar() {
 
   const handleSave = useCallback(() => {
     if (!form.title.trim()) return;
-    const payload: Omit<CalEvent, 'id'> = {
-      title: form.title.trim(), date: form.date, dateEnd: form.dateEnd || null,
-      start: form.startTime || null, end: form.endTime || null,
-      tag: form.tag as EventTag, recur: (form.recur as CalEvent['recur']) || null,
-    };
     if (editingEvent) {
-      setEvents(prev => prev.map(e => e.id === editingEvent.id ? { ...e, ...payload } : e));
+      const numId = Number(editingEvent.id);
+      const orig = storeEvents.find(e => e.id === numId);
+      if (orig) storeUpdateEvent({ ...orig, title: form.title.trim(), date: form.date, dateEnd: form.dateEnd || null, startTime: form.startTime || null, endTime: form.endTime || null, tag: form.tag, recur: form.recur || null });
       showToast('Updated');
     } else {
-      setEvents(prev => [...prev, { id: uid(), ...payload }]);
+      storeAddEvent({ title: form.title.trim(), date: form.date, dateEnd: form.dateEnd || null, startTime: form.startTime || null, endTime: form.endTime || null, tag: form.tag, recur: form.recur || null });
       showToast('Created');
     }
     setModalOpen(false); doAnim('zoom-in');
-  }, [form, editingEvent, showToast, doAnim]);
+  }, [form, editingEvent, storeEvents, storeAddEvent, storeUpdateEvent, showToast, doAnim]);
 
   const handleDelete = useCallback(() => {
-    if (editingEvent) setEvents(prev => prev.filter(e => e.id !== editingEvent.id));
+    if (editingEvent) storeDeleteEvent(Number(editingEvent.id));
     setModalOpen(false); showToast('Deleted'); doAnim('zoom-out');
-  }, [editingEvent, showToast, doAnim]);
+  }, [editingEvent, storeDeleteEvent, showToast, doAnim]);
 
   const handleDayClick = useCallback((d: Date) => {
     setYear(d.getFullYear()); setMonth(d.getMonth()); setDay(d.getDate());

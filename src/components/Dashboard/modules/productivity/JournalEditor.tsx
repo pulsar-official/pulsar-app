@@ -6,6 +6,7 @@ import { useProductivityStore } from '@/stores/productivityStore'
 import type { JournalEntry } from '@/types/productivity'
 import { MOODS, MOOD_COLORS, TAGS } from '@/constants/journal'
 import RelatedItems from '../shared/RelatedItems'
+import DeleteConfirmModal from '../shared/DeleteConfirmModal'
 
 function fmtDate(d: string) {
   const dt = new Date(d)
@@ -26,6 +27,7 @@ const JournalEditor: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNa
   const [searchQuery, setSearchQuery] = useState("")
   const [sortOrder, setSortOrder] = useState<'date' | 'title'>('date')
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved')
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   // Handle cross-component navigation
   useEffect(() => {
@@ -77,8 +79,14 @@ const JournalEditor: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNa
 
   const deleteEntry = () => {
     if (selectedId == null) return
+    setConfirmDelete(true)
+  }
+
+  const confirmDeleteEntry = () => {
+    if (selectedId == null) return
     storeDeleteEntry(selectedId)
     setSelectedId(entries.find(e => e.id !== selectedId)?.id ?? null)
+    setConfirmDelete(false)
   }
 
   const wordCount = selected ? selected.content.trim().split(/\s+/).filter(Boolean).length : 0
@@ -170,7 +178,10 @@ const JournalEditor: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNa
               <div className={styles.footerRight}>
                 <span className={styles.saveIndicator}>{saveStatus === 'saving' ? 'Saving...' : 'Saved'}</span>
                 <span className={styles.wordCount}>{wordCount}w · {charCount}c · {readTime} min read</span>
-                <button className={styles.deleteEntryBtn} onClick={deleteEntry}>Delete</button>
+                <button className={styles.deleteEntryBtn} onClick={deleteEntry} title="Delete entry">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                  Delete
+                </button>
               </div>
             </div>
             <RelatedItems itemType="journal" itemId={selected.id} onNavigate={onNavigate} />
@@ -179,6 +190,14 @@ const JournalEditor: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNa
           <div className={styles.empty}>Select or create an entry to get started</div>
         )}
       </div>
+      <DeleteConfirmModal
+        isOpen={confirmDelete}
+        title="Delete Entry"
+        description="This will permanently remove this journal entry."
+        itemName={selected?.title || 'Untitled'}
+        onConfirm={confirmDeleteEntry}
+        onCancel={() => setConfirmDelete(false)}
+      />
     </div>
   )
 }
