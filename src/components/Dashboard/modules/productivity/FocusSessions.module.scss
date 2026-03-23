@@ -106,37 +106,53 @@ $amber-glow:    rgba(251, 191, 36, 0.12);
 .dashboard {
   padding: 0;
   height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.dashboardCols {
+  // Desktop: 2-column grid — header + tasks on left, rhythm full-height on right
   display: grid;
   grid-template-columns: 1fr 340px;
+  grid-template-rows: auto 1fr;
   gap: 24px;
   align-items: stretch;
-  flex: 1;
-  min-height: 0;
-  @media (max-width: 768px) { grid-template-columns: 1fr; }
+
+  @media (max-width: 768px) {
+    display: flex;
+    flex-direction: column;
+  }
 }
 
 .colLeft {
+  grid-column: 1;
+  grid-row: 2;
   display: flex;
   flex-direction: column;
-  gap: 24px;
   min-height: 0;
 }
 .colRight {
+  grid-column: 2;
+  grid-row: 1 / span 2;  // full height: spans both rows
   display: flex;
   flex-direction: column;
   gap: $sp-6;
   min-height: 0;
-  // On mobile: rhythm panel appears above tasks (header is already above dashboardCols via JSX)
-  @media (max-width: 768px) { order: -1; }
+
+  @media (max-width: 768px) {
+    grid-column: unset;
+    grid-row: unset;
+    order: -1;
+  }
 }
 
 // ── Header ──
-.headerPanel { padding: 24px 24px 20px; }
+.headerPanel {
+  padding: 24px 24px 20px;
+  grid-column: 1;
+  grid-row: 1;
+
+  @media (max-width: 768px) {
+    grid-column: unset;
+    grid-row: unset;
+    order: -2;
+  }
+}
 
 .header {
   h1 {

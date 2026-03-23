@@ -26,6 +26,7 @@ export default function FocusSessions() {
   const storeTasks = useProductivityStore(s => s.tasks)
   const storeToggleTask = useProductivityStore(s => s.toggleTask)
   const storeEvents = useProductivityStore(s => s.events)
+  const storeAddEvent = useProductivityStore(s => s.addEvent)
   const initialTasks = useMemo<Task[]>(() => {
     const fromStore = storeTasks.filter(t => !t.completed).map(t => ({
       id: t.id,
@@ -56,7 +57,7 @@ export default function FocusSessions() {
 
   const [showQuitModal, setShowQuitModal]       = useState(false);
   const [finishConfirmId, setFinishConfirmId]   = useState<number | null>(null);
-  const [streak, setStreak]                     = useState(3);
+  const [streak, setStreak]                     = useState(0);
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [completedInSession, setCompletedInSession] = useState(0);
   const [adaptiveBonus, setAdaptiveBonus]       = useState(0);
@@ -106,17 +107,40 @@ export default function FocusSessions() {
 
   const undoneTasks = tasks.filter((t) => !t.done);
 
-  // ── INITIALIZE STREAK from actual focus events today ──
+  // ── COMPUTE STREAK: consecutive days with ≥1 completed focus session ──
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0]
-    const todaysFocusEvents = storeEvents.filter(
-      (e) => e.date === today && (e.title?.toLowerCase().includes('focus') || e.tag?.toLowerCase().includes('focus'))
+    const focusDates = new Set(
+      storeEvents
+        .filter(e => e.title?.toLowerCase().includes('focus') || e.tag?.toLowerCase().includes('focus'))
+        .map(e => e.date)
     )
-    const focusSessionCount = todaysFocusEvents.length
-    if (focusSessionCount > 0) {
-      setStreak(focusSessionCount)
+    let count = 0
+    const d = new Date()
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const ds = d.toISOString().split('T')[0]
+      if (focusDates.has(ds)) {
+        count++
+        d.setDate(d.getDate() - 1)
+      } else {
+        break
+      }
     }
+    setStreak(count)
   }, [storeEvents])
+
+  // ── SAVE FOCUS EVENT when a session completes ──
+  const saveFocusEvent = useCallback(() => {
+    const today = new Date().toISOString().split('T')[0]
+    storeAddEvent({
+      title: 'Focus Session',
+      date: today,
+      startTime: null,
+      endTime: null,
+      tag: 'focus',
+      recur: null,
+    } as any)
+  }, [storeAddEvent])
 
   // ── TIMER TICK ──
   useEffect(() => {
@@ -156,7 +180,7 @@ export default function FocusSessions() {
     const active = tasks.filter((t) => selectedTaskIds.has(t.id));
     if (active.length === 0) return;
     if (active.every((t) => t.done)) {
-      setStreak((s) => s + 1);
+      saveFocusEvent();
       setPhase('complete');
     }
   }, [tasks, phase]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -166,7 +190,7 @@ export default function FocusSessions() {
     const nextCycle = cycle + 1;
     setCycle(nextCycle);
     if (nextCycle >= totalCycles) {
-      setStreak((s) => s + 1);
+      saveFocusEvent();
       setPhase('complete');
     } else {
       const isLong  = nextCycle % activeConfig.cyclesBeforeLong === 0;
@@ -239,7 +263,6 @@ export default function FocusSessions() {
   };
 
   const confirmQuit = () => {
-    setStreak(0);
     setPhase('dashboard');
     setShowQuitModal(false);
     setTasks((prev) => prev.map((t) => ({ ...t, deferred: false })));
@@ -288,10 +311,8 @@ export default function FocusSessions() {
             </div>
           </div>
 
-          <div className={styles.dashboardCols}>
-
-            {/* ── LEFT: tasks only ── */}
-            <div className={styles.colLeft}>
+          {/* ── LEFT: tasks only ── */}
+          <div className={styles.colLeft}>
 
               <div className={cx(styles.panel, styles.tasksPanel)}>
                 <div className={styles.tasksSection}>
@@ -380,9 +401,9 @@ export default function FocusSessions() {
 
             </div>
 
-            {/* ── RIGHT: rhythm picker + commit ── */}
-            <div className={styles.colRight}>
-              <div className={styles.rhythmPanel}>
+          {/* ── RIGHT: rhythm picker + commit ── */}
+          <div className={styles.colRight}>
+            <div className={styles.rhythmPanel}>
                 <div className={styles.sectionLabel}>
                   Choose your rhythm
                   <span className={styles.sectionDivider} />
@@ -450,7 +471,6 @@ export default function FocusSessions() {
               </div>
             </div>
 
-          </div>
         </div>
       )}
 

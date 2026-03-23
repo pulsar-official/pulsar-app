@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pulsar — System Architecture</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #07070d;
+      color: #eeeef5;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      padding: 40px 24px 80px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #a78bfa;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      color: #7878a0;
+      font-size: 14px;
+      margin-bottom: 48px;
+    }
+    .section {
+      margin-bottom: 64px;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #c4b5fd;
+      margin-bottom: 4px;
+      padding-left: 2px;
+    }
+    .section-desc {
+      font-size: 13px;
+      color: #55556a;
+      margin-bottom: 20px;
+      padding-left: 2px;
+    }
+    .diagram-box {
+      background: #0c0c14;
+      border: 1px solid #1a1a26;
+      border-radius: 12px;
+      padding: 32px 24px;
+      overflow-x: auto;
+    }
+    .diagram-box .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+    .toc {
+      background: #0c0c14;
+      border: 1px solid #1a1a26;
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-bottom: 48px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .toc a {
+      color: #a78bfa;
+      text-decoration: none;
+      font-size: 13px;
+      background: rgba(167,139,250,0.08);
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(167,139,250,0.2);
+      transition: background 0.15s;
+    }
+    .toc a:hover { background: rgba(167,139,250,0.18); }
+  </style>
+</head>
+<body>
+
+<h1>Pulsar — System Architecture</h1>
+<p class="subtitle">Visual overview of every layer in the app. Open in browser, zoom with Ctrl/Cmd+scroll.</p>
+
+<div class="toc">
+  <a href="#overall">Overall Architecture</a>
+  <a href="#dataflow">Data Flow</a>
+  <a href="#hydration">App Load / Hydration</a>
+  <a href="#routing">Navigation & Routing</a>
+  <a href="#modules">Module Map</a>
+  <a href="#offline">Offline Sync</a>
+  <a href="#db">Database Schema</a>
+  <a href="#store">Store Actions</a>
+</div>
+
+<!-- 1. Overall Architecture -->
+<div class="section" id="overall">
+  <div class="section-title">1 — Overall System Architecture</div>
+  <div class="section-desc">Every major layer from user to database, including external services.</div>
+  <div class="diagram-box">
+    <div class="mermaid">
+flowchart TD
+    User(["👤 User"])
+
+    subgraph Auth["🔐 Auth — Clerk"]
+        MW["Middleware\nRoute Protection"]
+        BetaGate{"Beta open\nor Admin?"}
+    end
+
+    subgraph Client["💻 Client — Next.js / React"]
+        Landing["Landing Page"]
+        AppShell["AppShell\ninit + orchestrate"]
+        AppLayout["AppLayout\nSidebar · Topbar · Content"]
+        UIStore[("UIStore\ncurrent page · sidebar")]
+        ProdStore[("ProductivityStore\ntasks · habits · goals\njournal · events · boards")]
+        IDB[("IndexedDB\nLocal Cache")]
+        SW["Service Worker\nBackground Sync"]
+        SyncQ["Sync Queue\nOffline Actions"]
+    end
+
+    subgraph API["🌐 API Routes"]
+        Tasks["/tasks"]
+        Habits["/habits"]
+        Goals["/goals"]
+        Journal["/journal"]
+        Events["/events"]
+        Boards["/boards"]
+        Changes["/changes"]
+        Notes["/notes"]
+    end
+
+    subgraph DB["🗄️ Database"]
+        PG[("PostgreSQL\nvia Drizzle ORM")]
+        Redis[("Redis Cache\nUpstash")]
+    end
+
+    subgraph Ext["⚙️ External Services"]
+        ClerkSvc["Clerk\nAuth + Orgs"]
+        StripeSvc["Stripe\nPayments"]
+        Vercel["Vercel Analytics"]
+    end
+
+    User --> MW
+    MW <--> ClerkSvc
+    MW --> BetaGate
+    BetaGate -->|No| Landing
+    BetaGate -->|Yes| AppShell
+    AppShell --> AppLayout
+    AppShell -- init --> ProdStore
+    AppShell -- register --> SW
+    ProdStore <-- cache --> IDB
+    ProdStore <-- CRUD --> API
+    SW <-- background sync --> SyncQ
+    SyncQ <-- flush when online --> API
+    AppLayout <--> UIStore
+    API <--> PG
+    API <--> Redis
+    StripeSvc <-.-> API
+    Vercel -.-> AppShell
+    </div>
+  </div>
+</div>
+
+<!-- 2. Data Flow -->
+<div class="section" id="dataflow">
+  <div class="section-title">2 — Data Flow: User Action → Persistence</div>
+  <div class="section-desc">How a single user action (e.g. creating a task) travels through every layer.</div>
+  <div class="diagram-box">
+    <div class="mermaid">
+flowchart TD
+    Action(["User action\ne.g. create task"])
+    Component["Module Component\ne.g. Tasks.tsx"]
+
+    subgraph Store["productivityStore.ts"]
+        Optimistic["① Optimistic UI update\ntemp ID assigned"]
+        MutFetch["② mutationFetch\nPOST / PUT / DELETE"]
+        PersistIDB["③ persistToIndexedDB"]
+    end
+
+    subgraph OnlinePath["✅ Online Path"]
+        ApiRoute["API Route Handler"]
+        ClerkAuth["Clerk auth\nextract orgId + userId"]
+        DrizzleQ["Drizzle ORM query"]
+        PG[("PostgreSQL\nRETURNING *")]
+    end
+
+    subgraph OfflinePath["📴 Offline Path"]
+        QueueIDB["Queue action\nin IndexedDB.syncQueue"]
+        OnlineEvt["browser 'online' event"]
+        SyncAll["syncQueue flushes\nall queued actions"]
+    end
+
+    ReplaceID["Replace temp ID\nwith real server ID"]
+    IDBUpdate["Update IndexedDB\nwith real data"]
+
+    Action --> Component
+    Component --> Optimistic
+    Optimistic --> MutFetch
+    Optimistic --> PersistIDB
+    MutFetch -->|online| ApiRoute
+    MutFetch -->|offline| QueueIDB
+    QueueIDB --> OnlineEvt --> SyncAll --> ApiRoute
+    ApiRoute --> ClerkAuth --> DrizzleQ --> PG
+    PG --> ReplaceID --> IDBUpdate
+    IDBUpdate --> Component
+    </div>
+  </div>
+</div>
+
+<!-- 3. Hydration -->
+<div class="section" id="hydration">
+  <div class="section-title">3 — App Load / Hydration Flow</div>
+  <div class="section-desc">What happens every time the page loads or reloads.</div>
+  <div class="diagram-box">
+    <div class="mermaid">
+flowchart TD
+    Reload(["Page load / reload"])
+    AppShell["AppShell mounts"]
+    ClerkCheck{"Clerk\nauthenticated?"}
+    ShowLanding["Show Landing Page"]
+    FetchAll["productivityStore.fetchAll orgId"]
+
+    subgraph Step1["Step 1 — Instant (cache)"]
+        IDBLoad["Load IndexedDB cache\n→ render immediately"]
+    end
+
+    subgraph Step2["Step 2 — Fresh (parallel API)"]
+        APIFetch["Parallel API fetches\ntasks · habits · goals\njournal · events · boards"]
+    end
+
+    Merge["Merge results\nserver wins · cache fallback if offline"]
+    StoreSet["Update Zustand store"]
+    IDBUpdate["Update IndexedDB\nwith fresh data"]
+    Render["Components re-render\nwith fresh data"]
+
+    Reload --> AppShell --> ClerkCheck
+    ClerkCheck -->|No| ShowLanding
+    ClerkCheck -->|Yes| FetchAll
+    FetchAll --> Step1
+    FetchAll --> Step2
+    Step1 --> Render
+    Step2 --> Merge --> StoreSet
+    StoreSet --> IDBUpdate
+    StoreSet --> Render
+    </div>
+  </div>
+</div>
+
+<!-- 4. Routing -->
+<div class="section" id="routing">
+  <div class="section-title">4 — Navigation & Routing</div>
+  <div class="section-desc">How clicking a nav item and loading a URL both resolve to the right module component.</div>
+  <div class="diagram-box">
+    <div class="mermaid">
+flowchart LR
+    subgraph ClickPath["User clicks nav item"]
+        Click(["Sidebar item click"])
+        HandleNav["handleNavigate 'tasks'"]
+        PageToURL["pageToUrl 'tasks'\n→ /dashboard/productivity/tasks"]
+        RouterPush["router.push URL"]
+    end
+
+    subgraph URLPath["URL loads"]
+        URL["URL segments arrive\n[...slug] page.tsx"]
+        URLtoPage["urlToPage segments\n→ 'tasks'"]
+    end
+
+    subgraph Render["Rendering"]
+        UIStore[("UIStore\ncurrentPage = 'tasks'")]
+        MainContent["MainContent.tsx\npage router"]
+        MODULES{"MODULES map\n60+ entries"}
+        Component["Tasks.tsx rendered"]
+    end
+
+    Click --> HandleNav --> PageToURL --> RouterPush --> URL
+    URL --> URLtoPage --> UIStore
+    HandleNav --> UIStore
+    UIStore --> MainContent --> MODULES --> Component
+    </div>
+  </div>
+</div>
+
+<!-- 5. Module Map -->
+<div class="section" id="modules">
+  <div class="section-title">5 — Module Map by Pillar</div>
+  <div class="section-desc">All 60+ modules organised into the 7 navigation pillars.</div>
+  <div class="diagram-box">
+    <div class="mermaid">
+flowchart TD
+    App["🌌 Pulsar App"]
+
+    App --> P1["🏠 Corespace"]
+    App --> P2["📚 Knowledge"]
+    App --> P3["✅ Productivity"]
+    App --> P4["📊 Insights"]
+    App --> P5["🎨 Customization"]
+    App --> P6["👥 Collaboration"]
+    App --> P7["🔌 Extensions"]
+
+    P1 --> C1["Dashboard · Pinned\nNotifications · Quick Capture\nFocus Launcher · Momentum · Inbox"]
+    P2 --> C2["Notes · Topic Library\nStudy Sheets · Ref Vault\nConcept Map · Accelerators\nKnowledge Insights"]
+    P3 --> C3["Tasks · Calendar · Focus Sessions\nHabits · Goals\nJournal Editor · Past Entries\nTemplates · Mood Tracker · Prompts · Streaks"]
+    P4 --> C4["Prod Score · Focus Heatmap\nKnowledge Growth · Habit Trends\nGraph Builder · Session Log\nWeekly Snapshot"]
+    P5 --> C5["Layout Studio · Theme Builder\nNote Type Editor · Module Library\nTag Explorer · Shortcut Editor\nView Templates"]
+    P6 --> C6["Team Spaces · Project Boards\nShared Goals · Shared Knowledge\nComments & Threads\nActivity Feed · Permissions"]
+    P7 --> C7["Installed Apps · Import/Export\nAutomations · Developer API\nLabs · Session Backup"]
+
+    style C3 fill:#1a1a2e,stroke:#a78bfa
+    style P3 fill:#2d1b69,stroke:#a78bfa,color:#c4b5fd
+    </div>
+  </div>
+</div>
+
+<!-- 6. Offline Sync -->
+<div class="section" id="offline">
+  <div class="section-title">6 — Offline Sync Architecture</div>
+  <div class="section-desc">How Pulsar keeps working without internet and syncs when reconnected.</div>
+  <div class="diagram-box">
+    <div class="mermaid">
+flowchart TD
+    UserAct(["User performs action"])
+    OnlineCheck{"navigator\n.onLine?"}
+
+    subgraph Online["✅ Online"]
+        DirectAPI["mutationFetch\ndirect API call"]
+        ServerResp["Server responds\nwith real ID"]
+        StoreUpdate["Store updated\nIDB refreshed"]
+    end
+
+    subgraph Offline["📴 Offline"]
+        OptUI["Optimistic UI\ntemp ID shown"]
+        QueueIDB["Action queued\nin IndexedDB\nsyncQueue table"]
+        UserCont["User keeps working\n(app stays functional)"]
+    end
+
+    subgraph Recovery["🔄 Reconnection"]
+        OnlineEvt["'online' event fires"]
+        SWSync["Service Worker\n'sync' event"]
+        SyncFn["syncQueue processes\nall queued actions in order"]
+        FetchAll["fetchAll re-syncs\nentire state"]
+    end
+
+    UserAct --> OnlineCheck
+    OnlineCheck -->|Yes| DirectAPI --> ServerResp --> StoreUpdate
+    OnlineCheck -->|No| OptUI --> QueueIDB --> UserCont
+    QueueIDB --> OnlineEvt --> SyncFn
+    QueueIDB --> SWSync --> SyncFn
+    SyncFn --> FetchAll --> StoreUpdate
+    </div>
+  </div>
+</div>
+
+<!-- 7. Database Schema -->
+<div class="section" id="db">
+  <div class="section-title">7 — Database Schema (Relationships)</div>
+  <div class="section-desc">All tables and their foreign-key relationships.</div>
+  <div class="diagram-box">
+    <div class="mermaid">
+erDiagram
+    users {
+      int id PK
+      string clerkId
+      string email
+      string username
+      string stripeCustomerId
+    }
+    organizations {
+      int id PK
+      string clerkOrgId
+      string name
+    }
+    tasks {
+      int id PK
+      string orgId
+      string userId
+      string title
+      bool completed
+      string priority
+      string tag
+      string status
+      string dueDate
+    }
+    habits {
+      int id PK
+      string orgId
+      string userId
+      string name
+      string emoji
+      int sortOrder
+    }
+    habitChecks {
+      int id PK
+      int habitId FK
+      string date
+      bool checked
+    }
+    goals {
+      int id PK
+      string orgId
+      string userId
+      string title
+      string category
+      bool done
+      int progress
+    }
+    goalSubs {
+      int id PK
+      int goalId FK
+      string text
+      bool done
+    }
+    journalEntries {
+      int id PK
+      string orgId
+      string userId
+      string title
+      string content
+      string date
+      string mood
+    }
+    calEvents {
+      int id PK
+      string orgId
+      string userId
+      string title
+      string date
+      string startTime
+      string endTime
+      string tag
+      string recur
+    }
+    boards {
+      int id PK
+      string orgId
+      string userId
+      string name
+      string color
+    }
+    boardNodes {
+      int id PK
+      int boardId FK
+      string type
+      string title
+      int x
+      int y
+    }
+    boardThreads {
+      int id PK
+      int boardId FK
+      int fromNodeId FK
+      int toNodeId FK
+    }
+    changes {
+      int id PK
+      string orgId
+      string entityType
+      int entityId
+      string operation
+      int version
+    }
+
+    habits ||--o{ habitChecks : "has checks"
+    goals ||--o{ goalSubs : "has sub-goals"
+    boards ||--o{ boardNodes : "has nodes"
+    boards ||--o{ boardThreads : "has threads"
+    boardNodes ||--o{ boardThreads : "from/to"
+    </div>
+  </div>
+</div>
+
+<!-- 8. Store Actions -->
+<div class="section" id="store">
+  <div class="section-title">8 — Zustand Store: Actions per Entity</div>
+  <div class="section-desc">All CRUD operations exposed by productivityStore.</div>
+  <div class="diagram-box">
+    <div class="mermaid">
+flowchart LR
+    PS[("productivityStore")]
+
+    PS --> T["📋 Tasks\naddTask\nupdateTask\ndeleteTask\ntoggleTask\ngetTodaysTasks\ngetOverdueTasks"]
+    PS --> H["🔁 Habits\naddHabit\ndeleteHabit\ntoggleHabitCheck\ngetHabitCheckMap"]
+    PS --> G["🎯 Goals\naddGoal\nupdateGoal\ndeleteGoal\ntoggleSubGoal\naddSubGoal\ngetActiveGoals"]
+    PS --> J["📓 Journal\naddJournalEntry\nupdateJournalEntry\ndeleteJournalEntry\ngetEntriesByDate\ngetMoodDistribution\ngetJournalStreak"]
+    PS --> E["📅 Events\naddEvent\nupdateEvent\ndeleteEvent"]
+    PS --> B["🗂️ Boards\naddBoard\nupdateBoard\ndeleteBoard"]
+    PS --> M["⚙️ Meta\nfetchAll\ngetSmartConnections\nsetSelectedJournalEntryId"]
+    </div>
+  </div>
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      background: '#07070d',
+      primaryColor: '#1a1a2e',
+      primaryTextColor: '#eeeef5',
+      primaryBorderColor: '#a78bfa',
+      lineColor: '#7878a0',
+      secondaryColor: '#0c0c14',
+      tertiaryColor: '#111119',
+      edgeLabelBackground: '#0c0c14',
+      clusterBkg: '#0c0c14',
+      clusterBorder: '#26263a',
+      titleColor: '#c4b5fd',
+      nodeTextColor: '#eeeef5',
+    },
+    flowchart: { curve: 'basis', padding: 20 },
+    er: { diagramPadding: 20 },
+  });
+</script>
+</body>
+</html>

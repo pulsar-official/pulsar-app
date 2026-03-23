@@ -4,9 +4,10 @@ import { habits, habitChecks } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 
 export async function GET() {
-  const { orgId } = await auth()
-  if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  const habitRows = await db.select().from(habits).where(eq(habits.orgId, orgId))
+  const { orgId, userId } = await auth()
+  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const oid = orgId ?? userId
+  const habitRows = await db.select().from(habits).where(eq(habits.orgId, oid))
   const habitIds = habitRows.map(h => h.id)
   let checkRows: typeof habitChecks.$inferSelect[] = []
   if (habitIds.length > 0) {
@@ -20,7 +21,8 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const { orgId, userId } = await auth()
-  if (!orgId || !userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const oid = orgId ?? userId
   const body = await req.json()
 
   // Toggle a habit check
@@ -42,7 +44,7 @@ export async function POST(req: Request) {
 
   // Create a new habit
   const [row] = await db.insert(habits).values({
-    orgId, userId,
+    orgId: oid, userId,
     name: body.name,
     emoji: body.emoji ?? '✅',
     sortOrder: body.sortOrder ?? 0,
@@ -51,9 +53,10 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const { orgId } = await auth()
-  if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const { orgId, userId } = await auth()
+  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const oid = orgId ?? userId
   const { id } = await req.json()
-  await db.delete(habits).where(and(eq(habits.id, id), eq(habits.orgId, orgId)))
+  await db.delete(habits).where(and(eq(habits.id, id), eq(habits.orgId, oid)))
   return Response.json({ ok: true })
 }

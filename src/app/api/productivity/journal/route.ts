@@ -4,18 +4,20 @@ import { journalEntries } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 
 export async function GET() {
-  const { orgId } = await auth()
-  if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  const rows = await db.select().from(journalEntries).where(eq(journalEntries.orgId, orgId))
+  const { orgId, userId } = await auth()
+  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const oid = orgId ?? userId
+  const rows = await db.select().from(journalEntries).where(eq(journalEntries.orgId, oid))
   return Response.json(rows)
 }
 
 export async function POST(req: Request) {
   const { orgId, userId } = await auth()
-  if (!orgId || !userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const oid = orgId ?? userId
   const body = await req.json()
   const [row] = await db.insert(journalEntries).values({
-    orgId, userId,
+    orgId: oid, userId,
     title: body.title,
     content: body.content ?? '',
     date: body.date,
@@ -26,8 +28,9 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
-  const { orgId } = await auth()
-  if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const { orgId, userId } = await auth()
+  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const oid = orgId ?? userId
   const body = await req.json()
   const [row] = await db.update(journalEntries)
     .set({
@@ -37,16 +40,17 @@ export async function PUT(req: Request) {
       tags: body.tags,
       updatedAt: new Date(),
     })
-    .where(and(eq(journalEntries.id, body.id), eq(journalEntries.orgId, orgId)))
+    .where(and(eq(journalEntries.id, body.id), eq(journalEntries.orgId, oid)))
     .returning()
   if (!row) return Response.json({ error: 'Not found' }, { status: 404 })
   return Response.json(row)
 }
 
 export async function DELETE(req: Request) {
-  const { orgId } = await auth()
-  if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const { orgId, userId } = await auth()
+  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const oid = orgId ?? userId
   const { id } = await req.json()
-  await db.delete(journalEntries).where(and(eq(journalEntries.id, id), eq(journalEntries.orgId, orgId)))
+  await db.delete(journalEntries).where(and(eq(journalEntries.id, id), eq(journalEntries.orgId, oid)))
   return Response.json({ ok: true })
 }
