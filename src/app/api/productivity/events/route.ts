@@ -4,18 +4,20 @@ import { calEvents } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 
 export async function GET() {
-  const { orgId } = await auth()
-  if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  const rows = await db.select().from(calEvents).where(eq(calEvents.orgId, orgId))
+  const { orgId, userId } = await auth()
+  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const oid = orgId ?? userId
+  const rows = await db.select().from(calEvents).where(eq(calEvents.orgId, oid))
   return Response.json(rows)
 }
 
 export async function POST(req: Request) {
   const { orgId, userId } = await auth()
-  if (!orgId || !userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const oid = orgId ?? userId
   const body = await req.json()
   const [row] = await db.insert(calEvents).values({
-    orgId, userId,
+    orgId: oid, userId,
     title: body.title,
     date: body.date,
     dateEnd: body.dateEnd ?? null,
@@ -28,8 +30,9 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
-  const { orgId } = await auth()
-  if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const { orgId, userId } = await auth()
+  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const oid = orgId ?? userId
   const body = await req.json()
   const [row] = await db.update(calEvents)
     .set({
@@ -42,16 +45,17 @@ export async function PUT(req: Request) {
       recur: body.recur,
       updatedAt: new Date(),
     })
-    .where(and(eq(calEvents.id, body.id), eq(calEvents.orgId, orgId)))
+    .where(and(eq(calEvents.id, body.id), eq(calEvents.orgId, oid)))
     .returning()
   if (!row) return Response.json({ error: 'Not found' }, { status: 404 })
   return Response.json(row)
 }
 
 export async function DELETE(req: Request) {
-  const { orgId } = await auth()
-  if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const { orgId, userId } = await auth()
+  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const oid = orgId ?? userId
   const { id } = await req.json()
-  await db.delete(calEvents).where(and(eq(calEvents.id, id), eq(calEvents.orgId, orgId)))
+  await db.delete(calEvents).where(and(eq(calEvents.id, id), eq(calEvents.orgId, oid)))
   return Response.json({ ok: true })
 }

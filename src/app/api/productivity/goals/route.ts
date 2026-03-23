@@ -4,9 +4,10 @@ import { goals, goalSubs } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 
 export async function GET() {
-  const { orgId } = await auth()
-  if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  const goalRows = await db.select().from(goals).where(eq(goals.orgId, orgId))
+  const { orgId, userId } = await auth()
+  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const oid = orgId ?? userId
+  const goalRows = await db.select().from(goals).where(eq(goals.orgId, oid))
   const goalIds = goalRows.map(g => g.id)
   let subRows: typeof goalSubs.$inferSelect[] = []
   if (goalIds.length > 0) {
@@ -22,7 +23,8 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const { orgId, userId } = await auth()
-  if (!orgId || !userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const oid = orgId ?? userId
   const body = await req.json()
 
   // Add sub-goal
@@ -46,7 +48,7 @@ export async function POST(req: Request) {
 
   // Create goal
   const [row] = await db.insert(goals).values({
-    orgId, userId,
+    orgId: oid, userId,
     title: body.title,
     description: body.description ?? '',
     category: body.category ?? 'work',
@@ -59,8 +61,9 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
-  const { orgId } = await auth()
-  if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const { orgId, userId } = await auth()
+  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const oid = orgId ?? userId
   const body = await req.json()
   const [row] = await db.update(goals)
     .set({
@@ -73,16 +76,17 @@ export async function PUT(req: Request) {
       progress: body.progress,
       updatedAt: new Date(),
     })
-    .where(and(eq(goals.id, body.id), eq(goals.orgId, orgId)))
+    .where(and(eq(goals.id, body.id), eq(goals.orgId, oid)))
     .returning()
   if (!row) return Response.json({ error: 'Not found' }, { status: 404 })
   return Response.json(row)
 }
 
 export async function DELETE(req: Request) {
-  const { orgId } = await auth()
-  if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const { orgId, userId } = await auth()
+  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const oid = orgId ?? userId
   const { id } = await req.json()
-  await db.delete(goals).where(and(eq(goals.id, id), eq(goals.orgId, orgId)))
+  await db.delete(goals).where(and(eq(goals.id, id), eq(goals.orgId, oid)))
   return Response.json({ ok: true })
 }

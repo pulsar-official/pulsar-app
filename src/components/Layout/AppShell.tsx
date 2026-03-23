@@ -20,17 +20,19 @@ export default function AppShell() {
 
   const isAdmin = user?.publicMetadata?.role === 'admin'
   const orgId = organization?.id ?? null
+  // Use orgId if in an org, otherwise fall back to userId for personal accounts
+  const effectiveOrgId = orgId ?? userId ?? null
 
   // Initialize service worker and offline support
   useServiceWorker()
   useOfflineSync()
 
-  // Fetch productivity data when org changes
+  // Fetch productivity data when org/user changes
   useEffect(() => {
-    if (orgId && orgId !== storeOrgId) {
-      fetchAll(orgId)
+    if (effectiveOrgId && effectiveOrgId !== storeOrgId) {
+      fetchAll(effectiveOrgId)
     }
-  }, [orgId, storeOrgId, fetchAll])
+  }, [effectiveOrgId, storeOrgId, fetchAll])
 
   if (!isLoaded) return null
 
