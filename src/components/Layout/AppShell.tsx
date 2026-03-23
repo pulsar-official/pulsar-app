@@ -1,5 +1,5 @@
 'use client'
-import { useAuth, useUser, useOrganization } from '@clerk/nextjs'
+import { useAuth, useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import AppLayout from './AppLayout'
@@ -11,28 +11,27 @@ import { useOfflineSync } from '@/hooks/useOfflineSync'
 const BETA_OPEN = process.env.NEXT_PUBLIC_BETA_OPEN === 'true'
 
 export default function AppShell() {
-  const { isLoaded, userId } = useAuth()
+  // useAuth gives orgId directly from the session token — more reliable than
+  // useOrganization().organization?.id which can lag or be null until Clerk
+  // resolves the active org.
+  const { isLoaded, userId, orgId } = useAuth()
   const { user } = useUser()
-  const { organization } = useOrganization()
   const router = useRouter()
   const fetchAll = useProductivityStore(s => s.fetchAll)
   const storeOrgId = useProductivityStore(s => s.orgId)
 
   const isAdmin = user?.publicMetadata?.role === 'admin'
-  const orgId = organization?.id ?? null
-  // Use orgId if in an org, otherwise fall back to userId for personal accounts
-  const effectiveOrgId = orgId ?? userId ?? null
 
   // Initialize service worker and offline support
   useServiceWorker()
   useOfflineSync()
 
-  // Fetch productivity data when org/user changes
+  // Fetch productivity data when org changes
   useEffect(() => {
-    if (effectiveOrgId && effectiveOrgId !== storeOrgId) {
-      fetchAll(effectiveOrgId)
+    if (orgId && orgId !== storeOrgId) {
+      fetchAll(orgId)
     }
-  }, [effectiveOrgId, storeOrgId, fetchAll])
+  }, [orgId, storeOrgId, fetchAll])
 
   if (!isLoaded) return null
 
