@@ -17,6 +17,7 @@ export function useSync() {
   const managerRef = useRef<SyncManager | null>(null)
   const orgId = useProductivityStore(s => s.orgId)
   const applyRemoteChange = useProductivityStore(s => s.applyRemoteChange)
+  const setSyncManager = useProductivityStore(s => s.setSyncManager)
 
   useEffect(() => {
     if (!orgId) return
@@ -42,6 +43,7 @@ export function useSync() {
       })
 
       managerRef.current = manager
+      setSyncManager(manager)
       manager.start()
     }
 
@@ -50,8 +52,9 @@ export function useSync() {
     return () => {
       manager?.stop()
       managerRef.current = null
+      setSyncManager(null)
     }
-  }, [orgId, applyRemoteChange])
+  }, [orgId, applyRemoteChange, setSyncManager])
 
   const updatePendingCount = useCallback(async () => {
     const { getPendingOps } = await import('@/lib/sync/syncStorage')
