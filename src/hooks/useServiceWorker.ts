@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { syncQueue } from '@/lib/syncQueue'
 
 /**
  * Hook to register and manage the Service Worker
@@ -38,7 +37,7 @@ export function useServiceWorker() {
         navigator.serviceWorker.addEventListener('message', (event) => {
           if (event.data?.type === 'SYNC_QUEUE') {
             console.log('[SW] Background sync triggered by service worker')
-            syncQueue().catch(console.error)
+            // Sync is now handled by SyncManager via useSync hook
           }
         })
 

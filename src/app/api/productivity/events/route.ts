@@ -1,12 +1,14 @@
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { calEvents } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, or, isNull } from 'drizzle-orm'
 
 export async function GET() {
   const { orgId } = await auth()
   if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  const rows = await db.select().from(calEvents).where(eq(calEvents.orgId, orgId))
+  const rows = await db.select().from(calEvents).where(
+    and(eq(calEvents.orgId, orgId), or(eq(calEvents.isDeleted, false), isNull(calEvents.isDeleted)))
+  )
   return Response.json(rows)
 }
 

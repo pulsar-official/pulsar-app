@@ -1,12 +1,14 @@
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { journalEntries } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, or, isNull } from 'drizzle-orm'
 
 export async function GET() {
   const { orgId } = await auth()
   if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  const rows = await db.select().from(journalEntries).where(eq(journalEntries.orgId, orgId))
+  const rows = await db.select().from(journalEntries).where(
+    and(eq(journalEntries.orgId, orgId), or(eq(journalEntries.isDeleted, false), isNull(journalEntries.isDeleted)))
+  )
   return Response.json(rows)
 }
 

@@ -5,7 +5,14 @@ export type TaskStatus = 'todo' | 'inprogress' | 'done'
 export type TaskTag = 'work' | 'personal' | 'urgent' | 'health'
 export type GoalCategory = 'work' | 'personal' | 'health' | 'learning' | 'finance' | 'creative'
 
-export interface Task {
+/** Sync metadata present on all syncable entities */
+export interface SyncMeta {
+  hlcTimestamp?: string | null
+  syncVersion?: number | null
+  isDeleted?: boolean | null
+}
+
+export interface Task extends SyncMeta {
   id: number
   orgId: string
   userId: string
@@ -18,7 +25,7 @@ export interface Task {
   dueDate: string | null
 }
 
-export interface Habit {
+export interface Habit extends SyncMeta {
   id: number
   orgId: string
   userId: string
@@ -27,7 +34,7 @@ export interface Habit {
   sortOrder: number
 }
 
-export interface HabitCheck {
+export interface HabitCheck extends SyncMeta {
   id: number
   habitId: number
   date: string
@@ -36,14 +43,14 @@ export interface HabitCheck {
 
 export type HabitCheckMap = Record<string, Record<string, boolean>>
 
-export interface SubGoal {
+export interface SubGoal extends SyncMeta {
   id: number
   goalId: number
   text: string
   done: boolean
 }
 
-export interface Goal {
+export interface Goal extends SyncMeta {
   id: number
   orgId: string
   userId: string
@@ -57,7 +64,7 @@ export interface Goal {
   subs: SubGoal[]
 }
 
-export interface JournalEntry {
+export interface JournalEntry extends SyncMeta {
   id: number
   orgId: string
   userId: string
@@ -84,7 +91,7 @@ export interface JournalPrompt {
   category: 'self-reflection' | 'gratitude' | 'goals' | 'creativity' | 'mindfulness' | 'growth'
 }
 
-export interface CalEvent {
+export interface CalEvent extends SyncMeta {
   id: number
   orgId: string
   userId: string
@@ -97,7 +104,7 @@ export interface CalEvent {
   recur: string | null
 }
 
-export interface Board {
+export interface Board extends SyncMeta {
   id: number
   orgId: string
   userId: string
@@ -107,7 +114,7 @@ export interface Board {
   icon: string
 }
 
-export interface BoardNode {
+export interface BoardNode extends SyncMeta {
   id: number
   boardId: number
   type: string
@@ -119,7 +126,7 @@ export interface BoardNode {
   priority: string
 }
 
-export interface BoardThread {
+export interface BoardThread extends SyncMeta {
   id: number
   boardId: number
   fromNodeId: number
