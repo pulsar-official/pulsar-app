@@ -8,11 +8,11 @@
  * For serverless (Vercel), clients use HTTP fallback instead.
  */
 
-import { supabaseAdmin } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase'
 import { processOps } from './serverSyncEngine'
 import type { ClientOpsPayload, ServerAckPayload, ServerOpsPayload } from './types'
 
-const activeChannels = new Map<string, ReturnType<typeof supabaseAdmin.channel>>()
+const activeChannels = new Map<string, any>()
 
 /**
  * Start listening on a channel for a specific org.
@@ -21,7 +21,13 @@ const activeChannels = new Map<string, ReturnType<typeof supabaseAdmin.channel>>
 export function listenToOrg(orgId: string): void {
   if (activeChannels.has(orgId)) return
 
-  const channel = supabaseAdmin.channel(`sync:${orgId}`, {
+  const admin = getSupabaseAdmin()
+  if (!admin) {
+    console.warn('[RealtimeListener] Supabase not configured, skipping org listener')
+    return
+  }
+
+  const channel = admin.channel(`sync:${orgId}`, {
     config: { broadcast: { self: true } },
   })
 
@@ -80,7 +86,7 @@ export function listenToOrg(orgId: string): void {
 export function stopListeningToOrg(orgId: string): void {
   const channel = activeChannels.get(orgId)
   if (channel) {
-    supabaseAdmin.removeChannel(channel)
+    getSupabaseAdmin()?.removeChannel(channel)
     activeChannels.delete(orgId)
   }
 }

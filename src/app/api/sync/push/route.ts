@@ -1,6 +1,6 @@
 import { auth } from '@clerk/nextjs/server'
 import { processOps } from '@/lib/sync/serverSyncEngine'
-import { supabaseAdmin } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase'
 import type { SyncOp } from '@/lib/sync/types'
 
 /**
@@ -26,13 +26,16 @@ export async function POST(req: Request) {
   // Broadcast server_ops to other devices via Supabase Realtime
   if (serverOps.length > 0) {
     try {
-      const channel = supabaseAdmin.channel(`sync:${orgId}`)
-      await channel.send({
-        type: 'broadcast',
-        event: 'server_ops',
-        payload: { sourceDeviceId: deviceId, ops: serverOps },
-      })
-      supabaseAdmin.removeChannel(channel)
+      const admin = getSupabaseAdmin()
+      if (admin) {
+        const channel = admin.channel(`sync:${orgId}`)
+        await channel.send({
+          type: 'broadcast',
+          event: 'server_ops',
+          payload: { sourceDeviceId: deviceId, ops: serverOps },
+        })
+        admin.removeChannel(channel)
+      }
     } catch (err) {
       console.error('[Sync Push] Failed to broadcast server_ops:', err)
     }
