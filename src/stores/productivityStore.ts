@@ -7,6 +7,7 @@ import type {
 import type { Connection } from '@/types/connections'
 import { computeConnections } from '@/lib/connectionEngine'
 import type { SyncManager, RemoteChange } from '@/lib/sync/syncManager'
+import { saveAppStateCache, getAppStateCache, type AppStateSnapshot } from '@/lib/sync/syncStorage'
 
 /* ── Store interface ── */
 interface ProductivityState {
@@ -140,7 +141,25 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
   fetchAll: async (orgId: string) => {
     set({ loading: true, orgId })
 
-    // Fetch fresh data from server (initial hydration)
+    // Phase 1: Load cached snapshot from IndexedDB for instant UI (non-blocking)
+    try {
+      const cached = await getAppStateCache(orgId)
+      if (cached && !get().initialized) {
+        set({
+          tasks: (cached.tasks ?? []) as Task[],
+          habits: (cached.habits ?? []) as Habit[],
+          habitChecks: (cached.habitChecks ?? []) as HabitCheck[],
+          goals: (cached.goals ?? []) as Goal[],
+          journalEntries: (cached.journalEntries ?? []) as JournalEntry[],
+          events: (cached.events ?? []) as CalEvent[],
+          boards: (cached.boards ?? []) as Board[],
+        })
+      }
+    } catch {
+      // Cache miss is fine — proceed to server fetch
+    }
+
+    // Phase 2: Fetch fresh data from server (initial hydration)
     const [tasksRes, habitsRes, goalsRes, journalRes, eventsRes, boardsRes] = await Promise.all([
       apiFetch<Task[]>('/api/productivity/tasks'),
       apiFetch<{ habits: Habit[]; checks: HabitCheck[] }>('/api/productivity/habits'),
@@ -151,7 +170,7 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
     ])
 
     const current = get()
-    set({
+    const freshState = {
       tasks: tasksRes ?? current.tasks,
       habits: habitsRes?.habits ?? current.habits,
       habitChecks: habitsRes?.checks ?? current.habitChecks,
@@ -159,9 +178,16 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
       journalEntries: journalRes ?? current.journalEntries,
       events: eventsRes ?? current.events,
       boards: boardsRes ?? current.boards,
+    }
+
+    set({
+      ...freshState,
       loading: false,
       initialized: true,
     })
+
+    // Phase 3: Persist fresh data to cache for next cold start
+    saveAppStateCache({ orgId, ...freshState, cachedAt: Date.now() })
   },
 
   /* ── Apply remote changes from sync ── */

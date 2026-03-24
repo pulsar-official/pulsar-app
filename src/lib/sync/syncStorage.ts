@@ -8,7 +8,7 @@
 import type { PendingOp, SyncCursor } from './types'
 
 const DB_NAME = 'pulsar-sync'
-const DB_VERSION = 1
+const DB_VERSION = 2
 
 let db: IDBDatabase | null = null
 
@@ -48,6 +48,11 @@ async function getDB(): Promise<IDBDatabase> {
       // Device identity
       if (!database.objectStoreNames.contains('meta')) {
         database.createObjectStore('meta', { keyPath: 'key' })
+      }
+
+      // App state cache for offline cold-start (v2)
+      if (!database.objectStoreNames.contains('appStateCache')) {
+        database.createObjectStore('appStateCache', { keyPath: 'orgId' })
       }
     }
   })
@@ -174,6 +179,51 @@ export async function setCursor(orgId: string, lastSeq: number): Promise<void> {
     tx.oncomplete = () => resolve()
     tx.onerror = () => reject(tx.error)
   })
+}
+
+/* ── Device Identity ── */
+
+/* ── App State Cache (offline cold-start) ── */
+
+export interface AppStateSnapshot {
+  orgId: string
+  tasks: unknown[]
+  habits: unknown[]
+  habitChecks: unknown[]
+  goals: unknown[]
+  journalEntries: unknown[]
+  events: unknown[]
+  boards: unknown[]
+  cachedAt: number
+}
+
+export async function saveAppStateCache(snapshot: AppStateSnapshot): Promise<void> {
+  try {
+    const database = await getDB()
+    const tx = database.transaction('appStateCache', 'readwrite')
+    tx.objectStore('appStateCache').put({ ...snapshot, cachedAt: Date.now() })
+    return new Promise((resolve, reject) => {
+      tx.oncomplete = () => resolve()
+      tx.onerror = () => reject(tx.error)
+    })
+  } catch {
+    // Non-critical — cache is best-effort
+    console.warn('[SyncStorage] Failed to save app state cache')
+  }
+}
+
+export async function getAppStateCache(orgId: string): Promise<AppStateSnapshot | null> {
+  try {
+    const database = await getDB()
+    const tx = database.transaction('appStateCache', 'readonly')
+    const request = tx.objectStore('appStateCache').get(orgId)
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => resolve(request.result ?? null)
+      request.onerror = () => reject(request.error)
+    })
+  } catch {
+    return null
+  }
 }
 
 /* ── Device Identity ── */
