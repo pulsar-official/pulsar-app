@@ -13,6 +13,8 @@ export type SyncEntityType =
   | 'boardNode'
   | 'boardThread'
   | 'note'
+  | 'focusSession'
+  | 'userPreference'
 
 /** CRUD operation type */
 export type SyncOperation = 'create' | 'update' | 'delete'
@@ -125,4 +127,6 @@ export const ENTITY_TABLE_MAP: Record<SyncEntityType, string> = {
   boardNode: 'board_nodes',
   boardThread: 'board_threads',
   note: 'notes',
+  focusSession: 'focus_sessions',
+  userPreference: 'user_preferences',
 }

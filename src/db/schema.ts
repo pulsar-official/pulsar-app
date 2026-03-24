@@ -218,6 +218,45 @@ export const boardThreads = pgTable('board_threads', {
   index('board_threads_board_id_idx').on(t.boardId),
 ])
 
+/* ── Focus Sessions ── */
+export const focusSessions = pgTable('focus_sessions', {
+  id: serial('id').primaryKey(),
+  orgId: varchar('org_id', { length: 255 }).notNull(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  date: varchar('date', { length: 10 }).notNull(),
+  timerType: varchar('timer_type', { length: 32 }).default('pomodoro'),
+  totalCycles: integer('total_cycles').default(4),
+  completedCycles: integer('completed_cycles').default(0),
+  workMinutes: integer('work_minutes').default(25),
+  restMinutes: integer('rest_minutes').default(5),
+  longRestMinutes: integer('long_rest_minutes').default(15),
+  completedTasks: integer('completed_tasks').default(0),
+  totalFocusSeconds: integer('total_focus_seconds').default(0),
+  hlcTimestamp: varchar('hlc_timestamp', { length: 128 }),
+  syncVersion: integer('sync_version').default(1),
+  isDeleted: boolean('is_deleted').default(false),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (t) => [
+  index('focus_sessions_org_id_idx').on(t.orgId),
+  index('focus_sessions_user_date_idx').on(t.userId, t.date),
+])
+
+/* ── User Preferences ── */
+export const userPreferences = pgTable('user_preferences', {
+  id: serial('id').primaryKey(),
+  orgId: varchar('org_id', { length: 255 }).notNull(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  key: varchar('key', { length: 128 }).notNull(),
+  value: jsonb('value'),
+  hlcTimestamp: varchar('hlc_timestamp', { length: 128 }),
+  syncVersion: integer('sync_version').default(1),
+  isDeleted: boolean('is_deleted').default(false),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (t) => [
+  uniqueIndex('user_prefs_org_user_key_idx').on(t.orgId, t.userId, t.key),
+])
+
 /* ── Changes Log (legacy audit trail — kept for migration) ── */
 export const changes = pgTable('changes', {
   id: serial('id').primaryKey(),

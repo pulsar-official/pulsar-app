@@ -1,12 +1,13 @@
 import { create } from 'zustand'
 import type {
   Task, Habit, HabitCheck, HabitCheckMap, Goal, SubGoal,
-  JournalEntry, CalEvent, Board,
+  JournalEntry, CalEvent, Board, FocusSession, UserPreference,
   TaskStatus,
 } from '@/types/productivity'
 import type { Connection } from '@/types/connections'
 import { computeConnections } from '@/lib/connectionEngine'
 import type { SyncManager, RemoteChange } from '@/lib/sync/syncManager'
+import { saveAppStateCache, getAppStateCache, type AppStateSnapshot } from '@/lib/sync/syncStorage'
 
 /* ── Store interface ── */
 interface ProductivityState {
@@ -18,6 +19,8 @@ interface ProductivityState {
   journalEntries: JournalEntry[]
   events: CalEvent[]
   boards: Board[]
+  focusSessions: FocusSession[]
+  preferences: UserPreference[]
 
   // Meta
   orgId: string | null
@@ -61,6 +64,14 @@ interface ProductivityState {
   addEvent: (event: Omit<CalEvent, 'id' | 'orgId' | 'userId'>) => Promise<void>
   updateEvent: (event: CalEvent) => Promise<void>
   deleteEvent: (id: number) => Promise<void>
+
+  // Focus session actions
+  addFocusSession: (session: Omit<FocusSession, 'id' | 'orgId' | 'userId'>) => Promise<void>
+  updateFocusSession: (session: FocusSession) => Promise<void>
+
+  // Preference actions
+  setPreference: (key: string, value: unknown) => Promise<void>
+  getPreference: (key: string) => unknown
 
   // Journal cross-component navigation
   selectedJournalEntryId: number | null
@@ -128,6 +139,8 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
   journalEntries: [],
   events: [],
   boards: [],
+  focusSessions: [],
+  preferences: [],
   orgId: null,
   loading: false,
   initialized: false,
@@ -140,18 +153,41 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
   fetchAll: async (orgId: string) => {
     set({ loading: true, orgId })
 
-    // Fetch fresh data from server (initial hydration)
-    const [tasksRes, habitsRes, goalsRes, journalRes, eventsRes, boardsRes] = await Promise.all([
+    // Phase 1: Load cached snapshot from IndexedDB for instant UI (non-blocking)
+    try {
+      const cached = await getAppStateCache(orgId)
+      if (cached && !get().initialized) {
+        const c = cached as unknown as Record<string, unknown>
+        set({
+          tasks: (c.tasks ?? []) as Task[],
+          habits: (c.habits ?? []) as Habit[],
+          habitChecks: (c.habitChecks ?? []) as HabitCheck[],
+          goals: (c.goals ?? []) as Goal[],
+          journalEntries: (c.journalEntries ?? []) as JournalEntry[],
+          events: (c.events ?? []) as CalEvent[],
+          boards: (c.boards ?? []) as Board[],
+          focusSessions: (c.focusSessions ?? []) as FocusSession[],
+          preferences: (c.preferences ?? []) as UserPreference[],
+        })
+      }
+    } catch {
+      // Cache miss is fine — proceed to server fetch
+    }
+
+    // Phase 2: Fetch fresh data from server (initial hydration)
+    const [tasksRes, habitsRes, goalsRes, journalRes, eventsRes, boardsRes, focusRes, prefsRes] = await Promise.all([
       apiFetch<Task[]>('/api/productivity/tasks'),
       apiFetch<{ habits: Habit[]; checks: HabitCheck[] }>('/api/productivity/habits'),
       apiFetch<Goal[]>('/api/productivity/goals'),
       apiFetch<JournalEntry[]>('/api/productivity/journal'),
       apiFetch<CalEvent[]>('/api/productivity/events'),
       apiFetch<Board[]>('/api/productivity/boards'),
+      apiFetch<FocusSession[]>('/api/productivity/focus-sessions'),
+      apiFetch<UserPreference[]>('/api/productivity/preferences'),
     ])
 
     const current = get()
-    set({
+    const freshState = {
       tasks: tasksRes ?? current.tasks,
       habits: habitsRes?.habits ?? current.habits,
       habitChecks: habitsRes?.checks ?? current.habitChecks,
@@ -159,9 +195,18 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
       journalEntries: journalRes ?? current.journalEntries,
       events: eventsRes ?? current.events,
       boards: boardsRes ?? current.boards,
+      focusSessions: focusRes ?? current.focusSessions,
+      preferences: prefsRes ?? current.preferences,
+    }
+
+    set({
+      ...freshState,
       loading: false,
       initialized: true,
     })
+
+    // Phase 3: Persist fresh data to cache for next cold start
+    saveAppStateCache({ orgId, ...freshState, cachedAt: Date.now() })
   },
 
   /* ── Apply remote changes from sync ── */
@@ -191,6 +236,12 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
           break
         case 'board':
           set(s => ({ boards: s.boards.map(b => b.id === tempNumericId ? { ...b, id: to } : b) }))
+          break
+        case 'focusSession':
+          set(s => ({ focusSessions: s.focusSessions.map(f => f.id === tempNumericId ? { ...f, id: to } : f) }))
+          break
+        case 'userPreference':
+          set(s => ({ preferences: s.preferences.map(p => p.id === tempNumericId ? { ...p, id: to } : p) }))
           break
       }
       return
@@ -230,6 +281,12 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
         case 'board':
           set(s => ({ boards: s.boards.filter(b => b.id !== entityId) }))
           break
+        case 'focusSession':
+          set(s => ({ focusSessions: s.focusSessions.filter(f => f.id !== entityId) }))
+          break
+        case 'userPreference':
+          set(s => ({ preferences: s.preferences.filter(p => p.id !== entityId) }))
+          break
       }
       return
     }
@@ -261,6 +318,12 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
           break
         case 'board':
           set(s => ({ boards: s.boards.map(b => b.id === entityId ? { ...b, ...fields } : b) }))
+          break
+        case 'focusSession':
+          set(s => ({ focusSessions: s.focusSessions.map(f => f.id === entityId ? { ...f, ...fields } : f) }))
+          break
+        case 'userPreference':
+          set(s => ({ preferences: s.preferences.map(p => p.id === entityId ? { ...p, ...fields } : p) }))
           break
       }
       return
@@ -303,6 +366,18 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
           set(s => {
             if (s.boards.some(b => b.id === entityId)) return s
             return { boards: [...s.boards, { id: entityId, orgId: s.orgId ?? '', userId: '', ...fields } as Board] }
+          })
+          break
+        case 'focusSession':
+          set(s => {
+            if (s.focusSessions.some(f => f.id === entityId)) return s
+            return { focusSessions: [...s.focusSessions, { id: entityId, orgId: s.orgId ?? '', userId: '', ...fields } as FocusSession] }
+          })
+          break
+        case 'userPreference':
+          set(s => {
+            if (s.preferences.some(p => p.id === entityId)) return s
+            return { preferences: [...s.preferences, { id: entityId, orgId: s.orgId ?? '', userId: '', ...fields } as UserPreference] }
           })
           break
       }
@@ -642,6 +717,82 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
         body: JSON.stringify({ id }),
       })
     }
+  },
+
+  // ── Focus session actions ──
+  addFocusSession: async (session) => {
+    const tempId = Date.now()
+    set(s => ({ focusSessions: [...s.focusSessions, { ...session, id: tempId, orgId: s.orgId ?? '', userId: '' } as FocusSession] }))
+    const manager = get()._syncManager
+    if (manager) {
+      syncMutate(manager, 'create', 'focusSession', {
+        date: session.date, timerType: session.timerType ?? 'pomodoro',
+        totalCycles: session.totalCycles ?? 4, completedCycles: session.completedCycles ?? 0,
+        workMinutes: session.workMinutes ?? 25, restMinutes: session.restMinutes ?? 5,
+        longRestMinutes: session.longRestMinutes ?? 15, completedTasks: session.completedTasks ?? 0,
+        totalFocusSeconds: session.totalFocusSeconds ?? 0,
+      })
+    } else {
+      const res = await apiFetch<FocusSession>('/api/productivity/focus-sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(session),
+      })
+      if (res) set(s => ({ focusSessions: s.focusSessions.map(f => f.id === tempId ? res : f) }))
+    }
+  },
+
+  updateFocusSession: async (session) => {
+    set(s => ({ focusSessions: s.focusSessions.map(f => f.id === session.id ? session : f) }))
+    const manager = get()._syncManager
+    if (manager) {
+      syncMutate(manager, 'update', 'focusSession', session.id, {
+        completedCycles: session.completedCycles, completedTasks: session.completedTasks,
+        totalFocusSeconds: session.totalFocusSeconds,
+      })
+    } else {
+      await apiFetch('/api/productivity/focus-sessions', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(session),
+      })
+    }
+  },
+
+  // ── Preference actions ──
+  setPreference: async (key, value) => {
+    const existing = get().preferences.find(p => p.key === key)
+    if (existing) {
+      set(s => ({ preferences: s.preferences.map(p => p.key === key ? { ...p, value } : p) }))
+      const manager = get()._syncManager
+      if (manager) {
+        syncMutate(manager, 'update', 'userPreference', existing.id, { value })
+      } else {
+        await apiFetch('/api/productivity/preferences', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: existing.id, value }),
+        })
+      }
+    } else {
+      const tempId = Date.now()
+      set(s => ({ preferences: [...s.preferences, { id: tempId, orgId: s.orgId ?? '', userId: '', key, value } as UserPreference] }))
+      const manager = get()._syncManager
+      if (manager) {
+        syncMutate(manager, 'create', 'userPreference', { key, value })
+      } else {
+        const res = await apiFetch<UserPreference>('/api/productivity/preferences', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key, value }),
+        })
+        if (res) set(s => ({ preferences: s.preferences.map(p => p.id === tempId ? res : p) }))
+      }
+    }
+  },
+
+  getPreference: (key) => {
+    return get().preferences.find(p => p.key === key)?.value ?? null
   },
 
   // ── Selectors ──

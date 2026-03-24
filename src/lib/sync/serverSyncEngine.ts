@@ -28,6 +28,8 @@ const TABLE_MAP = {
   boardNode: schema.boardNodes,
   boardThread: schema.boardThreads,
   note: schema.notes,
+  focusSession: schema.focusSessions,
+  userPreference: schema.userPreferences,
 } as const
 
 /** Map sync field names to Drizzle column names for each entity */
@@ -59,11 +61,18 @@ const FIELD_COLUMN_MAP: Record<SyncEntityType, Record<string, string>> = {
     boardId: 'board_id', fromNodeId: 'from_node_id', toNodeId: 'to_node_id', label: 'label',
   },
   note: { title: 'title', content: 'content', isPublic: 'is_public', tags: 'tags' },
+  focusSession: {
+    date: 'date', timerType: 'timer_type', totalCycles: 'total_cycles',
+    completedCycles: 'completed_cycles', workMinutes: 'work_minutes',
+    restMinutes: 'rest_minutes', longRestMinutes: 'long_rest_minutes',
+    completedTasks: 'completed_tasks', totalFocusSeconds: 'total_focus_seconds',
+  },
+  userPreference: { key: 'key', value: 'value' },
 }
 
 /** Fields that require orgId/userId context on create */
 const ORG_SCOPED_ENTITIES: SyncEntityType[] = [
-  'task', 'habit', 'goal', 'journal', 'event', 'board', 'note',
+  'task', 'habit', 'goal', 'journal', 'event', 'board', 'note', 'focusSession', 'userPreference',
 ]
 
 interface ProcessResult {

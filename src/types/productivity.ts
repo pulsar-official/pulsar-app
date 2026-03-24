@@ -133,3 +133,36 @@ export interface BoardThread extends SyncMeta {
   toNodeId: number
   label: string
 }
+
+export interface Note extends SyncMeta {
+  id: number
+  orgId: string
+  userId: string
+  title: string
+  content: string
+  isPublic: boolean
+  tags: string[]
+}
+
+export interface FocusSession extends SyncMeta {
+  id: number
+  orgId: string
+  userId: string
+  date: string
+  timerType: string
+  totalCycles: number
+  completedCycles: number
+  workMinutes: number
+  restMinutes: number
+  longRestMinutes: number
+  completedTasks: number
+  totalFocusSeconds: number
+}
+
+export interface UserPreference extends SyncMeta {
+  id: number
+  orgId: string
+  userId: string
+  key: string
+  value: unknown
+}
