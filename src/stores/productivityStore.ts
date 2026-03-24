@@ -104,8 +104,10 @@ async function apiFetch<T>(url: string, options?: RequestInit): Promise<T | null
 }
 
 /**
- * Send a mutation through the sync manager, or fall back to direct HTTP.
- * Returns null when the op is queued (offline or via sync).
+ * Send a mutation through the sync manager.
+ * The manager handles online (Realtime) and offline (queued → HTTP push) transparently.
+ * If the sync manager isn't initialized yet, queue via HTTP /api/sync/push directly
+ * so all writes always go through the sync engine → conflict resolution → Neon.
  */
 async function syncMutate(
   manager: SyncManager | null,
@@ -114,21 +116,54 @@ async function syncMutate(
   entityIdOrFields: number | Record<string, unknown>,
   fields?: Record<string, unknown>,
 ): Promise<{ tempId?: string } | null> {
-  if (!manager) {
-    // No sync manager — direct HTTP (shouldn't happen in normal flow)
-    return null
+  if (manager) {
+    if (type === 'create') {
+      const result = await manager.create(entityType, entityIdOrFields as Record<string, unknown>)
+      return { tempId: result.tempId }
+    } else if (type === 'update') {
+      await manager.update(entityType, entityIdOrFields as number, fields!)
+      return null
+    } else {
+      await manager.delete(entityType, entityIdOrFields as number)
+      return null
+    }
   }
 
-  if (type === 'create') {
-    const result = await manager.create(entityType, entityIdOrFields as Record<string, unknown>)
-    return { tempId: result.tempId }
-  } else if (type === 'update') {
-    await manager.update(entityType, entityIdOrFields as number, fields!)
-    return null
-  } else {
-    await manager.delete(entityType, entityIdOrFields as number)
-    return null
+  // Fallback: no sync manager yet — push directly via HTTP sync endpoint
+  // This still goes through serverSyncEngine → conflict resolution → Neon → broadcast
+  try {
+    const { getDeviceId } = await import('@/lib/sync/syncStorage')
+    const { SyncEngine } = await import('@/lib/sync/syncEngine')
+    const deviceId = await getDeviceId()
+    const engine = new SyncEngine(deviceId)
+
+    let op
+    if (type === 'create') {
+      const result = engine.createOp(entityType, entityIdOrFields as Record<string, unknown>)
+      op = result.op
+    } else if (type === 'update') {
+      op = engine.updateOp(entityType, entityIdOrFields as number, fields!)
+    } else {
+      op = engine.deleteOp(entityType, entityIdOrFields as number)
+    }
+
+    const res = await fetch('/api/sync/push', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deviceId, ops: [op] }),
+    })
+
+    if (res.ok) {
+      const { acks } = await res.json()
+      if (type === 'create' && acks?.[0]?.entityId) {
+        return { tempId: String(acks[0].entityId) }
+      }
+    }
+  } catch (error) {
+    console.error('[syncMutate] HTTP fallback failed:', error)
   }
+
+  return null
 }
 
 export const useProductivityStore = create<ProductivityState>((set, get) => ({
@@ -392,52 +427,26 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
     // Optimistic update
     set(s => ({ tasks: [...s.tasks, { ...task, id: tempId, orgId: s.orgId ?? '', userId: '' } as Task] }))
 
-    if (manager) {
-      syncMutate(manager, 'create', 'task', {
-        title: task.title, description: task.description ?? '', completed: task.completed ?? false,
-        priority: task.priority ?? 'medium', tag: task.tag ?? 'work', status: task.status ?? 'todo',
-        dueDate: task.dueDate ?? null,
-      })
-    } else {
-      // Fallback: direct HTTP
-      const res = await apiFetch<Task>('/api/productivity/tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(task),
-      })
-      if (res) set(s => ({ tasks: s.tasks.map(t => t.id === tempId ? res : t) }))
-    }
+    syncMutate(manager, 'create', 'task', {
+      title: task.title, description: task.description ?? '', completed: task.completed ?? false,
+      priority: task.priority ?? 'medium', tag: task.tag ?? 'work', status: task.status ?? 'todo',
+      dueDate: task.dueDate ?? null,
+    })
   },
 
   updateTask: async (task) => {
     set(s => ({ tasks: s.tasks.map(t => t.id === task.id ? task : t) }))
     const manager = get()._syncManager
-    if (manager) {
-      syncMutate(manager, 'update', 'task', task.id, {
-        title: task.title, description: task.description, completed: task.completed,
-        priority: task.priority, tag: task.tag, status: task.status, dueDate: task.dueDate,
-      })
-    } else {
-      await apiFetch('/api/productivity/tasks', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(task),
-      })
-    }
+    syncMutate(manager, 'update', 'task', task.id, {
+      title: task.title, description: task.description, completed: task.completed,
+      priority: task.priority, tag: task.tag, status: task.status, dueDate: task.dueDate,
+    })
   },
 
   deleteTask: async (id) => {
     set(s => ({ tasks: s.tasks.filter(t => t.id !== id) }))
     const manager = get()._syncManager
-    if (manager) {
-      syncMutate(manager, 'delete', 'task', id)
-    } else {
-      await apiFetch('/api/productivity/tasks', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      })
-    }
+    syncMutate(manager, 'delete', 'task', id)
   },
 
   toggleTask: (id) => {
@@ -447,15 +456,7 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
     const task = get().tasks.find(t => t.id === id)
     if (task) {
       const manager = get()._syncManager
-      if (manager) {
-        syncMutate(manager, 'update', 'task', id, { completed: task.completed, status: task.status })
-      } else {
-        apiFetch('/api/productivity/tasks', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(task),
-        })
-      }
+      syncMutate(manager, 'update', 'task', id, { completed: task.completed, status: task.status })
     }
   },
 
@@ -464,59 +465,25 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
     const tempId = Date.now()
     set(s => ({ habits: [...s.habits, { id: tempId, orgId: s.orgId ?? '', userId: '', name, emoji, sortOrder: s.habits.length }] }))
     const manager = get()._syncManager
-    if (manager) {
-      syncMutate(manager, 'create', 'habit', { name, emoji, sortOrder: get().habits.length - 1 })
-    } else {
-      const res = await apiFetch<Habit>('/api/productivity/habits', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, emoji }),
-      })
-      if (res) set(s => ({ habits: s.habits.map(h => h.id === tempId ? res : h) }))
-    }
+    syncMutate(manager, 'create', 'habit', { name, emoji, sortOrder: get().habits.length - 1 })
   },
 
   deleteHabit: async (id) => {
     set(s => ({ habits: s.habits.filter(h => h.id !== id), habitChecks: s.habitChecks.filter(c => c.habitId !== id) }))
     const manager = get()._syncManager
-    if (manager) {
-      syncMutate(manager, 'delete', 'habit', id)
-    } else {
-      await apiFetch('/api/productivity/habits', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      })
-    }
+    syncMutate(manager, 'delete', 'habit', id)
   },
 
   toggleHabitCheck: async (habitId, date) => {
     const existing = get().habitChecks.find(c => c.habitId === habitId && c.date === date)
+    const manager = get()._syncManager
     if (existing) {
       set(s => ({ habitChecks: s.habitChecks.filter(c => c.id !== existing.id) }))
-      const manager = get()._syncManager
-      if (manager) {
-        syncMutate(manager, 'delete', 'habitCheck', existing.id)
-      } else {
-        await apiFetch('/api/productivity/habits', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'toggle', habitId, date }),
-        })
-      }
+      syncMutate(manager, 'delete', 'habitCheck', existing.id)
     } else {
       const tempId = Date.now()
       set(s => ({ habitChecks: [...s.habitChecks, { id: tempId, habitId, date, checked: true }] }))
-      const manager = get()._syncManager
-      if (manager) {
-        syncMutate(manager, 'create', 'habitCheck', { habitId, date, checked: true })
-      } else {
-        await apiFetch('/api/productivity/habits', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'toggle', habitId, date }),
-        })
-      }
+      syncMutate(manager, 'create', 'habitCheck', { habitId, date, checked: true })
     }
   },
 
@@ -525,51 +492,26 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
     const tempId = Date.now()
     set(s => ({ goals: [...s.goals, { ...goal, id: tempId, orgId: s.orgId ?? '', userId: '', subs: [] } as Goal] }))
     const manager = get()._syncManager
-    if (manager) {
-      syncMutate(manager, 'create', 'goal', {
-        title: goal.title, description: goal.description ?? '', category: goal.category ?? 'work',
-        priority: goal.priority ?? 'medium', deadline: goal.deadline ?? null, done: goal.done ?? false,
-        progress: goal.progress ?? 0,
-      })
-    } else {
-      const res = await apiFetch<Goal>('/api/productivity/goals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(goal),
-      })
-      if (res) set(s => ({ goals: s.goals.map(g => g.id === tempId ? { ...res, subs: [] } : g) }))
-    }
+    syncMutate(manager, 'create', 'goal', {
+      title: goal.title, description: goal.description ?? '', category: goal.category ?? 'work',
+      priority: goal.priority ?? 'medium', deadline: goal.deadline ?? null, done: goal.done ?? false,
+      progress: goal.progress ?? 0,
+    })
   },
 
   updateGoal: async (goal) => {
     set(s => ({ goals: s.goals.map(g => g.id === goal.id ? goal : g) }))
     const manager = get()._syncManager
-    if (manager) {
-      syncMutate(manager, 'update', 'goal', goal.id, {
-        title: goal.title, description: goal.description, category: goal.category,
-        priority: goal.priority, deadline: goal.deadline, done: goal.done, progress: goal.progress,
-      })
-    } else {
-      await apiFetch('/api/productivity/goals', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(goal),
-      })
-    }
+    syncMutate(manager, 'update', 'goal', goal.id, {
+      title: goal.title, description: goal.description, category: goal.category,
+      priority: goal.priority, deadline: goal.deadline, done: goal.done, progress: goal.progress,
+    })
   },
 
   deleteGoal: async (id) => {
     set(s => ({ goals: s.goals.filter(g => g.id !== id) }))
     const manager = get()._syncManager
-    if (manager) {
-      syncMutate(manager, 'delete', 'goal', id)
-    } else {
-      await apiFetch('/api/productivity/goals', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      })
-    }
+    syncMutate(manager, 'delete', 'goal', id)
   },
 
   toggleSubGoal: async (subId, done) => {
@@ -580,15 +522,7 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
       })),
     }))
     const manager = get()._syncManager
-    if (manager) {
-      syncMutate(manager, 'update', 'goalSub', subId, { done })
-    } else {
-      await apiFetch('/api/productivity/goals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'toggleSub', subId, done }),
-      })
-    }
+    syncMutate(manager, 'update', 'goalSub', subId, { done })
   },
 
   addSubGoal: async (goalId, text) => {
@@ -597,23 +531,7 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
       goals: s.goals.map(g => g.id === goalId ? { ...g, subs: [...g.subs, { id: tempId, goalId, text, done: false }] } : g),
     }))
     const manager = get()._syncManager
-    if (manager) {
-      syncMutate(manager, 'create', 'goalSub', { goalId, text, done: false })
-    } else {
-      const res = await apiFetch<SubGoal>('/api/productivity/goals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'addSub', goalId, text }),
-      })
-      if (res) {
-        set(s => ({
-          goals: s.goals.map(g => g.id === goalId
-            ? { ...g, subs: g.subs.map(sub => sub.id === tempId ? res : sub) }
-            : g
-          ),
-        }))
-      }
-    }
+    syncMutate(manager, 'create', 'goalSub', { goalId, text, done: false })
   },
 
   // ── Journal actions ──
@@ -621,50 +539,25 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
     const tempId = Date.now()
     set(s => ({ journalEntries: [{ ...entry, id: tempId, orgId: s.orgId ?? '', userId: '' } as JournalEntry, ...s.journalEntries] }))
     const manager = get()._syncManager
-    if (manager) {
-      syncMutate(manager, 'create', 'journal', {
-        title: entry.title, content: entry.content ?? '', date: entry.date,
-        mood: entry.mood ?? '', tags: entry.tags ?? [],
-      })
-    } else {
-      const res = await apiFetch<JournalEntry>('/api/productivity/journal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(entry),
-      })
-      if (res) set(s => ({ journalEntries: s.journalEntries.map(e => e.id === tempId ? res : e) }))
-    }
+    syncMutate(manager, 'create', 'journal', {
+      title: entry.title, content: entry.content ?? '', date: entry.date,
+      mood: entry.mood ?? '', tags: entry.tags ?? [],
+    })
   },
 
   updateJournalEntry: async (entry) => {
     set(s => ({ journalEntries: s.journalEntries.map(e => e.id === entry.id ? entry : e) }))
     const manager = get()._syncManager
-    if (manager) {
-      syncMutate(manager, 'update', 'journal', entry.id, {
-        title: entry.title, content: entry.content, date: entry.date,
-        mood: entry.mood, tags: entry.tags,
-      })
-    } else {
-      await apiFetch('/api/productivity/journal', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(entry),
-      })
-    }
+    syncMutate(manager, 'update', 'journal', entry.id, {
+      title: entry.title, content: entry.content, date: entry.date,
+      mood: entry.mood, tags: entry.tags,
+    })
   },
 
   deleteJournalEntry: async (id) => {
     set(s => ({ journalEntries: s.journalEntries.filter(e => e.id !== id) }))
     const manager = get()._syncManager
-    if (manager) {
-      syncMutate(manager, 'delete', 'journal', id)
-    } else {
-      await apiFetch('/api/productivity/journal', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      })
-    }
+    syncMutate(manager, 'delete', 'journal', id)
   },
 
   // ── Event actions ──
@@ -672,51 +565,26 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
     const tempId = Date.now()
     set(s => ({ events: [...s.events, { ...event, id: tempId, orgId: s.orgId ?? '', userId: '' } as CalEvent] }))
     const manager = get()._syncManager
-    if (manager) {
-      syncMutate(manager, 'create', 'event', {
-        title: event.title, date: event.date, dateEnd: event.dateEnd ?? null,
-        startTime: event.startTime ?? null, endTime: event.endTime ?? null,
-        tag: event.tag ?? 'default', recur: event.recur ?? null,
-      })
-    } else {
-      const res = await apiFetch<CalEvent>('/api/productivity/events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(event),
-      })
-      if (res) set(s => ({ events: s.events.map(e => e.id === tempId ? res : e) }))
-    }
+    syncMutate(manager, 'create', 'event', {
+      title: event.title, date: event.date, dateEnd: event.dateEnd ?? null,
+      startTime: event.startTime ?? null, endTime: event.endTime ?? null,
+      tag: event.tag ?? 'default', recur: event.recur ?? null,
+    })
   },
 
   updateEvent: async (event) => {
     set(s => ({ events: s.events.map(e => e.id === event.id ? event : e) }))
     const manager = get()._syncManager
-    if (manager) {
-      syncMutate(manager, 'update', 'event', event.id, {
-        title: event.title, date: event.date, dateEnd: event.dateEnd,
-        startTime: event.startTime, endTime: event.endTime, tag: event.tag, recur: event.recur,
-      })
-    } else {
-      await apiFetch('/api/productivity/events', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(event),
-      })
-    }
+    syncMutate(manager, 'update', 'event', event.id, {
+      title: event.title, date: event.date, dateEnd: event.dateEnd,
+      startTime: event.startTime, endTime: event.endTime, tag: event.tag, recur: event.recur,
+    })
   },
 
   deleteEvent: async (id) => {
     set(s => ({ events: s.events.filter(e => e.id !== id) }))
     const manager = get()._syncManager
-    if (manager) {
-      syncMutate(manager, 'delete', 'event', id)
-    } else {
-      await apiFetch('/api/productivity/events', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      })
-    }
+    syncMutate(manager, 'delete', 'event', id)
   },
 
   // ── Focus session actions ──
@@ -724,70 +592,35 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
     const tempId = Date.now()
     set(s => ({ focusSessions: [...s.focusSessions, { ...session, id: tempId, orgId: s.orgId ?? '', userId: '' } as FocusSession] }))
     const manager = get()._syncManager
-    if (manager) {
-      syncMutate(manager, 'create', 'focusSession', {
-        date: session.date, timerType: session.timerType ?? 'pomodoro',
-        totalCycles: session.totalCycles ?? 4, completedCycles: session.completedCycles ?? 0,
-        workMinutes: session.workMinutes ?? 25, restMinutes: session.restMinutes ?? 5,
-        longRestMinutes: session.longRestMinutes ?? 15, completedTasks: session.completedTasks ?? 0,
-        totalFocusSeconds: session.totalFocusSeconds ?? 0,
-      })
-    } else {
-      const res = await apiFetch<FocusSession>('/api/productivity/focus-sessions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(session),
-      })
-      if (res) set(s => ({ focusSessions: s.focusSessions.map(f => f.id === tempId ? res : f) }))
-    }
+    syncMutate(manager, 'create', 'focusSession', {
+      date: session.date, timerType: session.timerType ?? 'pomodoro',
+      totalCycles: session.totalCycles ?? 4, completedCycles: session.completedCycles ?? 0,
+      workMinutes: session.workMinutes ?? 25, restMinutes: session.restMinutes ?? 5,
+      longRestMinutes: session.longRestMinutes ?? 15, completedTasks: session.completedTasks ?? 0,
+      totalFocusSeconds: session.totalFocusSeconds ?? 0,
+    })
   },
 
   updateFocusSession: async (session) => {
     set(s => ({ focusSessions: s.focusSessions.map(f => f.id === session.id ? session : f) }))
     const manager = get()._syncManager
-    if (manager) {
-      syncMutate(manager, 'update', 'focusSession', session.id, {
-        completedCycles: session.completedCycles, completedTasks: session.completedTasks,
-        totalFocusSeconds: session.totalFocusSeconds,
-      })
-    } else {
-      await apiFetch('/api/productivity/focus-sessions', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(session),
-      })
-    }
+    syncMutate(manager, 'update', 'focusSession', session.id, {
+      completedCycles: session.completedCycles, completedTasks: session.completedTasks,
+      totalFocusSeconds: session.totalFocusSeconds,
+    })
   },
 
   // ── Preference actions ──
   setPreference: async (key, value) => {
+    const manager = get()._syncManager
     const existing = get().preferences.find(p => p.key === key)
     if (existing) {
       set(s => ({ preferences: s.preferences.map(p => p.key === key ? { ...p, value } : p) }))
-      const manager = get()._syncManager
-      if (manager) {
-        syncMutate(manager, 'update', 'userPreference', existing.id, { value })
-      } else {
-        await apiFetch('/api/productivity/preferences', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: existing.id, value }),
-        })
-      }
+      syncMutate(manager, 'update', 'userPreference', existing.id, { value })
     } else {
       const tempId = Date.now()
       set(s => ({ preferences: [...s.preferences, { id: tempId, orgId: s.orgId ?? '', userId: '', key, value } as UserPreference] }))
-      const manager = get()._syncManager
-      if (manager) {
-        syncMutate(manager, 'create', 'userPreference', { key, value })
-      } else {
-        const res = await apiFetch<UserPreference>('/api/productivity/preferences', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ key, value }),
-        })
-        if (res) set(s => ({ preferences: s.preferences.map(p => p.id === tempId ? res : p) }))
-      }
+      syncMutate(manager, 'create', 'userPreference', { key, value })
     }
   },
 

@@ -5,8 +5,9 @@ import type { SyncOp } from '@/lib/sync/types'
 
 /**
  * POST /api/sync/push
- * HTTP fallback for pushing sync operations.
- * Used when Supabase Realtime is unavailable or for reconnect burst.
+ * Primary path for pushing sync operations.
+ * Processes ops via serverSyncEngine (conflict resolution + Neon write),
+ * then broadcasts server_ops to other devices via Supabase Realtime.
  */
 export async function POST(req: Request) {
   const { orgId, userId } = await auth()
@@ -29,6 +30,13 @@ export async function POST(req: Request) {
       const admin = getSupabaseAdmin()
       if (admin) {
         const channel = admin.channel(`sync:${orgId}`)
+        // Must subscribe before sending broadcasts
+        await new Promise<void>((resolve, reject) => {
+          channel.subscribe((status: string) => {
+            if (status === 'SUBSCRIBED') resolve()
+            else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') reject(new Error(`Channel ${status}`))
+          })
+        })
         await channel.send({
           type: 'broadcast',
           event: 'server_ops',

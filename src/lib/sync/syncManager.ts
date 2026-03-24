@@ -9,11 +9,9 @@ import { SyncEngine } from './syncEngine'
 import { SyncTransport, type TransportCallbacks } from './syncTransport'
 import * as Storage from './syncStorage'
 import type {
-  SyncEntityType, SyncOp, PendingOp, SyncConnectionStatus,
+  SyncEntityType, PendingOp, SyncConnectionStatus,
   SyncPresence, ServerAckPayload, ServerOpsPayload, SyncAckItem,
 } from './types'
-
-const ACK_TIMEOUT_MS = 3000
 
 export type SyncEventHandler = {
   onStatusChange?: (status: SyncConnectionStatus) => void
@@ -37,7 +35,6 @@ export class SyncManager {
   private userId: string
   private deviceId: string
   private eventHandler: SyncEventHandler
-  private pendingAcks: Map<string, { resolve: () => void; timeout: NodeJS.Timeout }> = new Map()
   private isReconnecting = false
 
   constructor(
@@ -84,10 +81,6 @@ export class SyncManager {
   stop(): void {
     this.transport?.disconnect()
     this.transport = null
-    for (const { timeout } of this.pendingAcks.values()) {
-      clearTimeout(timeout)
-    }
-    this.pendingAcks.clear()
   }
 
   /** Create a new entity — returns temp ID for optimistic update */
@@ -155,28 +148,15 @@ export class SyncManager {
 
   /* ── Private methods ── */
 
+  /**
+   * Send an op to the server via HTTP push (primary path).
+   * HTTP push always works (serverless-compatible) and triggers
+   * Supabase Realtime broadcast to other devices from the server side.
+   */
   private async sendOrQueue(op: PendingOp): Promise<void> {
-    if (!this.transport?.isConnected()) return // stays queued in IndexedDB
-
-    try {
-      await this.transport.sendOps([op])
-      this.waitForAck(op.opId)
-    } catch {
-      // Will be retried on reconnect
-    }
-  }
-
-  private waitForAck(opId: string): void {
-    const timeout = setTimeout(() => {
-      // Ack timeout — fall back to HTTP push
-      this.pendingAcks.delete(opId)
-      this.httpPushOp(opId)
-    }, ACK_TIMEOUT_MS)
-
-    this.pendingAcks.set(opId, {
-      resolve: () => clearTimeout(timeout),
-      timeout,
-    })
+    // Always use HTTP push as primary — works on serverless (Vercel)
+    // Supabase Realtime is used for *receiving* server_ops, not for sending
+    await this.httpPushOp(op.opId)
   }
 
   private async httpPushOp(opId: string): Promise<void> {
@@ -202,6 +182,7 @@ export class SyncManager {
       }
     } catch (error) {
       console.error('[SyncManager] HTTP push failed:', error)
+      // Op stays in IndexedDB — will be retried on reconnect
     }
   }
 
@@ -215,13 +196,6 @@ export class SyncManager {
   }
 
   private processAck(ack: SyncAckItem): void {
-    // Clear pending ack timeout
-    const pending = this.pendingAcks.get(ack.opId)
-    if (pending) {
-      pending.resolve()
-      this.pendingAcks.delete(ack.opId)
-    }
-
     // Mark op as synced
     Storage.markOpSynced(ack.opId)
 
@@ -309,20 +283,6 @@ export class SyncManager {
     const pendingOps = await Storage.getPendingOps()
     if (pendingOps.length === 0) return
 
-    if (this.transport?.isConnected()) {
-      // Try Realtime first
-      try {
-        await this.transport.sendOps(pendingOps)
-        for (const op of pendingOps) {
-          this.waitForAck(op.opId)
-        }
-        return
-      } catch {
-        // Fall through to HTTP
-      }
-    }
-
-    // HTTP fallback
     try {
       const res = await fetch('/api/sync/push', {
         method: 'POST',
