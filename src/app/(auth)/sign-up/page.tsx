@@ -52,6 +52,9 @@ export default function SignUpPage() {
   const [verifyStep, setVerifyStep] = useState(false)
   const [emailCode, setEmailCode] = useState('')
   const [oauthLoading, setOauthLoading] = useState<'google' | 'github' | null>(null)
+  const [resendCooldown, setResendCooldown] = useState(0)
+  const [resendLoading, setResendLoading] = useState(false)
+  const [resendSuccess, setResendSuccess] = useState(false)
 
   useEffect(() => {
     if (!document.getElementById('ps-auth-css')) {
@@ -94,7 +97,7 @@ export default function SignUpPage() {
     if (!isLoaded || !signUp) return
     setLoading(true)
     try {
-      const result = await signUp.attemptEmailAddressVerification({ code: emailCode })
+      const result = await signUp.attemptEmailAddressVerification({ code: emailCode.trim() })
       if (result.status === 'complete') {
         if (result.createdSessionId) await setActive!({ session: result.createdSessionId })
         router.push('/waitlist')
@@ -103,6 +106,27 @@ export default function SignUpPage() {
       const msg = (err as { errors?: { longMessage?: string; message?: string }[] })?.errors?.[0]?.longMessage ?? 'Invalid code'
       setErrors({ emailCode: msg })
     } finally { setLoading(false) }
+  }
+
+  const resendCode = async () => {
+    if (!isLoaded || !signUp || resendCooldown > 0 || resendLoading) return
+    setResendLoading(true)
+    try {
+      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
+      setResendSuccess(true)
+      setErrors({})
+      setTimeout(() => setResendSuccess(false), 3000)
+      setResendCooldown(60)
+      const interval = setInterval(() => {
+        setResendCooldown(c => {
+          if (c <= 1) { clearInterval(interval); return 0 }
+          return c - 1
+        })
+      }, 1000)
+    } catch (err: unknown) {
+      const msg = (err as { errors?: { longMessage?: string; message?: string }[] })?.errors?.[0]?.longMessage ?? 'Failed to resend'
+      setErrors({ emailCode: msg })
+    } finally { setResendLoading(false) }
   }
 
   const E = 'cubic-bezier(0.22,1,0.36,1)'
@@ -130,7 +154,7 @@ export default function SignUpPage() {
           <p style={{ fontSize: '0.9rem', color: 'var(--t2)', marginBottom: 28, lineHeight: 1.5 }}>We sent a 6-digit code to <strong style={{ color: 'var(--t1)' }}>{email}</strong></p>
           <div style={{ marginBottom: 16 }}>
             <label style={labelStyle}>Verification code</label>
-            <input value={emailCode} onChange={e => { setEmailCode(e.target.value); setErrors({}) }} placeholder="000000" style={inputStyle('emailCode')}
+            <input value={emailCode} onChange={e => { const v = e.target.value; setEmailCode(v); setErrors({}); if (v.trim().length === 6) verifyEmail() }} placeholder="000000" style={inputStyle('emailCode')} maxLength={6}
               onFocus={e => { e.currentTarget.style.borderColor = 'var(--ac)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(167,139,250,0.08)' }}
               onBlur={e => { e.currentTarget.style.borderColor = 'var(--bd2)'; e.currentTarget.style.boxShadow = 'none' }}
               onKeyDown={e => { if (e.key === 'Enter') verifyEmail() }}
@@ -143,6 +167,14 @@ export default function SignUpPage() {
           <p style={{ textAlign: 'center', marginTop: 16, fontSize: '0.85rem', color: 'var(--t3)' }}>
             Wrong email?{' '}
             <button onClick={() => setVerifyStep(false)} style={{ background: 'none', border: 'none', color: 'var(--ac)', cursor: 'pointer', fontWeight: 600, fontFamily: 'var(--ft)', fontSize: '0.85rem', padding: 0 }}>Go back</button>
+          </p>
+          <p style={{ textAlign: 'center', marginTop: 10, fontSize: '0.85rem', color: 'var(--t3)' }}>
+            {resendSuccess
+              ? <span style={{ color: 'var(--ok)' }}>Code resent!</span>
+              : resendCooldown > 0
+                ? <span style={{ fontFamily: 'var(--mn)', fontSize: '0.78rem' }}>Resend in {resendCooldown}s</span>
+                : <>Didn&apos;t get it?{' '}<button onClick={resendCode} disabled={resendLoading} style={{ background: 'none', border: 'none', color: 'var(--ac)', cursor: resendLoading ? 'wait' : 'pointer', fontWeight: 600, fontFamily: 'var(--ft)', fontSize: '0.85rem', padding: 0 }}>{resendLoading ? 'Sending...' : 'Resend code'}</button></>
+            }
           </p>
         </div>
       </div>
