@@ -6,7 +6,7 @@
  * presence tracking, and postgres_changes as safety net.
  */
 
-import { supabase } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import type {
   ClientOpsPayload, ServerAckPayload, ServerOpsPayload,
@@ -51,9 +51,16 @@ export class SyncTransport {
   connect(): void {
     if (this.channel) return
 
+    const client = getSupabase()
+    if (!client) {
+      console.warn('[SyncTransport] Supabase not configured, skipping Realtime connection')
+      this.setStatus('disconnected')
+      return
+    }
+
     this.setStatus('connecting')
 
-    const channel = supabase.channel(`sync:${this.orgId}`, {
+    const channel = client.channel(`sync:${this.orgId}`, {
       config: { broadcast: { self: false } },
     })
 
@@ -151,7 +158,7 @@ export class SyncTransport {
   /** Disconnect from the channel */
   disconnect(): void {
     if (this.channel) {
-      supabase.removeChannel(this.channel)
+      getSupabase()?.removeChannel(this.channel)
       this.channel = null
       this.setStatus('disconnected')
     }
