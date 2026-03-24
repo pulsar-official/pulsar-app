@@ -4,9 +4,9 @@ import { useState, useEffect, useRef } from 'react';
 import LandingNav from '@/components/Landing/LandingNav'
 
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 .pf *{margin:0;padding:0;box-sizing:border-box}
-.pf{--bg:#07070c;--s1:#0c0c14;--s2:#111119;--s3:#18182a;--s4:#222236;--bd:rgba(255,255,255,0.04);--bd2:rgba(255,255,255,0.08);--bd3:rgba(255,255,255,0.14);--t1:#eeeef5;--t2:#a0a0b8;--t3:#65657a;--t4:#45455a;--ac:#a78bfa;--ac2:#c4b5fd;--ac3:#7c3aed;--ok:#6ee7b7;--ft:'Space Grotesk',system-ui,sans-serif;--mn:'JetBrains Mono',monospace;--ease:cubic-bezier(0.22,1,0.36,1);font-family:var(--ft);background:var(--bg);color:var(--t1);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.pf{--bg:#07070c;--s1:#0c0c14;--s2:#111119;--s3:#18182a;--s4:#222236;--bd:rgba(255,255,255,0.04);--bd2:rgba(255,255,255,0.08);--bd3:rgba(255,255,255,0.14);--t1:#eeeef5;--t2:#a0a0b8;--t3:#65657a;--t4:#45455a;--ac:#a78bfa;--ac2:#c4b5fd;--ac3:#7c3aed;--ok:#6ee7b7;--ft:'JetBrains Mono',monospace;--mn:'JetBrains Mono',monospace;--ease:cubic-bezier(0.22,1,0.36,1);font-family:var(--ft);background:var(--bg);color:var(--t1);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 .pf ::-webkit-scrollbar{width:5px}.pf ::-webkit-scrollbar-track{background:transparent}.pf ::-webkit-scrollbar-thumb{background:rgba(167,139,250,.15);border-radius:3px}
 .pf a{color:var(--ac);text-decoration:none}
 @keyframes pfPulse{0%,100%{opacity:.4}50%{opacity:1}}

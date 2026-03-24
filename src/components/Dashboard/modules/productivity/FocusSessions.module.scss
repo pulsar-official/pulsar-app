@@ -1,6 +1,6 @@
 // --- FOCUS SESSIONS - STYLES ---
 @use "@/styles/variables" as *;
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 // ─── TOKENS ───
 $bg:            #0a0c10;
@@ -45,7 +45,7 @@ $amber-glow:    rgba(251, 191, 36, 0.12);
 
 // ─── ROOT ───
 .app {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'JetBrains Mono', monospace;
   background: transparent;
   color: $text;
   height: 100%;
@@ -227,7 +227,7 @@ $amber-glow:    rgba(251, 191, 36, 0.12);
   border-radius: 8px;
   padding: 9px 14px;
   color: $text;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 13px;
   outline: none;
   transition: border-color 160ms;
@@ -238,7 +238,7 @@ $amber-glow:    rgba(251, 191, 36, 0.12);
   background: $accent-glow;
   border: 1px solid rgba(124, 92, 252, 0.19);
   color: $accent;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 13px;
   font-weight: 600;
   padding: 9px 16px;
@@ -447,7 +447,7 @@ $amber-glow:    rgba(251, 191, 36, 0.12);
   padding: 13px;
   border-radius: 10px;
   cursor: pointer;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'JetBrains Mono', monospace;
   transition: all 200ms ease-out;
   letter-spacing: 0.3px;
   &:hover { background: $accent-hover; box-shadow: 0 6px 24px rgba(124, 92, 252, 0.25); }
@@ -876,7 +876,7 @@ $amber-glow:    rgba(251, 191, 36, 0.12);
   padding: 13px 36px;
   border-radius: 10px;
   cursor: pointer;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'JetBrains Mono', monospace;
   transition: all 200ms;
   &:hover { background: rgba(124, 92, 252, 0.133); border-color: rgba(124, 92, 252, 0.38); }
 }
@@ -926,7 +926,7 @@ $amber-glow:    rgba(251, 191, 36, 0.12);
   padding: 13px;
   border-radius: 10px;
   cursor: pointer;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'JetBrains Mono', monospace;
   transition: all 200ms;
   &:hover { background: $accent-hover; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(124, 92, 252, 0.25); }
 }
@@ -938,7 +938,7 @@ $amber-glow:    rgba(251, 191, 36, 0.12);
   padding: 10px;
   border-radius: 9px;
   cursor: pointer;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'JetBrains Mono', monospace;
   transition: all 200ms;
   &:hover { border-color: rgba(248, 113, 113, 0.25); color: $red; }
 }
