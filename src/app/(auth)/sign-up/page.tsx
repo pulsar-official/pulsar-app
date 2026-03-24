@@ -135,7 +135,7 @@ export default function SignUpPage() {
     border: `1px solid ${errors[field] ? 'var(--err)' : 'var(--bd2)'}`,
     color: 'var(--t1)', fontSize: '0.95rem', fontFamily: 'var(--ft)', outline: 'none', transition: `all 0.2s ${E}`,
   })
-  const labelStyle: React.CSSProperties = { display: 'block', fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--t4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 7 }
+  const labelStyle: React.CSSProperties = { display: 'block', fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--t4)', textTransform: 'uppercase', letterSpacing: '0.02em', marginBottom: 7 }
 
   const orbitals = [
     { size: 360, border: 'rgba(167,139,250,0.04)', dot: '#a78bfa', dotSize: 6, anim: 'psOrbit1', dur: '24s' },
@@ -198,7 +198,7 @@ export default function SignUpPage() {
           <div style={{ width: 32, height: 32, borderRadius: 9, background: 'linear-gradient(135deg,#a78bfa,#7c3aed)', display: 'grid', placeItems: 'center', fontSize: 14, fontWeight: 700, color: '#fff' }}>P</div>
           <span style={{ fontWeight: 700, fontSize: '1.15rem', letterSpacing: '-0.02em' }}>Pulsar</span>
         </div>
-        <div style={{ fontSize: '0.7rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--ac)', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: 10 }}>// beta_waitlist</div>
+        <div style={{ fontSize: '0.7rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--ac)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>// beta_waitlist</div>
         <h1 style={{ fontSize: '1.6rem', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: 6 }}>Join the waitlist</h1>
         <p style={{ fontSize: '0.92rem', color: 'var(--t2)', marginBottom: 28, lineHeight: 1.5 }}>Pulsar is in closed beta — claim your spot before it fills up.</p>
         {/* OAuth loading message */}
@@ -224,7 +224,7 @@ export default function SignUpPage() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 24 }}>
           <div style={{ flex: 1, height: 1, background: 'var(--bd2)' }} />
-          <span style={{ fontSize: '0.7rem', fontFamily: 'var(--mn)', color: 'var(--t4)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>or continue with email</span>
+          <span style={{ fontSize: '0.7rem', fontFamily: 'var(--mn)', color: 'var(--t4)', textTransform: 'uppercase', letterSpacing: '0.02em' }}>or continue with email</span>
           <div style={{ flex: 1, height: 1, background: 'var(--bd2)' }} />
         </div>
         {/* Form */}

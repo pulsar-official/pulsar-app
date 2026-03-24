@@ -366,7 +366,7 @@ function DeadKnowledgeLoop() {
     <section ref={reveal.ref} className="pl-section-pad" style={{ padding: '100px 40px', background: 'var(--s1)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
       <div style={{ maxWidth: '760px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '36px', opacity: reveal.vis ? 1 : 0, transform: reveal.vis ? 'none' : 'translateY(18px)', transition: `all 0.75s ${E}` }}>
-          <div style={{ fontSize: '0.7rem', fontFamily: 'var(--mono)', fontWeight: 600, color: alive ? '#6ee7b7' : '#ef4444', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: '14px', transition: 'color 0.6s' }}>{alive ? '// knowledge_activated' : '// the_dead_knowledge_problem'}</div>
+          <div style={{ fontSize: '0.7rem', fontFamily: 'var(--mono)', fontWeight: 600, color: alive ? '#6ee7b7' : '#ef4444', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '14px', transition: 'color 0.6s' }}>{alive ? '// knowledge_activated' : '// the_dead_knowledge_problem'}</div>
           <h2 style={{ fontSize: 'clamp(1.8rem,3.5vw,2.6rem)', fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.1 }}>
             {alive ? (<>Pulsar <span style={{ color: '#6ee7b7' }}>activates</span> your knowledge.</>) : (<>Your notes are <span style={{ color: '#ef4444' }}>dying.</span></>)}
           </h2>
@@ -427,7 +427,7 @@ function WhyItMatters() {
   return (
     <section ref={reveal.ref} style={{ padding: '100px 40px', maxWidth: '1100px', margin: '0 auto' }}>
       <div style={{ textAlign: 'center', marginBottom: '48px', opacity: reveal.vis ? 1 : 0, transform: reveal.vis ? 'none' : 'translateY(22px)', transition: `all 0.75s ${E}` }}>
-        <div style={{ fontSize: '0.7rem', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: '14px' }}>{'// why_it_matters'}</div>
+        <div style={{ fontSize: '0.7rem', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '14px' }}>{'// why_it_matters'}</div>
         <h2 style={{ fontSize: 'clamp(1.8rem,3.5vw,2.6rem)', fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.1 }}>Knowledge dies at the capture stage.</h2>
         <p style={{ color: 'var(--t2)', fontSize: '1rem', marginTop: '16px', maxWidth: '560px', margin: '16px auto 0', lineHeight: 1.65 }}>There's no seamless path from <span style={{ color: 'var(--t1)', fontWeight: 600 }}>note</span> → <span style={{ color: 'var(--t1)', fontWeight: 600 }}>plan</span> → <span style={{ color: 'var(--t1)', fontWeight: 600 }}>execution</span>. People don't need more storage — they need a system that activates their knowledge.</p>
       </div>
@@ -571,7 +571,7 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
         </div>
         {/* Scroll indicator */}
         <div style={{ position: 'absolute', bottom: '36px', left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', opacity: hero.vis ? 0.3 : 0, transition: 'opacity 1.2s ease 1.4s' }}>
-          <span style={{ fontSize: '0.58rem', fontFamily: 'var(--mono)', color: 'var(--t4)', letterSpacing: '0.14em', textTransform: 'uppercase' }}>scroll</span>
+          <span style={{ fontSize: '0.58rem', fontFamily: 'var(--mono)', color: 'var(--t4)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>scroll</span>
           <div style={{ width: '1px', height: '40px', background: 'linear-gradient(to bottom,var(--accent),transparent)', animation: 'plPulse 2s ease infinite' }} />
         </div>
       </section>
@@ -592,7 +592,7 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
       {/* HOW IT WORKS */}
       <section ref={howItWorks.ref} style={{ padding: '100px 40px', maxWidth: '1000px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '64px', opacity: howItWorks.vis ? 1 : 0, transform: howItWorks.vis ? 'none' : 'translateY(24px)', transition: `all 0.75s ${E}` }}>
-          <div style={{ fontSize: '0.7rem', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: '14px' }}>{'// how_it_works'}</div>
+          <div style={{ fontSize: '0.7rem', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '14px' }}>{'// how_it_works'}</div>
           <h2 style={{ fontSize: 'clamp(1.8rem,3.5vw,2.6rem)', fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.1 }}>Three steps. Zero friction.</h2>
           <p style={{ color: 'var(--t2)', fontSize: '1rem', marginTop: '16px', maxWidth: '460px', margin: '16px auto 0', lineHeight: 1.65 }}>Most tools stop at capture. Pulsar completes the loop — from raw input to real output.</p>
         </div>
@@ -635,7 +635,7 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
               onMouseEnter={e => { e.currentTarget.style.borderColor = `${s.color}30`; e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = `0 20px 56px rgba(0,0,0,0.4),0 0 0 1px ${s.color}14`; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}>
               {/* step number */}
-              <div style={{ fontSize: '0.6rem', fontFamily: 'var(--mono)', fontWeight: 700, color: s.color, opacity: 0.5, letterSpacing: '0.1em', marginBottom: '18px' }}>{s.num}</div>
+              <div style={{ fontSize: '0.6rem', fontFamily: 'var(--mono)', fontWeight: 700, color: s.color, opacity: 0.5, letterSpacing: '0.03em', marginBottom: '18px' }}>{s.num}</div>
               {/* icon */}
               <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: `${s.color}0e`, border: `1px solid ${s.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.color, marginBottom: '20px' }}>
                 {s.svg}
@@ -651,7 +651,7 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
       {/* DASHBOARD SHOWCASE */}
       <section id="features" ref={showcase.ref} style={{ padding: '110px 40px', maxWidth: '1220px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '52px', opacity: showcase.vis ? 1 : 0, transform: showcase.vis ? 'none' : 'translateY(26px)', transition: `all 0.75s ${E}` }}>
-          <div style={{ fontSize: '0.7rem', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: '14px' }}>{'// live_preview'}</div>
+          <div style={{ fontSize: '0.7rem', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '14px' }}>{'// live_preview'}</div>
           <h2 style={{ fontSize: 'clamp(1.8rem,3.8vw,2.8rem)', fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.08 }}>Seven pillars. One living system.</h2>
           <p style={{ color: 'var(--t2)', fontSize: '1rem', marginTop: '16px', maxWidth: '520px', margin: '16px auto 0', lineHeight: 1.65 }}>Click a pillar to see it in action. Each one is powerful alone — together they are unstoppable.</p>
         </div>
@@ -719,7 +719,7 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
       <section id="pricing" ref={pricing.ref} style={{ padding: '100px 40px', background: 'var(--s1)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '40px', opacity: pricing.vis ? 1 : 0, transform: pricing.vis ? 'none' : 'translateY(26px)', transition: `all 0.75s ${E}` }}>
-            <div style={{ fontSize: '0.7rem', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: '14px' }}>{'// pricing'}</div>
+            <div style={{ fontSize: '0.7rem', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '14px' }}>{'// pricing'}</div>
             <h2 style={{ fontSize: 'clamp(1.8rem,3.8vw,2.7rem)', fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.1 }}>Simple, transparent pricing.</h2>
             <p style={{ color: 'var(--t2)', fontSize: '1rem', marginTop: '16px' }}>One plan for every stage. Upgrade or downgrade anytime.</p>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', marginTop: '28px', padding: '6px 8px', borderRadius: '100px', background: 'var(--s2)', border: '1px solid var(--border2)' }}>
@@ -743,7 +743,7 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
                   <div style={{ padding: '26px', borderRadius: tier.popular ? '12px' : '14px', display: 'flex', flexDirection: 'column', flex: 1, background: tier.popular ? 'var(--s2)' : 'var(--s1)', border: tier.popular ? 'none' : '1px solid var(--border2)', position: 'relative', overflow: 'hidden', transition: `all 0.25s ${E}` }}
                     onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 18px 52px rgba(0,0,0,0.4)'; }}
                     onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}>
-                    {tier.popular && <div style={{ position: 'absolute', top: '14px', right: '14px', padding: '3px 10px', borderRadius: '100px', background: `${tier.accent}14`, border: `1px solid ${tier.accent}22`, fontSize: '0.58rem', fontFamily: 'var(--mono)', fontWeight: 700, color: tier.accent, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Most Popular</div>}
+                    {tier.popular && <div style={{ position: 'absolute', top: '14px', right: '14px', padding: '3px 10px', borderRadius: '100px', background: `${tier.accent}14`, border: `1px solid ${tier.accent}22`, fontSize: '0.58rem', fontFamily: 'var(--mono)', fontWeight: 700, color: tier.accent, textTransform: 'uppercase', letterSpacing: '0.02em' }}>Most Popular</div>}
                     {yearly && tier.savePercent && <div style={{ position: 'absolute', top: '14px', left: '14px', padding: '3px 8px', borderRadius: '6px', background: `${tier.accent}18`, border: `1px solid ${tier.accent}30`, fontSize: '0.58rem', fontFamily: 'var(--mono)', fontWeight: 700, color: tier.accent }}>{`${tier.savePercent}% off`}</div>}
                     <div style={{ fontSize: '0.88rem', fontWeight: 700, color: tier.accent, marginBottom: '8px', letterSpacing: '-0.01em' }}>{tier.name}</div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px', marginBottom: '4px' }}>
@@ -777,7 +777,7 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
       {/* TESTIMONIALS — hidden until we have real ones */}
       <section id="community" ref={quotes.ref} style={{ padding: '100px 40px', maxWidth: '1100px', margin: '0 auto', display: 'none' }}>
         <div style={{ textAlign: 'center', marginBottom: '52px', opacity: quotes.vis ? 1 : 0, transform: quotes.vis ? 'none' : 'translateY(26px)', transition: `all 0.75s ${E}` }}>
-          <div style={{ fontSize: '0.7rem', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: '14px' }}>{'// community'}</div>
+          <div style={{ fontSize: '0.7rem', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '14px' }}>{'// community'}</div>
           <h2 style={{ fontSize: 'clamp(1.8rem,3.8vw,2.4rem)', fontWeight: 700, letterSpacing: '-0.035em' }}>Built with obsessives, for obsessives.</h2>
         </div>
         <div className="pl-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '18px' }}>

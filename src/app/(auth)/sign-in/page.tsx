@@ -101,7 +101,7 @@ export default function SignInPage() {
     border: `1px solid ${errors[field] ? 'var(--err)' : 'var(--bd2)'}`,
     color: 'var(--t1)', fontSize: '0.95rem', fontFamily: 'var(--ft)', outline: 'none', transition: `all 0.2s ${E}`,
   })
-  const labelStyle: React.CSSProperties = { display: 'block', fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--t4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 7 }
+  const labelStyle: React.CSSProperties = { display: 'block', fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--t4)', textTransform: 'uppercase', letterSpacing: '0.02em', marginBottom: 7 }
 
   return (
     <div className="ps-login" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', position: 'relative' }}>
@@ -131,7 +131,7 @@ export default function SignInPage() {
         </div>
         <div style={{ display:'flex',alignItems:'center',gap:14,marginBottom:24 }}>
           <div style={{ flex:1,height:1,background:'var(--bd2)' }} />
-          <span style={{ fontSize:'0.7rem',fontFamily:'var(--mn)',color:'var(--t4)',textTransform:'uppercase',letterSpacing:'0.08em' }}>or</span>
+          <span style={{ fontSize:'0.7rem',fontFamily:'var(--mn)',color:'var(--t4)',textTransform:'uppercase',letterSpacing:'0.02em' }}>or</span>
           <div style={{ flex:1,height:1,background:'var(--bd2)' }} />
         </div>
         {/* Form */}

@@ -94,7 +94,7 @@ export default function PulsarPricing() {
       <section ref={hero.ref} className="pp-section" style={{ padding: '80px 40px 60px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: '30%', left: '50%', transform: 'translate(-50%,-50%)', width: 700, height: 700, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,58,237,0.06), transparent 60%)', pointerEvents: 'none' }} />
         <div style={{ position: 'relative', zIndex: 1, opacity: hero.v ? 1 : 0, transform: hero.v ? 'none' : 'translateY(24px)', transition: `all 0.8s ${E}` }}>
-          <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--ac)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 16 }}>{'// pricing'}</div>
+          <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--ac)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 16 }}>{'// pricing'}</div>
           <h1 style={{ fontSize: 'clamp(2.2rem, 5vw, 3.6rem)', fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.1, marginBottom: 16 }}>Simple pricing.<br />No surprises.</h1>
           <p style={{ fontSize: '1.05rem', color: 'var(--t2)', lineHeight: 1.6, maxWidth: 480, margin: '0 auto 32px' }}>One plan for every stage. Upgrade or downgrade anytime.</p>
           {/* Toggle */}
@@ -124,12 +124,12 @@ export default function PulsarPricing() {
                   onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = `0 12px 40px rgba(0,0,0,0.3), 0 0 0 1px ${t.accent}22` }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
                 >
-                  {t.pop && <div style={{ position: 'absolute', top: -1, right: 16, padding: '4px 12px', borderRadius: '0 0 8px 8px', fontSize: '0.62rem', fontFamily: 'var(--mn)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', background: 'linear-gradient(135deg, #6ee7b7, #38bdf8)', color: '#fff' }}>Best Value</div>}
+                  {t.pop && <div style={{ position: 'absolute', top: -1, right: 16, padding: '4px 12px', borderRadius: '0 0 8px 8px', fontSize: '0.62rem', fontFamily: 'var(--mn)', fontWeight: 600, letterSpacing: '0.02em', textTransform: 'uppercase', background: 'linear-gradient(135deg, #6ee7b7, #38bdf8)', color: '#fff' }}>Best Value</div>}
                   {/* Per-plan % off badge */}
                   {yearly && t.savePercent && (
                     <div style={{ position: 'absolute', top: 14, left: 14, padding: '3px 8px', borderRadius: 6, fontSize: '0.6rem', fontFamily: 'var(--mn)', fontWeight: 700, background: `${t.accent}18`, color: t.accent, border: `1px solid ${t.accent}30` }}>{t.savePercent}% off</div>
                   )}
-                  <div style={{ fontSize: '0.82rem', fontFamily: 'var(--mn)', fontWeight: 600, color: t.accent, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8, marginTop: yearly && t.savePercent ? 22 : 0 }}>{t.name}</div>
+                  <div style={{ fontSize: '0.82rem', fontFamily: 'var(--mn)', fontWeight: 600, color: t.accent, textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: 8, marginTop: yearly && t.savePercent ? 22 : 0 }}>{t.name}</div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, marginBottom: 6 }}>
                     <span style={{ fontSize: '2.6rem', fontWeight: 700, letterSpacing: '-0.03em' }}>{price}</span>
                     {period && <span style={{ fontSize: '0.85rem', color: 'var(--t3)' }}>{period}</span>}
@@ -160,7 +160,7 @@ export default function PulsarPricing() {
       <section ref={compare.ref} className="pp-section" style={{ padding: '80px 40px', background: 'var(--s1)', borderTop: '1px solid var(--bd)', borderBottom: '1px solid var(--bd)' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48, opacity: compare.v ? 1 : 0, transform: compare.v ? 'none' : 'translateY(20px)', transition: `all 0.7s ${E}` }}>
-            <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--ac)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>{'// compare'}</div>
+            <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--ac)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 12 }}>{'// compare'}</div>
             <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 700, letterSpacing: '-0.02em' }}>Feature comparison</h2>
           </div>
           <div className="pp-compare" style={{ overflowX: 'auto', borderRadius: 14, border: '1px solid var(--bd2)', background: 'var(--s2)' }}>
@@ -191,7 +191,7 @@ export default function PulsarPricing() {
       {/* FAQ */}
       <section ref={faq.ref} style={{ padding: '80px 40px', maxWidth: 720, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 48, opacity: faq.v ? 1 : 0, transform: faq.v ? 'none' : 'translateY(20px)', transition: `all 0.7s ${E}` }}>
-          <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--ac)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>{'// faq'}</div>
+          <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--ac)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 12 }}>{'// faq'}</div>
           <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 700, letterSpacing: '-0.02em' }}>Common questions</h2>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

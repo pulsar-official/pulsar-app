@@ -47,7 +47,7 @@ export default function WaitlistPage() {
           </svg>
         </div>
 
-        <div style={{ fontSize: '0.7rem', fontFamily: 'monospace', fontWeight: 600, color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: 14 }}>// waitlist_confirmed</div>
+        <div style={{ fontSize: '0.7rem', fontFamily: 'monospace', fontWeight: 600, color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 14 }}>// waitlist_confirmed</div>
         <h1 style={{ fontSize: 'clamp(2rem,5vw,3rem)', fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.1, marginBottom: 16 }}>
           {isSignedIn && name ? (
             <>You're on the list,<br /><span style={{ color: '#a78bfa' }}>{name}.</span></>
