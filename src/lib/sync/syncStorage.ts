@@ -194,6 +194,8 @@ export interface AppStateSnapshot {
   journalEntries: unknown[]
   events: unknown[]
   boards: unknown[]
+  focusSessions: unknown[]
+  preferences: unknown[]
   cachedAt: number
 }
 
