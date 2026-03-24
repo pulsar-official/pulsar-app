@@ -1,16 +1,20 @@
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { goals, goalSubs } from '@/db/schema'
-import { eq, and, inArray } from 'drizzle-orm'
+import { eq, and, or, isNull, inArray } from 'drizzle-orm'
 
 export async function GET() {
   const { orgId } = await auth()
   if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  const goalRows = await db.select().from(goals).where(eq(goals.orgId, orgId))
+  const goalRows = await db.select().from(goals).where(
+    and(eq(goals.orgId, orgId), or(eq(goals.isDeleted, false), isNull(goals.isDeleted)))
+  )
   const goalIds = goalRows.map(g => g.id)
   let subRows: typeof goalSubs.$inferSelect[] = []
   if (goalIds.length > 0) {
-    subRows = await db.select().from(goalSubs).where(inArray(goalSubs.goalId, goalIds))
+    subRows = await db.select().from(goalSubs).where(
+      and(inArray(goalSubs.goalId, goalIds), or(eq(goalSubs.isDeleted, false), isNull(goalSubs.isDeleted)))
+    )
   }
   const goalsWithSubs = goalRows.map(g => ({
     ...g,

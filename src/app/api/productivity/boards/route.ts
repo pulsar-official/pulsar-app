@@ -1,18 +1,24 @@
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { boards, boardNodes, boardThreads } from '@/db/schema'
-import { eq, and, inArray } from 'drizzle-orm'
+import { eq, and, or, isNull, inArray } from 'drizzle-orm'
 
 export async function GET() {
   const { orgId } = await auth()
   if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  const boardRows = await db.select().from(boards).where(eq(boards.orgId, orgId))
+  const boardRows = await db.select().from(boards).where(
+    and(eq(boards.orgId, orgId), or(eq(boards.isDeleted, false), isNull(boards.isDeleted)))
+  )
   const boardIds = boardRows.map(b => b.id)
   let nodeRows: typeof boardNodes.$inferSelect[] = []
   let threadRows: typeof boardThreads.$inferSelect[] = []
   if (boardIds.length > 0) {
-    nodeRows = await db.select().from(boardNodes).where(inArray(boardNodes.boardId, boardIds))
-    threadRows = await db.select().from(boardThreads).where(inArray(boardThreads.boardId, boardIds))
+    nodeRows = await db.select().from(boardNodes).where(
+      and(inArray(boardNodes.boardId, boardIds), or(eq(boardNodes.isDeleted, false), isNull(boardNodes.isDeleted)))
+    )
+    threadRows = await db.select().from(boardThreads).where(
+      and(inArray(boardThreads.boardId, boardIds), or(eq(boardThreads.isDeleted, false), isNull(boardThreads.isDeleted)))
+    )
   }
   const boardsWithData = boardRows.map(b => ({
     ...b,

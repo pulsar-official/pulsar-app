@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, timestamp, varchar, boolean, json, real, date, index } from 'drizzle-orm/pg-core'
+import { pgTable, serial, integer, bigint, text, timestamp, varchar, boolean, json, jsonb, real, date, index, uniqueIndex } from 'drizzle-orm/pg-core'
 
 /* ── Users ── */
 export const users = pgTable('users', {
@@ -33,6 +33,9 @@ export const notes = pgTable('notes', {
   content: text('content'),
   isPublic: boolean('is_public').default(false),
   tags: json('tags'),
+  hlcTimestamp: varchar('hlc_timestamp', { length: 128 }),
+  syncVersion: integer('sync_version').default(1),
+  isDeleted: boolean('is_deleted').default(false),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (t) => [
@@ -51,6 +54,9 @@ export const tasks = pgTable('tasks', {
   tag: varchar('tag', { length: 32 }).default('work'),
   status: varchar('status', { length: 16 }).default('todo'),
   dueDate: varchar('due_date', { length: 32 }),
+  hlcTimestamp: varchar('hlc_timestamp', { length: 128 }),
+  syncVersion: integer('sync_version').default(1),
+  isDeleted: boolean('is_deleted').default(false),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (t) => [
@@ -65,6 +71,9 @@ export const habits = pgTable('habits', {
   name: varchar('name', { length: 255 }).notNull(),
   emoji: varchar('emoji', { length: 16 }).notNull().default('✅'),
   sortOrder: integer('sort_order').default(0),
+  hlcTimestamp: varchar('hlc_timestamp', { length: 128 }),
+  syncVersion: integer('sync_version').default(1),
+  isDeleted: boolean('is_deleted').default(false),
   createdAt: timestamp('created_at').defaultNow(),
 }, (t) => [
   index('habits_org_id_idx').on(t.orgId),
@@ -76,6 +85,9 @@ export const habitChecks = pgTable('habit_checks', {
   habitId: integer('habit_id').references(() => habits.id, { onDelete: 'cascade' }).notNull(),
   date: varchar('date', { length: 10 }).notNull(),
   checked: boolean('checked').default(true),
+  hlcTimestamp: varchar('hlc_timestamp', { length: 128 }),
+  syncVersion: integer('sync_version').default(1),
+  isDeleted: boolean('is_deleted').default(false),
   createdAt: timestamp('created_at').defaultNow(),
 }, (t) => [
   index('habit_checks_habit_id_idx').on(t.habitId),
@@ -93,6 +105,9 @@ export const goals = pgTable('goals', {
   deadline: varchar('deadline', { length: 32 }),
   done: boolean('done').default(false),
   progress: real('progress').default(0),
+  hlcTimestamp: varchar('hlc_timestamp', { length: 128 }),
+  syncVersion: integer('sync_version').default(1),
+  isDeleted: boolean('is_deleted').default(false),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (t) => [
@@ -105,6 +120,9 @@ export const goalSubs = pgTable('goal_subs', {
   goalId: integer('goal_id').references(() => goals.id, { onDelete: 'cascade' }).notNull(),
   text: varchar('text', { length: 500 }).notNull(),
   done: boolean('done').default(false),
+  hlcTimestamp: varchar('hlc_timestamp', { length: 128 }),
+  syncVersion: integer('sync_version').default(1),
+  isDeleted: boolean('is_deleted').default(false),
 }, (t) => [
   index('goal_subs_goal_id_idx').on(t.goalId),
 ])
@@ -119,6 +137,9 @@ export const journalEntries = pgTable('journal_entries', {
   date: varchar('date', { length: 10 }).notNull(),
   mood: varchar('mood', { length: 16 }),
   tags: json('tags'),
+  hlcTimestamp: varchar('hlc_timestamp', { length: 128 }),
+  syncVersion: integer('sync_version').default(1),
+  isDeleted: boolean('is_deleted').default(false),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (t) => [
@@ -137,6 +158,9 @@ export const calEvents = pgTable('cal_events', {
   endTime: varchar('end_time', { length: 5 }),
   tag: varchar('tag', { length: 32 }).default('default'),
   recur: varchar('recur', { length: 16 }),
+  hlcTimestamp: varchar('hlc_timestamp', { length: 128 }),
+  syncVersion: integer('sync_version').default(1),
+  isDeleted: boolean('is_deleted').default(false),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (t) => [
@@ -152,6 +176,9 @@ export const boards = pgTable('boards', {
   description: text('description'),
   color: varchar('color', { length: 32 }),
   icon: varchar('icon', { length: 16 }),
+  hlcTimestamp: varchar('hlc_timestamp', { length: 128 }),
+  syncVersion: integer('sync_version').default(1),
+  isDeleted: boolean('is_deleted').default(false),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (t) => [
@@ -169,6 +196,9 @@ export const boardNodes = pgTable('board_nodes', {
   y: real('y').default(0),
   status: varchar('status', { length: 16 }).default('todo'),
   priority: varchar('priority', { length: 16 }).default('medium'),
+  hlcTimestamp: varchar('hlc_timestamp', { length: 128 }),
+  syncVersion: integer('sync_version').default(1),
+  isDeleted: boolean('is_deleted').default(false),
   createdAt: timestamp('created_at').defaultNow(),
 }, (t) => [
   index('board_nodes_board_id_idx').on(t.boardId),
@@ -181,25 +211,60 @@ export const boardThreads = pgTable('board_threads', {
   fromNodeId: integer('from_node_id').references(() => boardNodes.id, { onDelete: 'cascade' }).notNull(),
   toNodeId: integer('to_node_id').references(() => boardNodes.id, { onDelete: 'cascade' }).notNull(),
   label: varchar('label', { length: 255 }),
+  hlcTimestamp: varchar('hlc_timestamp', { length: 128 }),
+  syncVersion: integer('sync_version').default(1),
+  isDeleted: boolean('is_deleted').default(false),
 }, (t) => [
   index('board_threads_board_id_idx').on(t.boardId),
 ])
 
-/* ── Changes Log (audit trail for all updates) ── */
+/* ── Changes Log (legacy audit trail — kept for migration) ── */
 export const changes = pgTable('changes', {
   id: serial('id').primaryKey(),
   orgId: varchar('org_id', { length: 255 }).notNull(),
   userId: varchar('user_id', { length: 255 }).notNull(),
-  entityType: varchar('entity_type', { length: 32 }).notNull(), // 'task', 'habit', 'goal', 'journal', 'event', 'note', etc
+  entityType: varchar('entity_type', { length: 32 }).notNull(),
   entityId: integer('entity_id').notNull(),
-  field: varchar('field', { length: 128 }).notNull(), // 'title', 'completed', 'priority', etc
-  oldValue: text('old_value'), // JSON stringified
-  newValue: text('new_value'), // JSON stringified
-  operation: varchar('operation', { length: 16 }).default('update'), // 'create', 'update', 'delete'
-  version: integer('version').default(1), // For conflict resolution
+  field: varchar('field', { length: 128 }).notNull(),
+  oldValue: text('old_value'),
+  newValue: text('new_value'),
+  operation: varchar('operation', { length: 16 }).default('update'),
+  version: integer('version').default(1),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (t) => [
   index('changes_org_id_idx').on(t.orgId),
   index('changes_entity_idx').on(t.entityType, t.entityId),
+])
+
+/* ── Sync Operations (append-only log of all sync ops processed by server) ── */
+export const syncOperations = pgTable('sync_operations', {
+  id: serial('id').primaryKey(),
+  opId: varchar('op_id', { length: 255 }).unique().notNull(),
+  orgId: varchar('org_id', { length: 255 }).notNull(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  deviceId: varchar('device_id', { length: 255 }).notNull(),
+  entityType: varchar('entity_type', { length: 32 }).notNull(),
+  entityId: varchar('entity_id', { length: 64 }).notNull(),
+  operation: varchar('operation', { length: 16 }).notNull(),
+  fields: json('fields'),        // { fieldName: { value, hlc } }
+  hlc: varchar('hlc', { length: 128 }).notNull(),
+  serverSeq: serial('server_seq'),
+  status: varchar('status', { length: 16 }).default('applied'),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (t) => [
+  index('sync_ops_org_seq_idx').on(t.orgId, t.serverSeq),
+  index('sync_ops_entity_idx').on(t.entityType, t.entityId),
+])
+
+/* ── Sync Cursors (tracks each device's last-seen server_seq for catch-up) ── */
+export const syncCursors = pgTable('sync_cursors', {
+  id: serial('id').primaryKey(),
+  orgId: varchar('org_id', { length: 255 }).notNull(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  deviceId: varchar('device_id', { length: 255 }).notNull(),
+  lastSeq: integer('last_seq').notNull().default(0),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (t) => [
+  uniqueIndex('sync_cursors_org_device_idx').on(t.orgId, t.deviceId),
 ])

@@ -1,16 +1,20 @@
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { habits, habitChecks } from '@/db/schema'
-import { eq, and, inArray } from 'drizzle-orm'
+import { eq, and, or, isNull, inArray } from 'drizzle-orm'
 
 export async function GET() {
   const { orgId } = await auth()
   if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  const habitRows = await db.select().from(habits).where(eq(habits.orgId, orgId))
+  const habitRows = await db.select().from(habits).where(
+    and(eq(habits.orgId, orgId), or(eq(habits.isDeleted, false), isNull(habits.isDeleted)))
+  )
   const habitIds = habitRows.map(h => h.id)
   let checkRows: typeof habitChecks.$inferSelect[] = []
   if (habitIds.length > 0) {
-    checkRows = await db.select().from(habitChecks).where(inArray(habitChecks.habitId, habitIds))
+    checkRows = await db.select().from(habitChecks).where(
+      and(inArray(habitChecks.habitId, habitIds), or(eq(habitChecks.isDeleted, false), isNull(habitChecks.isDeleted)))
+    )
   }
   return Response.json({ habits: habitRows, checks: checkRows })
 }
