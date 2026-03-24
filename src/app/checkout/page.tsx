@@ -94,7 +94,7 @@ function PaymentPanel({ priceId, planName, billing, amount }: { priceId: string;
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
       <div style={{ padding: '14px 16px', background: 'rgba(167,139,250,0.06)', border: '1px solid rgba(167,139,250,0.15)', borderRadius: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <div style={{ fontSize: '0.78rem', color: '#a78bfa', fontFamily: "'JetBrains Mono',monospace", letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 2 }}>{planName}</div>
+          <div style={{ fontSize: '0.78rem', color: '#a78bfa', fontFamily: "'JetBrains Mono',monospace", letterSpacing: '0.02em', textTransform: 'uppercase', marginBottom: 2 }}>{planName}</div>
           <div style={{ fontSize: '0.76rem', color: '#7878a0' }}>{billing === 'yearly' ? 'Billed annually' : 'Billed monthly'} · cancel anytime</div>
         </div>
         <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#eeeef5' }}>

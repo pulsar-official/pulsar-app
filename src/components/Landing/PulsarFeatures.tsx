@@ -382,7 +382,7 @@ function PillarSection({ pillar, index }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
             <span style={{ fontSize: '1.8rem' }}>{pillar.icon}</span>
             <div>
-              <div style={{ fontSize: '0.7rem', fontFamily: 'var(--mn)', fontWeight: 600, color: pillar.color, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{pillar.num} — {pillar.tag}</div>
+              <div style={{ fontSize: '0.7rem', fontFamily: 'var(--mn)', fontWeight: 600, color: pillar.color, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{pillar.num} — {pillar.tag}</div>
               <h2 style={{ fontSize: '1.7rem', fontWeight: 700, letterSpacing: '-0.03em' }}>{pillar.name}</h2>
             </div>
           </div>
@@ -444,7 +444,7 @@ export default function PulsarFeatures() {
       </div>
       <section ref={problem.ref} className="pf-section" style={{ padding: '80px 40px', background: 'var(--s1)', borderTop: '1px solid var(--bd)', borderBottom: '1px solid var(--bd)' }}>
         <div style={{ maxWidth: 800, margin: '0 auto', opacity: problem.v ? 1 : 0, transform: problem.v ? 'none' : 'translateY(24px)', transition: 'all 0.7s var(--ease)' }}>
-          <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 14 }}>// the_problem</div>
+          <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 14 }}>// the_problem</div>
           <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 20 }}>The knowledge gap is <span style={{ color: '#ef4444' }}>killing your potential</span>.</h2>
           <p style={{ fontSize: '1.05rem', color: 'var(--t2)', lineHeight: 1.7, marginBottom: 32 }}>We define <strong style={{ color: 'var(--t1)' }}>dead knowledge</strong> as the gap between knowing and doing. Existing tools make it worse:</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
@@ -463,7 +463,7 @@ export default function PulsarFeatures() {
       <section ref={ai.ref} style={{ padding: '100px 40px', background: 'var(--s1)', borderTop: '1px solid var(--bd)', borderBottom: '1px solid var(--bd)' }}>
         <div style={{ maxWidth: 800, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 52, opacity: ai.v ? 1 : 0, transform: ai.v ? 'none' : 'translateY(20px)', transition: 'all 0.7s var(--ease)' }}>
-            <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--ac)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 14 }}>// ai_engine</div>
+            <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--ac)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 14 }}>// ai_engine</div>
             <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 700, letterSpacing: '-0.02em' }}>AI that grows with you.</h2>
             <p style={{ color: 'var(--t2)', fontSize: '1rem', marginTop: 14, lineHeight: 1.6 }}>Invisible at first. Indispensable over time.</p>
           </div>
@@ -482,7 +482,7 @@ export default function PulsarFeatures() {
       <section ref={audience.ref} style={{ padding: '100px 40px' }}>
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48, opacity: audience.v ? 1 : 0, transform: audience.v ? 'none' : 'translateY(20px)', transition: 'all 0.7s var(--ease)' }}>
-            <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--ac)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 14 }}>// built_for</div>
+            <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--ac)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 14 }}>// built_for</div>
             <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 700, letterSpacing: '-0.02em' }}>Designed for every knowledge worker.</h2>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
