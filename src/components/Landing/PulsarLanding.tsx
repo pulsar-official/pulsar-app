@@ -175,7 +175,7 @@ const WHY_ITEMS = [
 // ─── Styles ────────────────────────────────────────────────────────────────────
 
 const STYLES = `
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @keyframes plFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
 @keyframes plPulse{0%,100%{opacity:0.3}50%{opacity:1}}
 @keyframes plGlow{0%,100%{box-shadow:0 0 22px rgba(167,139,250,0.1),0 4px 28px rgba(0,0,0,0.3)}50%{box-shadow:0 0 55px rgba(167,139,250,0.3),0 8px 40px rgba(0,0,0,0.45)}}
@@ -191,7 +191,7 @@ const STYLES = `
 @keyframes plCallIn{from{opacity:0;transform:translateY(8px) scale(0.93)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes plPillIn{from{opacity:0;transform:translateY(12px) scale(0.94)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes plNodePop{0%{transform:scale(0);opacity:0}70%{transform:scale(1.25)}100%{transform:scale(1);opacity:1}}
-.pl-root{--bg:#07070c;--s1:#0c0c14;--s2:#111119;--s3:#18182a;--s4:#222236;--border:rgba(255,255,255,0.04);--border2:rgba(255,255,255,0.08);--border3:rgba(167,139,250,0.15);--t1:#eeeef5;--t2:#a0a0b8;--t3:#65657a;--t4:#45455a;--accent:#a78bfa;--accent2:#c4b5fd;--accent3:#7c3aed;--font:'Space Grotesk',system-ui,sans-serif;--mono:'JetBrains Mono','Fira Code',monospace;font-family:var(--font);background:var(--bg);color:var(--t1);overflow-x:hidden;-webkit-font-smoothing:antialiased;line-height:1.5}
+.pl-root{--bg:#07070c;--s1:#0c0c14;--s2:#111119;--s3:#18182a;--s4:#222236;--border:rgba(255,255,255,0.04);--border2:rgba(255,255,255,0.08);--border3:rgba(167,139,250,0.15);--t1:#eeeef5;--t2:#a0a0b8;--t3:#65657a;--t4:#45455a;--accent:#a78bfa;--accent2:#c4b5fd;--accent3:#7c3aed;--font:'JetBrains Mono',monospace;--mono:'JetBrains Mono','Fira Code',monospace;font-family:var(--font);background:var(--bg);color:var(--t1);overflow-x:hidden;-webkit-font-smoothing:antialiased;line-height:1.5}
 .pl-root ::-webkit-scrollbar{width:5px}.pl-root ::-webkit-scrollbar-track{background:transparent}.pl-root ::-webkit-scrollbar-thumb{background:rgba(167,139,250,0.15);border-radius:3px}
 .pl-root a{color:var(--accent);text-decoration:none;transition:color 0.2s}.pl-root a:hover{color:var(--accent2)}
 .pl-shimmer{background:linear-gradient(90deg,#a78bfa 0%,#e879f9 18%,#c4b5fd 36%,#818cf8 54%,#a78bfa 72%,#e879f9 90%,#c4b5fd 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:plShimmer 4s linear infinite}
