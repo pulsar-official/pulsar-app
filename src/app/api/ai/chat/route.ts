@@ -1,3 +1,12 @@
-export async function POST() {
+import { auth } from '@clerk/nextjs/server'
+import { aiRatelimit, checkRatelimit } from '@/lib/ratelimit'
+
+export async function POST(req: Request) {
+  const { userId } = await auth()
+  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const limited = await checkRatelimit(aiRatelimit, userId)
+  if (limited) return limited
+
   return new Response('Not implemented', { status: 501 })
 }

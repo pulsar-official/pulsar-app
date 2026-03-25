@@ -7,8 +7,17 @@ import PulsarLanding from '@/components/Landing/PulsarLanding'
 import { useProductivityStore } from '@/stores/productivityStore'
 import { useServiceWorker } from '@/hooks/useServiceWorker'
 import { useSync } from '@/hooks/useSync'
+import { PowerSyncProvider } from '@/providers/PowerSyncProvider'
+import { usePowerSyncBridge } from '@/hooks/usePowerSyncBridge'
+
+/** Thin gate — must live inside <PowerSyncProvider> so usePowerSyncBridge can access the db context */
+function PowerSyncBridgeGate() {
+  usePowerSyncBridge()
+  return null
+}
 
 const BETA_OPEN = process.env.NEXT_PUBLIC_BETA_OPEN === 'true'
+const USE_POWERSYNC = process.env.NEXT_PUBLIC_USE_POWERSYNC === 'true'
 
 export default function AppShell() {
   // useAuth gives orgId directly from the session token — more reliable than
@@ -22,13 +31,16 @@ export default function AppShell() {
 
   const isAdmin = user?.publicMetadata?.role === 'admin'
 
-  // Initialize service worker and sync
+  // Initialize service worker
   useServiceWorker()
-  useSync()
 
-  // Fetch productivity data when org changes
+  // Only use the legacy sync system when PowerSync is not active
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  if (!USE_POWERSYNC) useSync()
+
+  // Fetch productivity data when org changes (legacy path only)
   useEffect(() => {
-    if (orgId && orgId !== storeOrgId) {
+    if (!USE_POWERSYNC && orgId && orgId !== storeOrgId) {
       fetchAll(orgId)
     }
   }, [orgId, storeOrgId, fetchAll])
@@ -36,7 +48,17 @@ export default function AppShell() {
   if (!isLoaded) return null
 
   // Beta open or admin → show dashboard
-  if (userId && (BETA_OPEN || isAdmin)) return <AppLayout />
+  if (userId && (BETA_OPEN || isAdmin)) {
+    if (USE_POWERSYNC) {
+      return (
+        <PowerSyncProvider>
+          <PowerSyncBridgeGate />
+          <AppLayout />
+        </PowerSyncProvider>
+      )
+    }
+    return <AppLayout />
+  }
 
   // Signed-in waitlisted user or unauthenticated → show landing page
   return (

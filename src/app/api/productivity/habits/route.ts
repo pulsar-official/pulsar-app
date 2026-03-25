@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { habits, habitChecks } from '@/db/schema'
 import { eq, and, or, isNull, inArray } from 'drizzle-orm'
+import { crudRatelimit, checkRatelimit } from '@/lib/ratelimit'
 
 export async function GET() {
   const { orgId } = await auth()
@@ -22,6 +23,8 @@ export async function GET() {
 export async function POST(req: Request) {
   const { orgId, userId } = await auth()
   if (!orgId || !userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const limited = await checkRatelimit(crudRatelimit, userId)
+  if (limited) return limited
   const body = await req.json()
 
   // Toggle a habit check — use transaction to prevent race condition
@@ -62,8 +65,10 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const { orgId } = await auth()
-  if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const { orgId, userId } = await auth()
+  if (!orgId || !userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const limited = await checkRatelimit(crudRatelimit, userId)
+  if (limited) return limited
   const { id } = await req.json()
   if (!id) return Response.json({ error: 'id required' }, { status: 400 })
   await db.delete(habits).where(and(eq(habits.id, id), eq(habits.orgId, orgId)))

@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { tasks } from '@/db/schema'
 import { eq, and, or, isNull } from 'drizzle-orm'
+import { crudRatelimit, checkRatelimit } from '@/lib/ratelimit'
 
 export async function GET() {
   const { orgId, userId } = await auth()
@@ -15,6 +16,8 @@ export async function GET() {
 export async function POST(req: Request) {
   const { orgId, userId } = await auth()
   if (!orgId || !userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const limited = await checkRatelimit(crudRatelimit, userId)
+  if (limited) return limited
   const body = await req.json()
   if (!body.title?.trim()) return Response.json({ error: 'title required' }, { status: 400 })
   const [row] = await db.insert(tasks).values({
@@ -31,8 +34,10 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
-  const { orgId } = await auth()
-  if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const { orgId, userId } = await auth()
+  if (!orgId || !userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const limited = await checkRatelimit(crudRatelimit, userId)
+  if (limited) return limited
   const body = await req.json()
   if (!body.id) return Response.json({ error: 'id required' }, { status: 400 })
   const [row] = await db.update(tasks)
@@ -53,8 +58,10 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const { orgId } = await auth()
-  if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const { orgId, userId } = await auth()
+  if (!orgId || !userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const limited = await checkRatelimit(crudRatelimit, userId)
+  if (limited) return limited
   const { id } = await req.json()
   if (!id) return Response.json({ error: 'id required' }, { status: 400 })
   await db.delete(tasks).where(and(eq(tasks.id, id), eq(tasks.orgId, orgId)))
