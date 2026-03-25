@@ -33,6 +33,14 @@ const num = (v: unknown): number =>
 
 type Row = Record<string, unknown>
 
+// db.watch() yields a SQLite ResultSet { _array, length, item } rather than a
+// plain array — normalise to Row[] so we can call .map() on it
+const toRows = (rows: unknown): Row[] => {
+  if (!rows) return []
+  if (Array.isArray(rows)) return rows as Row[]
+  return ((rows as { _array?: Row[] })._array) ?? []
+}
+
 const mapTask = (r: Row): Task => ({
   id:          num(r.id),
   orgId:       r.org_id as string,
@@ -146,7 +154,7 @@ export function usePowerSyncBridge() {
       for await (const { rows } of db.watch(
         'SELECT * FROM tasks WHERE is_deleted = 0 ORDER BY created_at DESC', [], { signal: sig }
       )) {
-        set({ tasks: (rows ?? []).map(mapTask), initialized: true })
+        set({ tasks: toRows(rows).map(mapTask), initialized: true })
       }
     }
 
@@ -154,7 +162,7 @@ export function usePowerSyncBridge() {
       for await (const { rows } of db.watch(
         'SELECT * FROM habits WHERE is_deleted = 0 ORDER BY sort_order ASC', [], { signal: sig }
       )) {
-        set({ habits: (rows ?? []).map(mapHabit) })
+        set({ habits: toRows(rows).map(mapHabit) })
       }
     }
 
@@ -162,7 +170,7 @@ export function usePowerSyncBridge() {
       for await (const { rows } of db.watch(
         'SELECT * FROM habit_checks WHERE is_deleted = 0', [], { signal: sig }
       )) {
-        set({ habitChecks: (rows ?? []).map(mapHabitCheck) })
+        set({ habitChecks: toRows(rows).map(mapHabitCheck) })
       }
     }
 
@@ -176,7 +184,7 @@ export function usePowerSyncBridge() {
          FROM goals g WHERE g.is_deleted = 0 ORDER BY g.created_at DESC`,
         [], { signal: sig }
       )) {
-        const goals: Goal[] = (rows ?? []).map(r => {
+        const goals: Goal[] = toRows(rows).map(r => {
           const rawSubs = parseJson<Row[]>(r.subs_json, [])
           const subs: SubGoal[] = rawSubs.map(s => ({
             id:     num(s.id),
@@ -194,7 +202,7 @@ export function usePowerSyncBridge() {
       for await (const { rows } of db.watch(
         'SELECT * FROM journal_entries WHERE is_deleted = 0 ORDER BY date DESC', [], { signal: sig }
       )) {
-        set({ journalEntries: (rows ?? []).map(mapJournal) })
+        set({ journalEntries: toRows(rows).map(mapJournal) })
       }
     }
 
@@ -202,7 +210,7 @@ export function usePowerSyncBridge() {
       for await (const { rows } of db.watch(
         'SELECT * FROM cal_events WHERE is_deleted = 0 ORDER BY date ASC', [], { signal: sig }
       )) {
-        set({ events: (rows ?? []).map(mapEvent) })
+        set({ events: toRows(rows).map(mapEvent) })
       }
     }
 
@@ -210,7 +218,7 @@ export function usePowerSyncBridge() {
       for await (const { rows } of db.watch(
         'SELECT * FROM boards WHERE is_deleted = 0 ORDER BY created_at DESC', [], { signal: sig }
       )) {
-        set({ boards: (rows ?? []).map(r => ({
+        set({ boards: toRows(rows).map(r => ({
           id:          num(r.id),
           orgId:       r.org_id as string,
           userId:      r.user_id as string,
@@ -228,7 +236,7 @@ export function usePowerSyncBridge() {
       for await (const { rows } of db.watch(
         'SELECT * FROM focus_sessions WHERE is_deleted = 0 ORDER BY date DESC', [], { signal: sig }
       )) {
-        set({ focusSessions: (rows ?? []).map(mapFocusSession) })
+        set({ focusSessions: toRows(rows).map(mapFocusSession) })
       }
     }
 
@@ -236,7 +244,7 @@ export function usePowerSyncBridge() {
       for await (const { rows } of db.watch(
         'SELECT * FROM user_preferences WHERE is_deleted = 0', [], { signal: sig }
       )) {
-        set({ preferences: (rows ?? []).map(mapPreference) })
+        set({ preferences: toRows(rows).map(mapPreference) })
       }
     }
 
