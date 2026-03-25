@@ -1,4 +1,5 @@
 import { auth } from '@clerk/nextjs/server'
+import { syncRatelimit, checkRatelimit } from '@/lib/ratelimit'
 import { processOps } from '@/lib/sync/serverSyncEngine'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import type { SyncOp } from '@/lib/sync/types'
@@ -14,6 +15,9 @@ export async function POST(req: Request) {
   if (!orgId || !userId) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
+
+  const limited = await checkRatelimit(syncRatelimit, userId)
+  if (limited) return limited
 
   const body = await req.json()
   const { deviceId, ops } = body as { deviceId: string; ops: SyncOp[] }
