@@ -25,7 +25,7 @@ export async function cachePrefixDelete(prefix: string): Promise<void> {
       match: `${prefix}*`,
       count: 100,
     })
-    cursor = nextCursor as number
+    cursor = nextCursor as unknown as number
     if (keys.length > 0) {
       await redis.del(...(keys as string[]))
     }
