@@ -107,7 +107,7 @@ export default function PulsarPricing() {
             {yearly && <span style={{ fontSize: '0.65rem', fontFamily: 'var(--mn)', padding: '3px 10px', borderRadius: 100, background: 'rgba(110,231,183,0.08)', color: 'var(--ok)', border: '1px solid rgba(110,231,183,0.15)', fontWeight: 600 }}>save up to 17%</span>}
           </div>
           <div style={{ marginTop: 16, padding: '8px 18px', borderRadius: 100, background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.15)', display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: '0.75rem', fontFamily: 'var(--mn)', color: 'rgba(245,158,11,0.75)' }}>
-            <span>🔒</span> Payments open at beta launch · <span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>join the waitlist above</span>
+            <span>🔒</span> Payments open at beta launch · <a href="/" style={{ color: 'rgba(245,158,11,0.75)', textDecoration: 'underline' }}>join the waitlist on the homepage</a>
           </div>
         </div>
       </section>
@@ -222,12 +222,22 @@ export default function PulsarPricing() {
       </section>
 
       {/* Footer */}
-      <footer style={{ padding: '32px 40px', borderTop: '1px solid var(--bd)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: 1200, margin: '0 auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 20, height: 20, borderRadius: 5, background: 'linear-gradient(135deg,#a78bfa,#7c3aed)', display: 'grid', placeItems: 'center', fontSize: 9, fontWeight: 700, color: '#fff' }}>P</div>
-          <span style={{ fontWeight: 600, fontSize: '0.88rem' }}>Pulsar</span>
+      <footer style={{ padding: '28px 40px', borderTop: '1px solid var(--bd)' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 20, height: 20, borderRadius: 5, background: 'linear-gradient(135deg,#a78bfa,#7c3aed)', display: 'grid', placeItems: 'center', fontSize: 9, fontWeight: 700, color: '#fff' }}>P</div>
+            <span style={{ fontWeight: 600, fontSize: '0.82rem', fontFamily: 'var(--mn)' }}>pulsar</span>
+          </div>
+          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', justifyContent: 'center' }}>
+            {[['Home', '/'], ['Features', '/features'], ['Changelog', '/changelog'], ['Privacy', '/privacy'], ['Terms', '/terms']].map(([l, h]) => (
+              <a key={l} href={h} style={{ fontSize: '0.7rem', color: 'var(--t4)', textDecoration: 'none', fontFamily: 'var(--mn)', transition: 'color 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.color = 'var(--t3)' }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'var(--t4)' }}
+              >{l}</a>
+            ))}
+          </div>
+          <span style={{ fontSize: '0.68rem', fontFamily: 'var(--mn)', color: 'var(--t4)' }}>© 2026 Pulsar</span>
         </div>
-        <span style={{ fontSize: '0.72rem', fontFamily: 'var(--mn)', color: 'var(--t4)' }}>© 2025 Pulsar. All rights reserved.</span>
       </footer>
     </div>
   )
