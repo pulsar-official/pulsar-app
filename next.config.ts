@@ -19,6 +19,11 @@ const nextConfig: NextConfig = {
     }]
   },
 
+  // Turbopack (Next.js 16 default) handles WASM natively — empty config silences
+  // the "webpack config present but no turbopack config" hard error
+  turbopack: {},
+
+  // Kept for local webpack builds / CI that explicitly use --webpack
   webpack(config) {
     config.experiments = {
       ...config.experiments,
