@@ -34,13 +34,15 @@ export default function AppShell() {
   // Initialize service worker
   useServiceWorker()
 
-  // Only use the legacy sync system when PowerSync is not active
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  if (!USE_POWERSYNC) useSync()
+  // Always run Supabase Realtime sync — works as backup broadcaster when
+  // PowerSync is active, and as primary when it's not.
+  useSync()
 
-  // Fetch productivity data when org changes (legacy path only)
+  // Always fetch from API when org changes — hydrates the UI instantly while
+  // PowerSync is still connecting. db.watch() will overwrite with SQLite data
+  // once PowerSync syncs, so both paths write consistent data to Zustand.
   useEffect(() => {
-    if (!USE_POWERSYNC && orgId && orgId !== storeOrgId) {
+    if (orgId && orgId !== storeOrgId) {
       fetchAll(orgId)
     }
   }, [orgId, storeOrgId, fetchAll])
