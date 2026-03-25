@@ -4,10 +4,10 @@ import * as jose from 'jose'
 const POWERSYNC_URL = process.env.NEXT_PUBLIC_POWERSYNC_URL!
 const KEY_ID = process.env.POWERSYNC_KEY_ID ?? 'pulsar-key-1'
 
-// Cache the imported key per cold start
-let privateKey: jose.KeyLike | null = null
+// Cache the imported key per cold start (jose v6 uses CryptoKey, not KeyLike)
+let privateKey: CryptoKey | null = null
 
-async function getPrivateKey(): Promise<jose.KeyLike> {
+async function getPrivateKey(): Promise<CryptoKey> {
   if (privateKey) return privateKey
   const pem = process.env.POWERSYNC_PRIVATE_KEY!.replace(/\\n/g, '\n')
   privateKey = await jose.importPKCS8(pem, 'ES256')
