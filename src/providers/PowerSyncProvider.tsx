@@ -27,7 +27,9 @@ export function PowerSyncProvider({ children }: { children: React.ReactNode }) {
     }
   }, [userId])
 
-  if (!db) return null
+  // Render children immediately so the app isn't blank while PowerSync connects.
+  // usePowerSyncBridge already guards on null db, so nothing throws.
+  if (!db) return <>{children}</>
 
   return (
     <PowerSyncContext.Provider value={db}>
