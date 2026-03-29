@@ -31,7 +31,7 @@ export default function Habits({ onNavigate }: { onNavigate?: (page: string) => 
   const checkMap = useMemo(() => {
     const map: Record<string, Record<string, boolean>> = {}
     for (const check of habitChecks) {
-      const hid = String(check.habitId)
+      const hid = check.habitId
       if (!map[hid]) map[hid] = {}
       map[hid][check.date] = check.checked
     }
@@ -77,10 +77,10 @@ export default function Habits({ onNavigate }: { onNavigate?: (page: string) => 
   const prevMonth = () => setViewMonth(d => new Date(d.getFullYear(), d.getMonth() - 1, 1))
   const nextMonth = () => setViewMonth(d => new Date(d.getFullYear(), d.getMonth() + 1, 1))
 
-  const isChecked = useCallback((habitId: number, dateStr: string) =>
-    checkMap[String(habitId)]?.[dateStr] ?? false, [checkMap])
+  const isChecked = useCallback((habitId: string, dateStr: string) =>
+    checkMap[habitId]?.[dateStr] ?? false, [checkMap])
 
-  const toggle = useCallback((habitId: number) => {
+  const toggle = useCallback((habitId: string) => {
     storeToggleCheck(habitId, TODAY)
   }, [storeToggleCheck])
 
