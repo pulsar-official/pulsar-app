@@ -303,7 +303,7 @@ export function computeConnections(
 
 export function getConnectionsFor(
   itemType: ConnectionItemType,
-  itemId: number,
+  itemId: string,
   allConnections: Connection[],
 ): Connection[] {
   return allConnections.filter(
