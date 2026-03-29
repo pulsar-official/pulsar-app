@@ -1119,8 +1119,7 @@ export default function PulsarCalendar() {
   const handleSave = useCallback(() => {
     if (!form.title.trim()) return;
     if (editingEvent) {
-      const numId = Number(editingEvent.id);
-      const orig = storeEvents.find(e => e.id === numId);
+      const orig = storeEvents.find(e => e.id === editingEvent.id);
       if (orig) storeUpdateEvent({ ...orig, title: form.title.trim(), date: form.date, dateEnd: form.dateEnd || null, startTime: form.startTime || null, endTime: form.endTime || null, tag: form.tag, recur: form.recur || null, isPublic: form.isPublic });
       showToast('Updated');
     } else {
@@ -1131,7 +1130,7 @@ export default function PulsarCalendar() {
   }, [form, editingEvent, storeEvents, storeAddEvent, storeUpdateEvent, showToast, doAnim]);
 
   const handleDelete = useCallback(() => {
-    if (editingEvent) storeDeleteEvent(Number(editingEvent.id));
+    if (editingEvent) storeDeleteEvent(editingEvent.id);
     setModalOpen(false); showToast('Deleted'); doAnim('zoom-out');
   }, [editingEvent, storeDeleteEvent, showToast, doAnim]);
 
