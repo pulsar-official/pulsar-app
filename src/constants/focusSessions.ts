@@ -73,7 +73,7 @@ export const CIRC = 2 * Math.PI * 120;
 
 // Module-level mutable ID counter
 export let nextTaskId = 1;
-export const bumpTaskId = () => nextTaskId++;
+export const bumpTaskId = () => String(nextTaskId++);
 
 // ─── RESOURCES ───
 export const getResources = (title: string): Resource[] => {
