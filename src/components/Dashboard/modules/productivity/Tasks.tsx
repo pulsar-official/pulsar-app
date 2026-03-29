@@ -37,7 +37,7 @@ const Tasks: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
 
   const filtered = filter === "all" ? tasks : tasks.filter(t => t.tag === filter)
 
-  const toggleDone = (id: number) => {
+  const toggleDone = (id: string) => {
     storeToggleTask(id)
   }
 
@@ -58,7 +58,7 @@ const Tasks: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
     setOpen(false)
   }
 
-  const del = async (id: number) => {
+  const del = async (id: string) => {
     setIsDeleting(true)
     await storeDeleteTask(id)
     setIsDeleting(false)

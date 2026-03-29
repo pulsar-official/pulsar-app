@@ -178,7 +178,7 @@ export default function Habits({ onNavigate }: { onNavigate?: (page: string) => 
     setNewName(''); setNewEmoji(EMOJI_OPTIONS[0]); setNewIsPublic(false); setShowAdd(false)
   }
 
-  const deleteHabit = async (id: number) => {
+  const deleteHabit = async (id: string) => {
     setIsDeleting(true)
     await storeDeleteHabit(id)
     setIsDeleting(false)

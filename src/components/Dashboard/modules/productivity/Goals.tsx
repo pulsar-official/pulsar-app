@@ -67,13 +67,13 @@ const Goals: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
   const storeToggleSubGoal = useProductivityStore(s => s.toggleSubGoal)
   const storeAddSubGoal = useProductivityStore(s => s.addSubGoal)
 
-  const [selectedId, setSelectedId] = useState<number | null>(goals[0]?.id ?? null)
+  const [selectedId, setSelectedId] = useState<string | null>(goals[0]?.id ?? null)
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all')
   const [filterCat, setFilterCat] = useState<Cat | 'all'>('all')
   const [sortBy, setSortBy] = useState<SortBy>('priority')
   const [modalOpen, setModalOpen] = useState(false)
   const [editGoal, setEditGoal] = useState<Goal | null>(null)
-  const [confirmId, setConfirmId] = useState<number | null>(null)
+  const [confirmId, setConfirmId] = useState<string | null>(null)
   const [undo, setUndo] = useState<{ goal: Goal; show: boolean } | null>(null)
   const [newSubText, setNewSubText] = useState("")
 
@@ -147,7 +147,7 @@ const Goals: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
   }
 
   const toggleDone = (g: Goal) => storeUpdateGoal({ ...g, done: !g.done })
-  const toggleSubDone = (sid: number) => {
+  const toggleSubDone = (sid: string) => {
     if (!selected) return
     const sub = selected.subs.find(s => s.id === sid)
     if (sub) storeToggleSubGoal(sid, !sub.done)

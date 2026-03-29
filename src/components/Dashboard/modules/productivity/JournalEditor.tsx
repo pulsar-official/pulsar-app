@@ -24,7 +24,7 @@ const JournalEditor: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNa
   const selectedEntryId = useProductivityStore(s => s.selectedJournalEntryId)
   const setSelectedEntryId = useProductivityStore(s => s.setSelectedJournalEntryId)
 
-  const [selectedId, setSelectedId] = useState<number | null>(selectedEntryId ?? entries[0]?.id ?? null)
+  const [selectedId, setSelectedId] = useState<string | null>(selectedEntryId ?? entries[0]?.id ?? null)
   const [searchQuery, setSearchQuery] = useState("")
   const [sortOrder, setSortOrder] = useState<'date' | 'title'>('date')
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved')
