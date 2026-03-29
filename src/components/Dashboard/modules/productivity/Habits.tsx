@@ -4,6 +4,7 @@ import styles from './Habits.module.scss'
 import { useProductivityStore } from '@/stores/productivityStore'
 import RelatedItems from '../shared/RelatedItems'
 import DeleteConfirmModal from '../shared/DeleteConfirmModal'
+import PrivacyToggle from '../shared/PrivacyToggle'
 
 /* ── Emoji palette for habit picker ── */
 const EMOJI_OPTIONS = [
@@ -43,7 +44,8 @@ export default function Habits({ onNavigate }: { onNavigate?: (page: string) => 
   const [showAdd, setShowAdd]     = useState(false)
   const [newName, setNewName]     = useState('')
   const [newEmoji, setNewEmoji]   = useState(EMOJI_OPTIONS[0])
-  const [confirmDeleteHabitId, setConfirmDeleteHabitId] = useState<number | null>(null)
+  const [newIsPublic, setNewIsPublic] = useState(false)
+  const [confirmDeleteHabitId, setConfirmDeleteHabitId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [hoveredPt, setHoveredPt] = useState<number | null>(null)
   const [tipPos, setTipPos]       = useState({ x: 0, y: 0 })
@@ -172,8 +174,8 @@ export default function Habits({ onNavigate }: { onNavigate?: (page: string) => 
 
   const addHabit = () => {
     if (!newName.trim()) return
-    storeAddHabit({ name: newName.trim(), emoji: newEmoji })
-    setNewName(''); setNewEmoji(EMOJI_OPTIONS[0]); setShowAdd(false)
+    storeAddHabit({ name: newName.trim(), emoji: newEmoji, isPublic: newIsPublic })
+    setNewName(''); setNewEmoji(EMOJI_OPTIONS[0]); setNewIsPublic(false); setShowAdd(false)
   }
 
   const deleteHabit = async (id: number) => {
@@ -466,6 +468,7 @@ export default function Habits({ onNavigate }: { onNavigate?: (page: string) => 
               </div>
             </div>
             <div className={styles.modalFooter}>
+              <PrivacyToggle isPublic={newIsPublic} onChange={setNewIsPublic} />
               <button className={styles.cancelBtn} onClick={() => setShowAdd(false)}>Cancel</button>
               <button className={styles.saveBtn} onClick={addHabit}>Add habit</button>
             </div>

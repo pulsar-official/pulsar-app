@@ -7,6 +7,7 @@ import {
 
 import styles from './Calendar.module.scss';
 import { useProductivityStore } from '@/stores/productivityStore';
+import PrivacyToggle from '../shared/PrivacyToggle';
 
 import type {
   CalEvent, CalEventForm, CalendarView, CalendarAnim,
@@ -965,6 +966,7 @@ const EventModal = ({ open, editing, form, onFormChange, onSave, onDelete, onClo
               Delete
             </button>
           )}
+          <PrivacyToggle isPublic={form.isPublic ?? false} onChange={v => onFormChange({ isPublic: v })} />
           <button
             className={styles.saveBtn}
             onClick={onSave}
@@ -998,6 +1000,7 @@ export default function PulsarCalendar() {
     end: e.endTime ?? null,
     tag: (e.tag || 'default') as EventTag,
     recur: (e.recur ?? null) as RecurRule,
+    isPublic: e.isPublic ?? false,
   })), [storeEvents]);
   const [use24h, setUse24h] = useState(true);
   const [anim, setAnim] = useState<CalendarAnim>('');
@@ -1005,7 +1008,7 @@ export default function PulsarCalendar() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<CalEvent | null>(null);
   const [form, setForm] = useState<CalEventForm>({
-    title: '', date: fmt(new Date()), dateEnd: '', startTime: '', endTime: '', tag: 'default', recur: '',
+    title: '', date: fmt(new Date()), dateEnd: '', startTime: '', endTime: '', tag: 'default', recur: '', isPublic: false,
   });
   // Cross-module: overlay task due dates and goal deadlines as calendar events
   const storeTasks = useProductivityStore(s => s.tasks)
@@ -1101,7 +1104,7 @@ export default function PulsarCalendar() {
 
   const openCreate = useCallback((dateStr?: string, time?: string) => {
     setEditingEvent(null);
-    setForm({ title: '', date: dateStr || fmt(new Date(year, month, day)), dateEnd: '', startTime: time || '', endTime: '', tag: 'default', recur: '' });
+    setForm({ title: '', date: dateStr || fmt(new Date(year, month, day)), dateEnd: '', startTime: time || '', endTime: '', tag: 'default', recur: '', isPublic: false });
     setModalOpen(true);
   }, [year, month, day]);
 
@@ -1109,7 +1112,7 @@ export default function PulsarCalendar() {
     const ev = events.find(e => e.id === id);
     if (!ev) return;
     setEditingEvent(ev);
-    setForm({ title: ev.title, date: ev.date, dateEnd: ev.dateEnd || '', startTime: ev.start || '', endTime: ev.end || '', tag: ev.tag, recur: ev.recur || '' });
+    setForm({ title: ev.title, date: ev.date, dateEnd: ev.dateEnd || '', startTime: ev.start || '', endTime: ev.end || '', tag: ev.tag, recur: ev.recur || '', isPublic: ev.isPublic ?? false });
     setModalOpen(true);
   }, [events]);
 
@@ -1118,10 +1121,10 @@ export default function PulsarCalendar() {
     if (editingEvent) {
       const numId = Number(editingEvent.id);
       const orig = storeEvents.find(e => e.id === numId);
-      if (orig) storeUpdateEvent({ ...orig, title: form.title.trim(), date: form.date, dateEnd: form.dateEnd || null, startTime: form.startTime || null, endTime: form.endTime || null, tag: form.tag, recur: form.recur || null });
+      if (orig) storeUpdateEvent({ ...orig, title: form.title.trim(), date: form.date, dateEnd: form.dateEnd || null, startTime: form.startTime || null, endTime: form.endTime || null, tag: form.tag, recur: form.recur || null, isPublic: form.isPublic });
       showToast('Updated');
     } else {
-      storeAddEvent({ title: form.title.trim(), date: form.date, dateEnd: form.dateEnd || null, startTime: form.startTime || null, endTime: form.endTime || null, tag: form.tag, recur: form.recur || null });
+      storeAddEvent({ title: form.title.trim(), date: form.date, dateEnd: form.dateEnd || null, startTime: form.startTime || null, endTime: form.endTime || null, tag: form.tag, recur: form.recur || null, isPublic: form.isPublic });
       showToast('Created');
     }
     setModalOpen(false); doAnim('zoom-in');

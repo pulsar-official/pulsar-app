@@ -13,7 +13,7 @@ export interface SyncMeta {
 }
 
 export interface Task extends SyncMeta {
-  id: number
+  id: string
   orgId: string
   userId: string
   title: string
@@ -23,20 +23,22 @@ export interface Task extends SyncMeta {
   tag: TaskTag
   status: TaskStatus
   dueDate: string | null
+  isPublic?: boolean
 }
 
 export interface Habit extends SyncMeta {
-  id: number
+  id: string
   orgId: string
   userId: string
   name: string
   emoji: string
   sortOrder: number
+  isPublic?: boolean
 }
 
 export interface HabitCheck extends SyncMeta {
-  id: number
-  habitId: number
+  id: string
+  habitId: string
   date: string
   checked: boolean
 }
@@ -44,14 +46,14 @@ export interface HabitCheck extends SyncMeta {
 export type HabitCheckMap = Record<string, Record<string, boolean>>
 
 export interface SubGoal extends SyncMeta {
-  id: number
-  goalId: number
+  id: string
+  goalId: string
   text: string
   done: boolean
 }
 
 export interface Goal extends SyncMeta {
-  id: number
+  id: string
   orgId: string
   userId: string
   title: string
@@ -62,10 +64,11 @@ export interface Goal extends SyncMeta {
   done: boolean
   progress: number
   subs: SubGoal[]
+  isPublic?: boolean
 }
 
 export interface JournalEntry extends SyncMeta {
-  id: number
+  id: string
   orgId: string
   userId: string
   title: string
@@ -73,6 +76,7 @@ export interface JournalEntry extends SyncMeta {
   date: string
   mood: string
   tags: string[]
+  isPublic?: boolean
 }
 
 export interface JournalTemplate {
@@ -92,7 +96,7 @@ export interface JournalPrompt {
 }
 
 export interface CalEvent extends SyncMeta {
-  id: number
+  id: string
   orgId: string
   userId: string
   title: string
@@ -102,21 +106,23 @@ export interface CalEvent extends SyncMeta {
   endTime: string | null
   tag: string
   recur: string | null
+  isPublic?: boolean
 }
 
 export interface Board extends SyncMeta {
-  id: number
+  id: string
   orgId: string
   userId: string
   name: string
   description: string
   color: string
   icon: string
+  isPublic?: boolean
 }
 
 export interface BoardNode extends SyncMeta {
-  id: number
-  boardId: number
+  id: string
+  boardId: string
   type: string
   title: string
   body: string
@@ -127,25 +133,15 @@ export interface BoardNode extends SyncMeta {
 }
 
 export interface BoardThread extends SyncMeta {
-  id: number
-  boardId: number
-  fromNodeId: number
-  toNodeId: number
+  id: string
+  boardId: string
+  fromNodeId: string
+  toNodeId: string
   label: string
 }
 
-export interface Note extends SyncMeta {
-  id: number
-  orgId: string
-  userId: string
-  title: string
-  content: string
-  isPublic: boolean
-  tags: string[]
-}
-
 export interface FocusSession extends SyncMeta {
-  id: number
+  id: string
   orgId: string
   userId: string
   date: string
@@ -157,12 +153,23 @@ export interface FocusSession extends SyncMeta {
   longRestMinutes: number
   completedTasks: number
   totalFocusSeconds: number
+  isPublic?: boolean
 }
 
 export interface UserPreference extends SyncMeta {
-  id: number
+  id: string
   orgId: string
   userId: string
   key: string
   value: unknown
+}
+
+export interface Note extends SyncMeta {
+  id: string
+  orgId: string
+  userId: string
+  title: string
+  content: string
+  isPublic: boolean
+  tags: string[]
 }

@@ -22,11 +22,28 @@ export async function POST(req: Request) {
   const body = await req.json()
   if (!body.key?.trim()) return Response.json({ error: 'key required' }, { status: 400 })
 
-  // Upsert: if key exists, update it; otherwise insert
+  // PowerSync upsert: if clientId supplied, upsert by clientId; else upsert by key
+  if (body.clientId) {
+    const existing = await db.select({ id: userPreferences.id }).from(userPreferences)
+      .where(eq(userPreferences.clientId, body.clientId))
+    if (existing.length > 0) {
+      const [row] = await db.update(userPreferences)
+        .set({ value: body.value, updatedAt: new Date() })
+        .where(eq(userPreferences.clientId, body.clientId))
+        .returning()
+      return Response.json(row)
+    }
+    const [row] = await db.insert(userPreferences).values({
+      clientId: body.clientId, orgId, userId,
+      key: body.key, value: body.value ?? null,
+    }).returning()
+    return Response.json(row, { status: 201 })
+  }
+
+  // Legacy: upsert by key
   const existing = await db.select().from(userPreferences).where(
     and(eq(userPreferences.orgId, orgId), eq(userPreferences.userId, userId), eq(userPreferences.key, body.key))
   )
-
   if (existing.length > 0) {
     const [row] = await db.update(userPreferences)
       .set({ value: body.value, updatedAt: new Date() })
@@ -34,11 +51,8 @@ export async function POST(req: Request) {
       .returning()
     return Response.json(row)
   }
-
   const [row] = await db.insert(userPreferences).values({
-    orgId, userId,
-    key: body.key,
-    value: body.value ?? null,
+    orgId, userId, key: body.key, value: body.value ?? null,
   }).returning()
   return Response.json(row, { status: 201 })
 }
@@ -47,10 +61,13 @@ export async function PUT(req: Request) {
   const { orgId, userId } = await auth()
   if (!orgId || !userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await req.json()
-  if (!body.id) return Response.json({ error: 'id required' }, { status: 400 })
+  if (!body.id && !body.clientId) return Response.json({ error: 'id or clientId required' }, { status: 400 })
+  const where = body.clientId
+    ? and(eq(userPreferences.clientId, body.clientId), eq(userPreferences.orgId, orgId), eq(userPreferences.userId, userId))
+    : and(eq(userPreferences.id, body.id), eq(userPreferences.orgId, orgId), eq(userPreferences.userId, userId))
   const [row] = await db.update(userPreferences)
     .set({ value: body.value, updatedAt: new Date() })
-    .where(and(eq(userPreferences.id, body.id), eq(userPreferences.orgId, orgId), eq(userPreferences.userId, userId)))
+    .where(where!)
     .returning()
   if (!row) return Response.json({ error: 'Not found' }, { status: 404 })
   return Response.json(row)
@@ -59,10 +76,13 @@ export async function PUT(req: Request) {
 export async function DELETE(req: Request) {
   const { orgId, userId } = await auth()
   if (!orgId || !userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  const { id } = await req.json()
-  if (!id) return Response.json({ error: 'id required' }, { status: 400 })
-  await db.delete(userPreferences).where(
-    and(eq(userPreferences.id, id), eq(userPreferences.orgId, orgId), eq(userPreferences.userId, userId))
-  )
+  const body = await req.json()
+  const clientId = body.clientId
+  const id = body.id
+  if (!clientId && !id) return Response.json({ error: 'id or clientId required' }, { status: 400 })
+  const where = clientId
+    ? and(eq(userPreferences.clientId, clientId), eq(userPreferences.orgId, orgId), eq(userPreferences.userId, userId))
+    : and(eq(userPreferences.id, id), eq(userPreferences.orgId, orgId), eq(userPreferences.userId, userId))
+  await db.delete(userPreferences).where(where!)
   return Response.json({ ok: true })
 }
