@@ -1,11 +1,12 @@
 'use client'
-import { useUser, useClerk } from '@clerk/nextjs'
+import { useUser, useSignOut } from '@/hooks/useSupabaseAuth'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 export default function WaitlistPage() {
-  const { isLoaded, user } = useUser()
-  const { signOut } = useClerk()
+  const { user } = useUser()
+  const signOut = useSignOut()
+  const isLoaded = user !== undefined
   const router = useRouter()
   const [slots, setSlots] = useState({ filled: 1, remaining: 99, total: 100 })
 
@@ -23,9 +24,9 @@ export default function WaitlistPage() {
   if (!isLoaded) return null
 
   const isSignedIn = !!user
-  const isAdmin = user?.publicMetadata?.role === 'admin'
-  const name = user?.firstName || user?.username || ''
-  const email = user?.primaryEmailAddress?.emailAddress || ''
+  const isAdmin = user?.appMetadata?.role === 'admin'
+  const name = (user?.firstName) || (user?.userMetadata?.username as string) || ""
+  const email = user?.email || ''
 
   return (
     <div style={{ minHeight: '100vh', background: '#07070c', color: '#e2e2f0', fontFamily: 'var(--font, system-ui)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', position: 'relative', overflow: 'hidden' }}>
@@ -47,7 +48,7 @@ export default function WaitlistPage() {
           </svg>
         </div>
 
-        <div style={{ fontSize: '0.7rem', fontFamily: 'monospace', fontWeight: 600, color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: 14 }}>// waitlist_confirmed</div>
+        <div style={{ fontSize: '0.7rem', fontFamily: 'monospace', fontWeight: 600, color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 14 }}>// waitlist_confirmed</div>
         <h1 style={{ fontSize: 'clamp(2rem,5vw,3rem)', fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.1, marginBottom: 16 }}>
           {isSignedIn && name ? (
             <>You're on the list,<br /><span style={{ color: '#a78bfa' }}>{name}.</span></>
@@ -91,7 +92,7 @@ export default function WaitlistPage() {
             Back to homepage
           </button>
           {isSignedIn && (
-            <button onClick={() => signOut(() => router.push('/'))} style={{ padding: '8px 20px', borderRadius: 9, background: 'transparent', border: 'none', color: '#555570', fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'inherit', transition: 'color 0.2s' }}
+            <button onClick={() => signOut()} style={{ padding: '8px 20px', borderRadius: 9, background: 'transparent', border: 'none', color: '#555570', fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'inherit', transition: 'color 0.2s' }}
               onMouseEnter={e => { e.currentTarget.style.color = '#9898b8' }}
               onMouseLeave={e => { e.currentTarget.style.color = '#555570' }}>
               Sign out

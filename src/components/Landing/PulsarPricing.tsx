@@ -15,9 +15,9 @@ function useReveal(th = 0.08) {
 }
 
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 .pp *{margin:0;padding:0;box-sizing:border-box}
-.pp{--bg:#07070c;--s1:#0c0c14;--s2:#111119;--s3:#18182a;--s4:#222236;--bd:rgba(255,255,255,0.04);--bd2:rgba(255,255,255,0.08);--bd3:rgba(255,255,255,0.12);--t1:#eeeef5;--t2:#a0a0b8;--t3:#65657a;--t4:#45455a;--ac:#a78bfa;--ok:#6ee7b7;--ft:'Space Grotesk',system-ui,sans-serif;--mn:'JetBrains Mono',monospace;font-family:var(--ft);background:var(--bg);color:var(--t1);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.pp{--bg:#07070c;--s1:#0c0c14;--s2:#111119;--s3:#18182a;--s4:#222236;--bd:rgba(255,255,255,0.04);--bd2:rgba(255,255,255,0.08);--bd3:rgba(255,255,255,0.12);--t1:#eeeef5;--t2:#a0a0b8;--t3:#65657a;--t4:#45455a;--ac:#a78bfa;--ok:#6ee7b7;--ft:'JetBrains Mono',monospace;--mn:'JetBrains Mono',monospace;font-family:var(--ft);background:var(--bg);color:var(--t1);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 .pp ::-webkit-scrollbar{width:5px}.pp ::-webkit-scrollbar-track{background:transparent}.pp ::-webkit-scrollbar-thumb{background:rgba(167,139,250,.15);border-radius:3px}
 @keyframes ppFadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
 @keyframes ppGlow{0%,100%{box-shadow:0 0 20px rgba(167,139,250,.1)}50%{box-shadow:0 0 40px rgba(167,139,250,.2)}}
@@ -94,7 +94,7 @@ export default function PulsarPricing() {
       <section ref={hero.ref} className="pp-section" style={{ padding: '80px 40px 60px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: '30%', left: '50%', transform: 'translate(-50%,-50%)', width: 700, height: 700, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,58,237,0.06), transparent 60%)', pointerEvents: 'none' }} />
         <div style={{ position: 'relative', zIndex: 1, opacity: hero.v ? 1 : 0, transform: hero.v ? 'none' : 'translateY(24px)', transition: `all 0.8s ${E}` }}>
-          <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--ac)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 16 }}>{'// pricing'}</div>
+          <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--ac)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 16 }}>{'// pricing'}</div>
           <h1 style={{ fontSize: 'clamp(2.2rem, 5vw, 3.6rem)', fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.1, marginBottom: 16 }}>Simple pricing.<br />No surprises.</h1>
           <p style={{ fontSize: '1.05rem', color: 'var(--t2)', lineHeight: 1.6, maxWidth: 480, margin: '0 auto 32px' }}>One plan for every stage. Upgrade or downgrade anytime.</p>
           {/* Toggle */}
@@ -107,7 +107,7 @@ export default function PulsarPricing() {
             {yearly && <span style={{ fontSize: '0.65rem', fontFamily: 'var(--mn)', padding: '3px 10px', borderRadius: 100, background: 'rgba(110,231,183,0.08)', color: 'var(--ok)', border: '1px solid rgba(110,231,183,0.15)', fontWeight: 600 }}>save up to 17%</span>}
           </div>
           <div style={{ marginTop: 16, padding: '8px 18px', borderRadius: 100, background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.15)', display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: '0.75rem', fontFamily: 'var(--mn)', color: 'rgba(245,158,11,0.75)' }}>
-            <span>🔒</span> Payments open at beta launch · <span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>join the waitlist above</span>
+            <span>🔒</span> Payments open at beta launch · <a href="/" style={{ color: 'rgba(245,158,11,0.75)', textDecoration: 'underline' }}>join the waitlist on the homepage</a>
           </div>
         </div>
       </section>
@@ -124,12 +124,12 @@ export default function PulsarPricing() {
                   onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = `0 12px 40px rgba(0,0,0,0.3), 0 0 0 1px ${t.accent}22` }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
                 >
-                  {t.pop && <div style={{ position: 'absolute', top: -1, right: 16, padding: '4px 12px', borderRadius: '0 0 8px 8px', fontSize: '0.62rem', fontFamily: 'var(--mn)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', background: 'linear-gradient(135deg, #6ee7b7, #38bdf8)', color: '#fff' }}>Best Value</div>}
+                  {t.pop && <div style={{ position: 'absolute', top: -1, right: 16, padding: '4px 12px', borderRadius: '0 0 8px 8px', fontSize: '0.62rem', fontFamily: 'var(--mn)', fontWeight: 600, letterSpacing: '0.02em', textTransform: 'uppercase', background: 'linear-gradient(135deg, #6ee7b7, #38bdf8)', color: '#fff' }}>Best Value</div>}
                   {/* Per-plan % off badge */}
                   {yearly && t.savePercent && (
                     <div style={{ position: 'absolute', top: 14, left: 14, padding: '3px 8px', borderRadius: 6, fontSize: '0.6rem', fontFamily: 'var(--mn)', fontWeight: 700, background: `${t.accent}18`, color: t.accent, border: `1px solid ${t.accent}30` }}>{t.savePercent}% off</div>
                   )}
-                  <div style={{ fontSize: '0.82rem', fontFamily: 'var(--mn)', fontWeight: 600, color: t.accent, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8, marginTop: yearly && t.savePercent ? 22 : 0 }}>{t.name}</div>
+                  <div style={{ fontSize: '0.82rem', fontFamily: 'var(--mn)', fontWeight: 600, color: t.accent, textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: 8, marginTop: yearly && t.savePercent ? 22 : 0 }}>{t.name}</div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, marginBottom: 6 }}>
                     <span style={{ fontSize: '2.6rem', fontWeight: 700, letterSpacing: '-0.03em' }}>{price}</span>
                     {period && <span style={{ fontSize: '0.85rem', color: 'var(--t3)' }}>{period}</span>}
@@ -160,7 +160,7 @@ export default function PulsarPricing() {
       <section ref={compare.ref} className="pp-section" style={{ padding: '80px 40px', background: 'var(--s1)', borderTop: '1px solid var(--bd)', borderBottom: '1px solid var(--bd)' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48, opacity: compare.v ? 1 : 0, transform: compare.v ? 'none' : 'translateY(20px)', transition: `all 0.7s ${E}` }}>
-            <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--ac)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>{'// compare'}</div>
+            <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--ac)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 12 }}>{'// compare'}</div>
             <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 700, letterSpacing: '-0.02em' }}>Feature comparison</h2>
           </div>
           <div className="pp-compare" style={{ overflowX: 'auto', borderRadius: 14, border: '1px solid var(--bd2)', background: 'var(--s2)' }}>
@@ -191,7 +191,7 @@ export default function PulsarPricing() {
       {/* FAQ */}
       <section ref={faq.ref} style={{ padding: '80px 40px', maxWidth: 720, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 48, opacity: faq.v ? 1 : 0, transform: faq.v ? 'none' : 'translateY(20px)', transition: `all 0.7s ${E}` }}>
-          <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--ac)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>{'// faq'}</div>
+          <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--ac)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 12 }}>{'// faq'}</div>
           <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 700, letterSpacing: '-0.02em' }}>Common questions</h2>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -222,12 +222,22 @@ export default function PulsarPricing() {
       </section>
 
       {/* Footer */}
-      <footer style={{ padding: '32px 40px', borderTop: '1px solid var(--bd)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: 1200, margin: '0 auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 20, height: 20, borderRadius: 5, background: 'linear-gradient(135deg,#a78bfa,#7c3aed)', display: 'grid', placeItems: 'center', fontSize: 9, fontWeight: 700, color: '#fff' }}>P</div>
-          <span style={{ fontWeight: 600, fontSize: '0.88rem' }}>Pulsar</span>
+      <footer style={{ padding: '28px 40px', borderTop: '1px solid var(--bd)' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 20, height: 20, borderRadius: 5, background: 'linear-gradient(135deg,#a78bfa,#7c3aed)', display: 'grid', placeItems: 'center', fontSize: 9, fontWeight: 700, color: '#fff' }}>P</div>
+            <span style={{ fontWeight: 600, fontSize: '0.82rem', fontFamily: 'var(--mn)' }}>pulsar</span>
+          </div>
+          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', justifyContent: 'center' }}>
+            {[['Home', '/'], ['Features', '/features'], ['Changelog', '/changelog'], ['Privacy', '/privacy'], ['Terms', '/terms']].map(([l, h]) => (
+              <a key={l} href={h} style={{ fontSize: '0.7rem', color: 'var(--t4)', textDecoration: 'none', fontFamily: 'var(--mn)', transition: 'color 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.color = 'var(--t3)' }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'var(--t4)' }}
+              >{l}</a>
+            ))}
+          </div>
+          <span style={{ fontSize: '0.68rem', fontFamily: 'var(--mn)', color: 'var(--t4)' }}>© 2026 Pulsar</span>
         </div>
-        <span style={{ fontSize: '0.72rem', fontFamily: 'var(--mn)', color: 'var(--t4)' }}>© 2025 Pulsar. All rights reserved.</span>
       </footer>
     </div>
   )

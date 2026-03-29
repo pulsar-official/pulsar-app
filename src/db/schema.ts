@@ -1,9 +1,9 @@
-import { pgTable, serial, integer, bigint, text, timestamp, varchar, boolean, json, jsonb, real, date, index, uniqueIndex } from 'drizzle-orm/pg-core'
+import { pgTable, serial, integer, bigint, text, timestamp, varchar, boolean, json, jsonb, real, date, uuid, index, uniqueIndex } from 'drizzle-orm/pg-core'
 
 /* ── Users ── */
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
-  clerkId: varchar('clerk_id', { length: 255 }).unique().notNull(),
+  supabaseId: uuid('supabase_id').unique().notNull(),
   email: varchar('email', { length: 255 }).unique().notNull(),
   username: varchar('username', { length: 255 }),
   phone: varchar('phone', { length: 32 }),
@@ -16,13 +16,24 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at').defaultNow(),
 })
 
-/* ── Organizations (synced from Clerk) ── */
+/* ── Organizations ── */
 export const organizations = pgTable('organizations', {
-  id: serial('id').primaryKey(),
-  clerkOrgId: varchar('clerk_org_id', { length: 255 }).unique().notNull(),
+  id: uuid('id').primaryKey().defaultRandom(),
   name: varchar('name', { length: 255 }),
+  createdBy: uuid('created_by').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
 })
+
+/* ── Organization Members ── */
+export const organizationMembers = pgTable('organization_members', {
+  id: serial('id').primaryKey(),
+  orgId: uuid('org_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').notNull(),
+  role: varchar('role', { length: 32 }).default('member').notNull(),
+  joinedAt: timestamp('joined_at').defaultNow(),
+}, (t) => [
+  uniqueIndex('org_members_org_user_idx').on(t.orgId, t.userId),
+])
 
 /* ── Notes ── */
 export const notes = pgTable('notes', {

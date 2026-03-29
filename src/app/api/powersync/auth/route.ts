@@ -1,8 +1,8 @@
-import { auth } from '@clerk/nextjs/server'
+import { getOrgAndUser } from '@/lib/auth-helpers'
 import { SignJWT, importPKCS8 } from 'jose'
 
 export async function GET() {
-  const { orgId, userId } = await auth()
+  const { orgId, userId } = await getOrgAndUser()
   if (!orgId || !userId) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }

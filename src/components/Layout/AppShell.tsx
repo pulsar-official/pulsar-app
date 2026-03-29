@@ -1,5 +1,5 @@
 'use client'
-import { useAuth, useUser } from '@clerk/nextjs'
+import { useAuth, useUser } from '@/hooks/useSupabaseAuth'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { usePowerSyncQuery } from '@powersync/react'
@@ -172,7 +172,7 @@ export default function AppShell() {
   const hydrateFromPowerSync = useProductivityStore(s => s.hydrateFromPowerSync)
   const storeOrgId = useProductivityStore(s => s.orgId)
 
-  const isAdmin = user?.publicMetadata?.role === 'admin'
+  const isAdmin = user?.appMetadata?.role === 'admin'
 
   useServiceWorker()
 

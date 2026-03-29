@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useRef, useEffect, useState, useCallback } from 'react'
-import { useClerk, useUser, useOrganization, useOrganizationList } from '@clerk/nextjs'
+import { useUser, useSignOut, useOrganization, useOrganizationList } from '@/hooks/useSupabaseAuth'
 import styles from './ProfileMenu.module.scss'
 
 const WORKSPACE_LIMITS: Record<string, number> = {
@@ -25,25 +25,23 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
   onClose,
   onSettingsClick, onShortcutsClick, onSignOut, onManagePlan, triggerRef,
 }) => {
-  const { signOut } = useClerk()
+  const signOut = useSignOut()
   const { user } = useUser()
   const { organization: activeOrg } = useOrganization()
-  const { userMemberships, isLoaded: orgsLoaded, setActive, createOrganization } = useOrganizationList({
-    userMemberships: { infinite: true },
-  })
+  const { memberships, isLoaded: orgsLoaded, setActive, createOrganization } = useOrganizationList()
   const menuRef = useRef<HTMLDivElement>(null)
   const [position, setPosition] = useState({ top: 0, left: 0 })
   const [creatingWorkspace, setCreatingWorkspace] = useState(false)
   const [newWorkspaceName, setNewWorkspaceName] = useState('')
   const [createLoading, setCreateLoading] = useState(false)
 
-  const plan = (user?.publicMetadata?.plan as string) || 'Free'
+  const plan = (user?.appMetadata?.plan as string) || 'Free'
   const planActive = plan !== 'Free'
   const displayName = user?.fullName || user?.firstName || 'User'
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
 
   const workspaceLimit = WORKSPACE_LIMITS[plan] ?? 1
-  const orgList = userMemberships?.data ?? []
+  const orgList = memberships ?? []
   const workspaceCount = orgList.length
   const canCreateWorkspace = workspaceCount < workspaceLimit
 
@@ -107,7 +105,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
 
   const handleSignOut = async () => {
     onClose?.()
-    await signOut({ redirectUrl: '/' })
+    await signOut()
   }
 
   const handleSwitchWorkspace = async (orgId: string) => {
@@ -119,8 +117,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
     if (!newWorkspaceName.trim() || !canCreateWorkspace || createLoading) return
     setCreateLoading(true)
     try {
-      const org = await createOrganization?.({ name: newWorkspaceName.trim() })
-      if (org) await setActive?.({ organization: org.id })
+      await createOrganization?.(newWorkspaceName.trim())
       setNewWorkspaceName('')
       setCreatingWorkspace(false)
     } catch {
@@ -155,8 +152,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
           </div>
         </div>
         <div className={styles.workspacesList}>
-          {orgsLoaded && orgList.map((mem) => {
-            const org = mem.organization
+          {orgsLoaded && orgList.map((org) => {
             const isActive = org.id === activeOrg?.id
             return (
               <button
@@ -165,10 +161,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
                 onClick={() => handleSwitchWorkspace(org.id)}
               >
                 <div className={styles.workspaceIcon}>
-                  {org.imageUrl
-                    ? <img src={org.imageUrl} alt={org.name} className={styles.workspaceIconImg} />
-                    : org.name.charAt(0).toUpperCase()
-                  }
+                  {org.name.charAt(0).toUpperCase()}
                 </div>
                 <div className={styles.workspaceDetails}>
                   <div className={styles.workspaceName}>{org.name}</div>

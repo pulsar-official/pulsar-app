@@ -1,10 +1,10 @@
-import { auth } from '@clerk/nextjs/server'
+import { getOrgAndUser } from '@/lib/auth-helpers'
 import { db } from '@/lib/db'
 import { goals, goalSubs } from '@/db/schema'
 import { eq, and, or, isNull, inArray } from 'drizzle-orm'
 
 export async function GET() {
-  const { orgId } = await auth()
+  const { orgId } = await getOrgAndUser()
   if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
   const goalRows = await db.select().from(goals).where(
     and(eq(goals.orgId, orgId), or(eq(goals.isDeleted, false), isNull(goals.isDeleted)))
@@ -24,7 +24,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const { orgId, userId } = await auth()
+  const { orgId, userId } = await getOrgAndUser()
   if (!orgId || !userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await req.json()
 
@@ -128,7 +128,7 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
-  const { orgId } = await auth()
+  const { orgId } = await getOrgAndUser()
   if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await req.json()
   if (!body.id && !body.clientId) return Response.json({ error: 'id or clientId required' }, { status: 400 })
@@ -149,7 +149,7 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const { orgId } = await auth()
+  const { orgId } = await getOrgAndUser()
   if (!orgId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await req.json()
   const clientId = body.clientId
