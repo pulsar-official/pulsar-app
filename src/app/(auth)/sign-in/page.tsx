@@ -60,7 +60,7 @@ export default function SignInPage() {
     setLoading(true)
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${APP_URL}/auth/callback`,
+        redirectTo: `${APP_URL}/auth/callback?type=recovery`,
       })
       if (error) {
         setErrors({ email: error.message }); setShake(true); setTimeout(() => setShake(false), 500)
