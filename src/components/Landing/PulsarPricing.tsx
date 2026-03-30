@@ -15,12 +15,12 @@ function useReveal(th = 0.08) {
 }
 
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 .pp *{margin:0;padding:0;box-sizing:border-box}
-.pp{--bg:#07070c;--s1:#0c0c14;--s2:#111119;--s3:#18182a;--s4:#222236;--bd:rgba(255,255,255,0.04);--bd2:rgba(255,255,255,0.08);--bd3:rgba(255,255,255,0.12);--t1:#eeeef5;--t2:#a0a0b8;--t3:#65657a;--t4:#45455a;--ac:#a78bfa;--ok:#6ee7b7;--ft:'JetBrains Mono',monospace;--mn:'JetBrains Mono',monospace;font-family:var(--ft);background:var(--bg);color:var(--t1);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.pp{--bg:#07070c;--s1:#0c0c14;--s2:#111119;--s3:#18182a;--s4:#222236;--bd:rgba(255,255,255,0.04);--bd2:rgba(255,255,255,0.08);--bd3:rgba(255,255,255,0.12);--t1:#eeeef5;--t2:#a0a0b8;--t3:#65657a;--t4:#45455a;--ac:#a78bfa;--ok:#6ee7b7;--ft:'Inter',system-ui,sans-serif;--mn:'JetBrains Mono',monospace;font-family:var(--ft);background:var(--bg);color:var(--t1);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 .pp ::-webkit-scrollbar{width:5px}.pp ::-webkit-scrollbar-track{background:transparent}.pp ::-webkit-scrollbar-thumb{background:rgba(167,139,250,.15);border-radius:3px}
 @keyframes ppFadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
-@keyframes ppGlow{0%,100%{box-shadow:0 0 20px rgba(167,139,250,.1)}50%{box-shadow:0 0 40px rgba(167,139,250,.2)}}
+@keyframes blobDrift{0%{transform:translate(0,0)}50%{transform:translate(16px,-12px)}100%{transform:translate(0,0)}}
 @media(max-width:768px){
   .pp-section{padding-left:20px!important;padding-right:20px!important}
   .pp-grid-4{grid-template-columns:1fr 1fr!important}
@@ -92,7 +92,7 @@ export default function PulsarPricing() {
 
       {/* Hero */}
       <section ref={hero.ref} className="pp-section" style={{ padding: '80px 40px 60px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: '30%', left: '50%', transform: 'translate(-50%,-50%)', width: 700, height: 700, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,58,237,0.06), transparent 60%)', pointerEvents: 'none' }} />
+        <div aria-hidden style={{ position: 'absolute', top: '-60px', right: '-60px', width: 400, height: 320, borderRadius: '60% 40% 55% 45% / 45% 55% 40% 60%', background: '#a78bfa', opacity: 0.04, pointerEvents: 'none', animation: 'blobDrift 24s ease-in-out infinite' }} />
         <div style={{ position: 'relative', zIndex: 1, opacity: hero.v ? 1 : 0, transform: hero.v ? 'none' : 'translateY(24px)', transition: `all 0.8s ${E}` }}>
           <div style={{ fontSize: '0.72rem', fontFamily: 'var(--mn)', fontWeight: 600, color: 'var(--ac)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 16 }}>{'// pricing'}</div>
           <h1 style={{ fontSize: 'clamp(2.2rem, 5vw, 3.6rem)', fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.1, marginBottom: 16 }}>Simple pricing.<br />No surprises.</h1>
@@ -112,6 +112,13 @@ export default function PulsarPricing() {
         </div>
       </section>
 
+      {/* Student callout */}
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 40px 24px', textAlign: 'center' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '9px 20px', borderRadius: 100, background: 'rgba(167,139,250,0.05)', border: '1px solid rgba(167,139,250,0.12)', fontSize: '0.8rem', fontFamily: 'var(--mn)', color: '#a78bfa' }}>
+          🎓 Student? Get <strong style={{ color: '#c4b5fd' }}>40% off</strong> any paid plan with a valid .edu email.
+        </div>
+      </div>
+
       {/* Cards */}
       <section className="pp-section" style={{ padding: '0 40px 80px', maxWidth: 1200, margin: '0 auto' }}>
         <div className="pp-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, alignItems: 'stretch' }}>
@@ -119,12 +126,12 @@ export default function PulsarPricing() {
             const price = yearly && t.yearlyPrice ? t.yearlyPrice : t.price
             const period = yearly && t.yearlyPrice ? '/mo, billed yearly' : t.period
             return (
-              <div key={t.name} style={{ padding: t.pop ? 2 : 0, borderRadius: 16, display: 'flex', background: t.pop ? 'linear-gradient(135deg, #6ee7b7, #38bdf8, #a78bfa)' : 'transparent', animation: `ppFadeUp 0.6s ${E} ${i * 0.08}s both` }}>
-                <div style={{ padding: '28px 24px', borderRadius: t.pop ? 14 : 16, flex: 1, display: 'flex', flexDirection: 'column', background: t.pop ? 'var(--s2)' : 'var(--s1)', border: t.pop ? 'none' : '1px solid var(--bd2)', position: 'relative', transition: `all 0.25s ${E}` }}
+              <div key={t.name} style={{ borderRadius: 16, display: 'flex', animation: `ppFadeUp 0.6s ${E} ${i * 0.08}s both` }}>
+                <div style={{ padding: '28px 24px', borderRadius: 16, flex: 1, display: 'flex', flexDirection: 'column', background: t.pop ? 'var(--s2)' : 'var(--s1)', border: t.pop ? '1.5px solid #6ee7b7' : '1px solid var(--bd2)', position: 'relative', transition: `all 0.25s ${E}` }}
                   onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = `0 12px 40px rgba(0,0,0,0.3), 0 0 0 1px ${t.accent}22` }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}
                 >
-                  {t.pop && <div style={{ position: 'absolute', top: -1, right: 16, padding: '4px 12px', borderRadius: '0 0 8px 8px', fontSize: '0.62rem', fontFamily: 'var(--mn)', fontWeight: 600, letterSpacing: '0.02em', textTransform: 'uppercase', background: 'linear-gradient(135deg, #6ee7b7, #38bdf8)', color: '#fff' }}>Best Value</div>}
+                  {t.pop && <div style={{ position: 'absolute', top: -1, right: 16, padding: '4px 12px', borderRadius: '0 0 8px 8px', fontSize: '0.62rem', fontFamily: 'var(--mn)', fontWeight: 600, letterSpacing: '0.02em', textTransform: 'uppercase', background: '#6ee7b7', color: '#07070c' }}>Best Value</div>}
                   {/* Per-plan % off badge */}
                   {yearly && t.savePercent && (
                     <div style={{ position: 'absolute', top: 14, left: 14, padding: '3px 8px', borderRadius: 6, fontSize: '0.6rem', fontFamily: 'var(--mn)', fontWeight: 700, background: `${t.accent}18`, color: t.accent, border: `1px solid ${t.accent}30` }}>{t.savePercent}% off</div>
@@ -145,9 +152,9 @@ export default function PulsarPricing() {
                   <button
                     onClick={() => t.price === 'Free' ? router.push('/sign-up') : undefined}
                     disabled={t.price !== 'Free'}
-                    style={{ width: '100%', padding: 13, borderRadius: 8, marginTop: 'auto', fontSize: '0.9rem', fontWeight: 600, fontFamily: 'var(--ft)', transition: `all 0.2s ${E}`, border: t.pop ? 'none' : '1px solid var(--bd2)', background: t.price === 'Free' ? (t.pop ? `linear-gradient(135deg, ${t.accent}, #38bdf8)` : 'transparent') : 'rgba(245,158,11,0.08)', color: t.price === 'Free' ? '#fff' : 'rgba(245,158,11,0.6)', cursor: t.price === 'Free' ? 'pointer' : 'default', opacity: t.price === 'Free' ? 1 : 0.7 }}
-                    onMouseEnter={e => { if (t.price === 'Free') { e.currentTarget.style.transform = 'translateY(-1px)'; if (!t.pop) e.currentTarget.style.background = 'var(--s3)' } }}
-                    onMouseLeave={e => { if (t.price === 'Free') { e.currentTarget.style.transform = 'none'; if (!t.pop) e.currentTarget.style.background = 'transparent' } }}
+                    style={{ width: '100%', padding: 13, borderRadius: 8, marginTop: 'auto', fontSize: '0.9rem', fontWeight: 600, fontFamily: 'var(--ft)', transition: `all 0.2s ${E}`, border: t.price === 'Free' ? 'none' : '1px solid var(--bd2)', background: t.price === 'Free' ? '#7c3aed' : 'rgba(245,158,11,0.08)', color: t.price === 'Free' ? '#fff' : 'rgba(245,158,11,0.6)', cursor: t.price === 'Free' ? 'pointer' : 'default', opacity: t.price === 'Free' ? 1 : 0.7 }}
+                    onMouseEnter={e => { if (t.price === 'Free') { e.currentTarget.style.opacity = '0.88' } }}
+                    onMouseLeave={e => { if (t.price === 'Free') { e.currentTarget.style.opacity = '1' } }}
                   >{t.price === 'Free' ? 'Join Waitlist' : '🔒 Launching Soon'}</button>
                 </div>
               </div>
@@ -215,9 +222,9 @@ export default function PulsarPricing() {
       <section style={{ padding: '80px 40px', textAlign: 'center', borderTop: '1px solid var(--bd)' }}>
         <h2 style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.4rem)', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: 14 }}>Ready to activate your knowledge?</h2>
         <p style={{ color: 'var(--t2)', fontSize: '1.05rem', marginBottom: 28 }}>Start free. No credit card required.</p>
-        <button onClick={() => router.push('/sign-up')} style={{ padding: '14px 36px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#a78bfa,#7c3aed)', color: '#fff', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--ft)', transition: `all 0.2s ${E}`, animation: 'ppGlow 3s ease infinite' }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 0 40px rgba(167,139,250,0.25)' }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'none' }}
+        <button onClick={() => router.push('/sign-up')} style={{ padding: '14px 36px', borderRadius: 10, border: 'none', background: '#7c3aed', color: '#fff', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--ft)', transition: `all 0.2s ${E}` }}
+          onMouseEnter={e => { e.currentTarget.style.opacity = '0.88' }}
+          onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
         >Join Waitlist →</button>
       </section>
 
@@ -225,7 +232,7 @@ export default function PulsarPricing() {
       <footer style={{ padding: '28px 40px', borderTop: '1px solid var(--bd)' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 20, height: 20, borderRadius: 5, background: 'linear-gradient(135deg,#a78bfa,#7c3aed)', display: 'grid', placeItems: 'center', fontSize: 9, fontWeight: 700, color: '#fff' }}>P</div>
+            <div style={{ width: 20, height: 20, borderRadius: 5, background: '#7c3aed', display: 'grid', placeItems: 'center', fontSize: 9, fontWeight: 700, color: '#fff' }}>P</div>
             <span style={{ fontWeight: 600, fontSize: '0.82rem', fontFamily: 'var(--mn)' }}>pulsar</span>
           </div>
           <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', justifyContent: 'center' }}>

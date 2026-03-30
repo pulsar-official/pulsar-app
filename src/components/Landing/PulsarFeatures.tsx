@@ -6,9 +6,10 @@ import LandingNav from '@/components/Landing/LandingNav'
 // ─── Styles ─────────────────────────────────────────────────────────────────────
 
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @keyframes pfFadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
-.pf{--bg:#07070c;--s1:#0c0c14;--s2:#111119;--s3:#18182a;--s4:#222236;--bd:rgba(255,255,255,0.04);--bd2:rgba(255,255,255,0.07);--bd3:rgba(255,255,255,0.12);--t1:#eeeef5;--t2:#a0a0b8;--t3:#65657a;--t4:#45455a;--ac:#a78bfa;--ok:#6ee7b7;--mn:'JetBrains Mono',monospace;font-family:var(--mn);background:var(--bg);color:var(--t1);overflow-x:hidden;-webkit-font-smoothing:antialiased;line-height:1.6}
+@keyframes blobDrift{0%{transform:translate(0,0)}50%{transform:translate(16px,-12px)}100%{transform:translate(0,0)}}
+.pf{--bg:#07070c;--s1:#0c0c14;--s2:#111119;--s3:#18182a;--s4:#222236;--bd:rgba(255,255,255,0.04);--bd2:rgba(255,255,255,0.07);--bd3:rgba(255,255,255,0.12);--t1:#eeeef5;--t2:#a0a0b8;--t3:#65657a;--t4:#45455a;--ac:#a78bfa;--ok:#6ee7b7;--font:'Inter',system-ui,sans-serif;--mn:'JetBrains Mono',monospace;font-family:var(--font);background:var(--bg);color:var(--t1);overflow-x:hidden;-webkit-font-smoothing:antialiased;line-height:1.6}
 .pf *{margin:0;padding:0;box-sizing:border-box}
 .pf ::-webkit-scrollbar{width:4px}.pf ::-webkit-scrollbar-track{background:transparent}.pf ::-webkit-scrollbar-thumb{background:rgba(167,139,250,0.15);border-radius:2px}
 .pf a{color:var(--ac);text-decoration:none;transition:color 0.2s}
@@ -274,7 +275,7 @@ function Footer() {
     <footer style={{ padding: '28px 48px', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
       <div className="pf-footer-inner pf-max" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 20, height: 20, borderRadius: 5, background: 'linear-gradient(135deg,#a78bfa,#7c3aed)', display: 'grid', placeItems: 'center', fontSize: 9, fontWeight: 700, color: '#fff' }}>P</div>
+          <div style={{ width: 20, height: 20, borderRadius: 5, background: '#7c3aed', display: 'grid', placeItems: 'center', fontSize: 9, fontWeight: 700, color: '#fff' }}>P</div>
           <span style={{ fontWeight: 600, fontSize: '0.82rem' }}>pulsar</span>
         </div>
         <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -363,8 +364,10 @@ export default function PulsarFeatures() {
       <section
         ref={hero.ref}
         className="pf-section"
-        style={{ paddingBottom: 64, opacity: hero.v ? 1 : 0, transform: hero.v ? 'none' : 'translateY(20px)', transition: `all 0.7s ${E}` }}
+        style={{ paddingBottom: 64, position: 'relative', overflow: 'hidden', opacity: hero.v ? 1 : 0, transform: hero.v ? 'none' : 'translateY(20px)', transition: `all 0.7s ${E}` }}
       >
+        <div aria-hidden style={{ position: 'absolute', bottom: '-40px', left: '-40px', width: 280, height: 220, borderRadius: '60% 40% 55% 45% / 45% 55% 40% 60%', background: '#6ee7b7', opacity: 0.04, pointerEvents: 'none', animation: 'blobDrift 24s ease-in-out infinite' }} />
+        <div style={{ position: 'relative', zIndex: 1 }}>
         <div className="pf-max">
           <div className="pf-label">// features</div>
           <h1 style={{ fontSize: 'clamp(2rem, 4.5vw, 3.2rem)', fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.1, marginBottom: 16, maxWidth: 600 }}>
@@ -384,6 +387,7 @@ export default function PulsarFeatures() {
             ))}
           </div>
         </div>
+        </div>
       </section>
 
       {/* Pillar sections */}
@@ -399,7 +403,7 @@ export default function PulsarFeatures() {
             Ready to connect your thinking?
           </h2>
           <p style={{ color: '#65657a', fontSize: '0.88rem', marginBottom: 28 }}>Join the waitlist. Closed beta · 100 seats total.</p>
-          <a href="/sign-up" style={{ display: 'inline-block', padding: '11px 28px', borderRadius: 8, background: 'linear-gradient(135deg,#a78bfa,#7c3aed)', color: '#fff', fontSize: '0.88rem', fontWeight: 600, textDecoration: 'none', fontFamily: "'JetBrains Mono',monospace", transition: `opacity 0.2s ${E}` }}
+          <a href="/sign-up" style={{ display: 'inline-block', padding: '11px 28px', borderRadius: 8, background: '#7c3aed', color: '#fff', fontSize: '0.88rem', fontWeight: 600, textDecoration: 'none', fontFamily: "'JetBrains Mono',monospace", transition: `opacity 0.2s ${E}` }}
             onMouseEnter={e => { e.currentTarget.style.opacity = '0.88' }}
             onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
           >join waitlist →</a>
