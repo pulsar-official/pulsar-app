@@ -50,7 +50,7 @@ export default function SignInPage() {
       if (error) {
         setErrors({ pass: error.message }); setShake(true); setTimeout(() => setShake(false), 500)
       } else {
-        router.push('/waitlist')
+        router.push('/')
       }
     } finally { setLoading(false) }
   }

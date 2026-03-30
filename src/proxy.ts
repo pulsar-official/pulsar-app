@@ -3,11 +3,14 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 const PUBLIC_PATHS = [
-  '/', '/sign-in', '/sign-up', '/auth/callback', '/sso-callback',
+  '/', '/sign-in', '/sign-up', '/auth/callback', '/auth/reset-password', '/sso-callback',
   '/api/stripe/', '/api/beta-count', '/api/auth/', '/api/powersync/jwks',
   '/checkout', '/sitemap.xml', '/robots.txt', '/features', '/pricing',
   '/privacy', '/terms', '/waitlist', '/changelog',
 ]
+
+// Only these emails may access the app dashboard
+const DASHBOARD_ALLOWLIST = ['yoshigar304@gmail.com']
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request })
@@ -34,6 +37,11 @@ export async function proxy(request: NextRequest) {
 
   if (!user && !isPublic) {
     return NextResponse.redirect(new URL('/sign-in', request.url))
+  }
+
+  // Authenticated but not on the allowlist — block dashboard access
+  if (user && !isPublic && !DASHBOARD_ALLOWLIST.includes(user.email ?? '')) {
+    return NextResponse.redirect(new URL('/waitlist', request.url))
   }
 
   return response
