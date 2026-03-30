@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { v4 as uuidv4 } from 'uuid'
 import type {
   Task, Habit, HabitCheck, HabitCheckMap, Goal, SubGoal,
   JournalEntry, CalEvent, Board, FocusSession, UserPreference,
@@ -6,10 +7,118 @@ import type {
 } from '@/types/productivity'
 import type { Connection } from '@/types/connections'
 import { computeConnections } from '@/lib/connectionEngine'
-import type { SyncManager, RemoteChange } from '@/lib/sync/syncManager'
-import { saveAppStateCache, getAppStateCache, type AppStateSnapshot } from '@/lib/sync/syncStorage'
+import { db } from '@/lib/powersync/db'
 
-/* ── Store interface ── */
+// ── Row mappers (SQLite snake_case + int booleans → TS types) ────────────────
+
+function toBool(v: unknown): boolean { return v === 1 || v === true }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Row = Record<string, any>
+
+function mapTask(r: Row): Task {
+  return {
+    id: r.id, orgId: r.org_id, userId: r.user_id,
+    title: r.title, description: r.description ?? '',
+    completed: toBool(r.completed), priority: r.priority ?? 'medium',
+    tag: r.tag ?? 'work', status: r.status ?? 'todo',
+    dueDate: r.due_date ?? null, isPublic: toBool(r.is_public),
+    isDeleted: toBool(r.is_deleted),
+  }
+}
+
+function mapHabit(r: Row): Habit {
+  return {
+    id: r.id, orgId: r.org_id, userId: r.user_id,
+    name: r.name, emoji: r.emoji ?? '✅',
+    sortOrder: r.sort_order ?? 0, isPublic: toBool(r.is_public),
+    isDeleted: toBool(r.is_deleted),
+  }
+}
+
+function mapHabitCheck(r: Row): HabitCheck {
+  return {
+    id: r.id, habitId: r.habit_id,
+    date: r.date, checked: toBool(r.checked),
+    isDeleted: toBool(r.is_deleted),
+  }
+}
+
+function mapSubGoal(r: Row): SubGoal {
+  return {
+    id: r.id, goalId: r.goal_id,
+    text: r.text, done: toBool(r.done),
+    isDeleted: toBool(r.is_deleted),
+  }
+}
+
+function mapGoal(r: Row, subs: SubGoal[]): Goal {
+  return {
+    id: r.id, orgId: r.org_id, userId: r.user_id,
+    title: r.title, description: r.description ?? '',
+    category: r.category ?? 'work', priority: r.priority ?? 'medium',
+    deadline: r.deadline ?? null, done: toBool(r.done),
+    progress: r.progress ?? 0, isPublic: toBool(r.is_public),
+    isDeleted: toBool(r.is_deleted), subs,
+  }
+}
+
+function mapJournalEntry(r: Row): JournalEntry {
+  let tags: string[] = []
+  try { tags = JSON.parse(r.tags ?? '[]') } catch { tags = [] }
+  return {
+    id: r.id, orgId: r.org_id, userId: r.user_id,
+    title: r.title, content: r.content ?? '',
+    date: r.date, mood: r.mood ?? '',
+    tags, isPublic: toBool(r.is_public),
+    isDeleted: toBool(r.is_deleted),
+  }
+}
+
+function mapCalEvent(r: Row): CalEvent {
+  return {
+    id: r.id, orgId: r.org_id, userId: r.user_id,
+    title: r.title, date: r.date,
+    dateEnd: r.date_end ?? null, startTime: r.start_time ?? null,
+    endTime: r.end_time ?? null, tag: r.tag ?? 'default',
+    recur: r.recur ?? null, isPublic: toBool(r.is_public),
+    isDeleted: toBool(r.is_deleted),
+  }
+}
+
+function mapBoard(r: Row): Board {
+  return {
+    id: r.id, orgId: r.org_id, userId: r.user_id,
+    name: r.name, description: r.description ?? '',
+    color: r.color ?? '', icon: r.icon ?? '',
+    isPublic: toBool(r.is_public), isDeleted: toBool(r.is_deleted),
+  }
+}
+
+function mapFocusSession(r: Row): FocusSession {
+  return {
+    id: r.id, orgId: r.org_id, userId: r.user_id,
+    date: r.date, timerType: r.timer_type ?? 'pomodoro',
+    totalCycles: r.total_cycles ?? 4, completedCycles: r.completed_cycles ?? 0,
+    workMinutes: r.work_minutes ?? 25, restMinutes: r.rest_minutes ?? 5,
+    longRestMinutes: r.long_rest_minutes ?? 15,
+    completedTasks: r.completed_tasks ?? 0,
+    totalFocusSeconds: r.total_focus_seconds ?? 0,
+    isPublic: toBool(r.is_public), isDeleted: toBool(r.is_deleted),
+  }
+}
+
+function mapPreference(r: Row): UserPreference {
+  let value: unknown = r.value
+  try { if (typeof r.value === 'string') value = JSON.parse(r.value) } catch { value = r.value }
+  return {
+    id: r.id, orgId: r.org_id, userId: r.user_id,
+    key: r.key, value, isDeleted: toBool(r.is_deleted),
+  }
+}
+
+// ── Store interface ──────────────────────────────────────────────────────────
+
 interface ProductivityState {
   // Data
   tasks: Task[]
@@ -24,46 +133,52 @@ interface ProductivityState {
 
   // Meta
   orgId: string | null
+  userId: string | null
   loading: boolean
   initialized: boolean
 
-  // Sync manager reference (set by useSync hook)
-  _syncManager: SyncManager | null
-  setSyncManager: (manager: SyncManager | null) => void
+  // Initial hydration from local SQLite (called once on mount)
+  hydrateFromPowerSync: (orgId: string, userId: string) => Promise<void>
 
-  // Fetch all data for an org (initial hydration)
-  fetchAll: (orgId: string) => Promise<void>
-
-  // Apply a remote change from sync
-  applyRemoteChange: (change: RemoteChange) => void
+  // Bulk setters used by PowerSyncBridge for live reactivity
+  setTasks: (tasks: Task[]) => void
+  setHabits: (habits: Habit[]) => void
+  setHabitChecks: (checks: HabitCheck[]) => void
+  setGoals: (goals: Goal[]) => void
+  setJournalEntries: (entries: JournalEntry[]) => void
+  setEvents: (events: CalEvent[]) => void
+  setBoards: (boards: Board[]) => void
+  setFocusSessions: (sessions: FocusSession[]) => void
+  setPreferences: (prefs: UserPreference[]) => void
 
   // Task actions
   addTask: (task: Omit<Task, 'id' | 'orgId' | 'userId'>) => Promise<void>
   updateTask: (task: Task) => Promise<void>
-  deleteTask: (id: number) => Promise<void>
-  toggleTask: (id: number) => void
+  deleteTask: (id: string) => Promise<void>
+  toggleTask: (id: string) => Promise<void>
 
   // Habit actions
-  addHabit: (habit: { name: string; emoji: string }) => Promise<void>
-  deleteHabit: (id: number) => Promise<void>
-  toggleHabitCheck: (habitId: number, date: string) => Promise<void>
+  addHabit: (habit: { name: string; emoji: string; isPublic?: boolean }) => Promise<void>
+  deleteHabit: (id: string) => Promise<void>
+  toggleHabitCheck: (habitId: string, date: string) => Promise<void>
 
   // Goal actions
   addGoal: (goal: Omit<Goal, 'id' | 'orgId' | 'userId' | 'subs'>) => Promise<void>
   updateGoal: (goal: Goal) => Promise<void>
-  deleteGoal: (id: number) => Promise<void>
-  toggleSubGoal: (subId: number, done: boolean) => Promise<void>
-  addSubGoal: (goalId: number, text: string) => Promise<void>
+  deleteGoal: (id: string) => Promise<void>
+  toggleSubGoal: (subId: string, done: boolean) => Promise<void>
+  addSubGoal: (goalId: string, text: string) => Promise<void>
+  deleteSubGoal: (subId: string) => Promise<void>
 
   // Journal actions
   addJournalEntry: (entry: Omit<JournalEntry, 'id' | 'orgId' | 'userId'>) => Promise<void>
   updateJournalEntry: (entry: JournalEntry) => Promise<void>
-  deleteJournalEntry: (id: number) => Promise<void>
+  deleteJournalEntry: (id: string) => Promise<void>
 
   // Event actions
   addEvent: (event: Omit<CalEvent, 'id' | 'orgId' | 'userId'>) => Promise<void>
   updateEvent: (event: CalEvent) => Promise<void>
-  deleteEvent: (id: number) => Promise<void>
+  deleteEvent: (id: string) => Promise<void>
 
   // Focus session actions
   addFocusSession: (session: Omit<FocusSession, 'id' | 'orgId' | 'userId'>) => Promise<void>
@@ -74,8 +189,8 @@ interface ProductivityState {
   getPreference: (key: string) => unknown
 
   // Journal cross-component navigation
-  selectedJournalEntryId: number | null
-  setSelectedJournalEntryId: (id: number | null) => void
+  selectedJournalEntryId: string | null
+  setSelectedJournalEntryId: (id: string | null) => void
 
   // Selectors
   getHabitCheckMap: () => HabitCheckMap
@@ -88,545 +203,284 @@ interface ProductivityState {
   getSmartConnections: () => Connection[]
 }
 
-async function apiFetch<T>(url: string, options?: RequestInit): Promise<T | null> {
-  try {
-    const res = await fetch(url, options)
-    if (!res.ok) {
-      const errorText = await res.text()
-      console.error(`[API ERROR] ${options?.method || 'GET'} ${url} - Status: ${res.status}`, errorText)
-      return null
-    }
-    return res.json()
-  } catch (error) {
-    console.error(`[API FETCH ERROR] ${url}`, error)
-    return null
-  }
-}
-
-/**
- * Send a mutation through the sync manager.
- * The manager handles online (Realtime) and offline (queued → HTTP push) transparently.
- * If the sync manager isn't initialized yet, queue via HTTP /api/sync/push directly
- * so all writes always go through the sync engine → conflict resolution → Neon.
- */
-async function syncMutate(
-  manager: SyncManager | null,
-  type: 'create' | 'update' | 'delete',
-  entityType: Parameters<SyncManager['create']>[0],
-  entityIdOrFields: number | Record<string, unknown>,
-  fields?: Record<string, unknown>,
-): Promise<{ tempId?: string } | null> {
-  if (manager) {
-    if (type === 'create') {
-      const result = await manager.create(entityType, entityIdOrFields as Record<string, unknown>)
-      return { tempId: result.tempId }
-    } else if (type === 'update') {
-      await manager.update(entityType, entityIdOrFields as number, fields!)
-      return null
-    } else {
-      await manager.delete(entityType, entityIdOrFields as number)
-      return null
-    }
-  }
-
-  // Fallback: no sync manager yet — push directly via HTTP sync endpoint
-  // This still goes through serverSyncEngine → conflict resolution → Neon → broadcast
-  try {
-    const { getDeviceId } = await import('@/lib/sync/syncStorage')
-    const { SyncEngine } = await import('@/lib/sync/syncEngine')
-    const deviceId = await getDeviceId()
-    const engine = new SyncEngine(deviceId)
-
-    let op
-    if (type === 'create') {
-      const result = engine.createOp(entityType, entityIdOrFields as Record<string, unknown>)
-      op = result.op
-    } else if (type === 'update') {
-      op = engine.updateOp(entityType, entityIdOrFields as number, fields!)
-    } else {
-      op = engine.deleteOp(entityType, entityIdOrFields as number)
-    }
-
-    const res = await fetch('/api/sync/push', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ deviceId, ops: [op] }),
-    })
-
-    if (res.ok) {
-      const { acks } = await res.json()
-      if (type === 'create' && acks?.[0]?.entityId) {
-        return { tempId: String(acks[0].entityId) }
-      }
-    }
-  } catch (error) {
-    console.error('[syncMutate] HTTP fallback failed:', error)
-  }
-
-  return null
-}
+// ── Store ────────────────────────────────────────────────────────────────────
 
 export const useProductivityStore = create<ProductivityState>((set, get) => ({
-  tasks: [],
-  habits: [],
-  habitChecks: [],
-  goals: [],
-  journalEntries: [],
-  events: [],
-  boards: [],
-  focusSessions: [],
-  preferences: [],
-  orgId: null,
-  loading: false,
-  initialized: false,
+  tasks: [], habits: [], habitChecks: [], goals: [],
+  journalEntries: [], events: [], boards: [],
+  focusSessions: [], preferences: [],
+  orgId: null, userId: null,
+  loading: false, initialized: false,
   selectedJournalEntryId: null,
   setSelectedJournalEntryId: (id) => set({ selectedJournalEntryId: id }),
 
-  _syncManager: null,
-  setSyncManager: (manager) => set({ _syncManager: manager }),
+  // ── Hydration ──
+  hydrateFromPowerSync: async (orgId, userId) => {
+    set({ loading: true, orgId, userId })
+    const notDeleted = '(is_deleted = 0 OR is_deleted IS NULL)'
 
-  fetchAll: async (orgId: string) => {
-    set({ loading: true, orgId })
-
-    // Phase 1: Load cached snapshot from IndexedDB for instant UI (non-blocking)
-    try {
-      const cached = await getAppStateCache(orgId)
-      if (cached && !get().initialized) {
-        const c = cached as unknown as Record<string, unknown>
-        set({
-          tasks: (c.tasks ?? []) as Task[],
-          habits: (c.habits ?? []) as Habit[],
-          habitChecks: (c.habitChecks ?? []) as HabitCheck[],
-          goals: (c.goals ?? []) as Goal[],
-          journalEntries: (c.journalEntries ?? []) as JournalEntry[],
-          events: (c.events ?? []) as CalEvent[],
-          boards: (c.boards ?? []) as Board[],
-          focusSessions: (c.focusSessions ?? []) as FocusSession[],
-          preferences: (c.preferences ?? []) as UserPreference[],
-        })
-      }
-    } catch {
-      // Cache miss is fine — proceed to server fetch
-    }
-
-    // Phase 2: Fetch fresh data from server (initial hydration)
-    const [tasksRes, habitsRes, goalsRes, journalRes, eventsRes, boardsRes, focusRes, prefsRes] = await Promise.all([
-      apiFetch<Task[]>('/api/productivity/tasks'),
-      apiFetch<{ habits: Habit[]; checks: HabitCheck[] }>('/api/productivity/habits'),
-      apiFetch<Goal[]>('/api/productivity/goals'),
-      apiFetch<JournalEntry[]>('/api/productivity/journal'),
-      apiFetch<CalEvent[]>('/api/productivity/events'),
-      apiFetch<Board[]>('/api/productivity/boards'),
-      apiFetch<FocusSession[]>('/api/productivity/focus-sessions'),
-      apiFetch<UserPreference[]>('/api/productivity/preferences'),
+    const [taskRows, habitRows, checkRows, goalRows, subRows,
+      journalRows, eventRows, boardRows, focusRows, prefRows] = await Promise.all([
+      db.getAll(`SELECT * FROM tasks WHERE org_id = ? AND ${notDeleted}`, [orgId]),
+      db.getAll(`SELECT * FROM habits WHERE org_id = ? AND ${notDeleted}`, [orgId]),
+      db.getAll(`SELECT hc.* FROM habit_checks hc JOIN habits h ON hc.habit_id = h.id WHERE h.org_id = ? AND ${notDeleted}`, [orgId]),
+      db.getAll(`SELECT * FROM goals WHERE org_id = ? AND ${notDeleted}`, [orgId]),
+      db.getAll(`SELECT gs.* FROM goal_subs gs JOIN goals g ON gs.goal_id = g.id WHERE g.org_id = ? AND ${notDeleted}`, [orgId]),
+      db.getAll(`SELECT * FROM journal_entries WHERE org_id = ? AND ${notDeleted}`, [orgId]),
+      db.getAll(`SELECT * FROM cal_events WHERE org_id = ? AND ${notDeleted}`, [orgId]),
+      db.getAll(`SELECT * FROM boards WHERE org_id = ? AND ${notDeleted}`, [orgId]),
+      db.getAll(`SELECT * FROM focus_sessions WHERE org_id = ? AND ${notDeleted}`, [orgId]),
+      db.getAll(`SELECT * FROM user_preferences WHERE org_id = ? AND ${notDeleted}`, [orgId]),
     ])
 
-    const current = get()
-    const freshState = {
-      tasks: tasksRes ?? current.tasks,
-      habits: habitsRes?.habits ?? current.habits,
-      habitChecks: habitsRes?.checks ?? current.habitChecks,
-      goals: goalsRes ?? current.goals,
-      journalEntries: journalRes ?? current.journalEntries,
-      events: eventsRes ?? current.events,
-      boards: boardsRes ?? current.boards,
-      focusSessions: focusRes ?? current.focusSessions,
-      preferences: prefsRes ?? current.preferences,
+    const subsByGoal = new Map<string, SubGoal[]>()
+    for (const r of subRows) {
+      const mapped = mapSubGoal(r as Row)
+      const arr = subsByGoal.get(mapped.goalId) ?? []
+      arr.push(mapped)
+      subsByGoal.set(mapped.goalId, arr)
     }
 
     set({
-      ...freshState,
-      loading: false,
-      initialized: true,
+      tasks: (taskRows as Row[]).map(mapTask),
+      habits: (habitRows as Row[]).map(mapHabit),
+      habitChecks: (checkRows as Row[]).map(mapHabitCheck),
+      goals: (goalRows as Row[]).map(r => mapGoal(r as Row, subsByGoal.get((r as Row).id) ?? [])),
+      journalEntries: (journalRows as Row[]).map(mapJournalEntry),
+      events: (eventRows as Row[]).map(mapCalEvent),
+      boards: (boardRows as Row[]).map(mapBoard),
+      focusSessions: (focusRows as Row[]).map(mapFocusSession),
+      preferences: (prefRows as Row[]).map(mapPreference),
+      loading: false, initialized: true,
     })
-
-    // Phase 3: Persist fresh data to cache for next cold start
-    saveAppStateCache({ orgId, ...freshState, cachedAt: Date.now() })
   },
 
-  /* ── Apply remote changes from sync ── */
-  applyRemoteChange: (change: RemoteChange) => {
-    const { entityType, entityId, operation, fields } = change
-
-    // Handle temp ID remapping
-    if (fields._tempIdRemap) {
-      const { from, to } = fields._tempIdRemap as { from: string; to: number }
-      const tempNumericId = parseInt(from.replace('temp:', ''), 10) || Date.now()
-      // Remap the temp ID in the appropriate collection
-      switch (entityType) {
-        case 'task':
-          set(s => ({ tasks: s.tasks.map(t => t.id === tempNumericId ? { ...t, id: to } : t) }))
-          break
-        case 'habit':
-          set(s => ({ habits: s.habits.map(h => h.id === tempNumericId ? { ...h, id: to } : h) }))
-          break
-        case 'goal':
-          set(s => ({ goals: s.goals.map(g => g.id === tempNumericId ? { ...g, id: to } : g) }))
-          break
-        case 'journal':
-          set(s => ({ journalEntries: s.journalEntries.map(e => e.id === tempNumericId ? { ...e, id: to } : e) }))
-          break
-        case 'event':
-          set(s => ({ events: s.events.map(e => e.id === tempNumericId ? { ...e, id: to } : e) }))
-          break
-        case 'board':
-          set(s => ({ boards: s.boards.map(b => b.id === tempNumericId ? { ...b, id: to } : b) }))
-          break
-        case 'focusSession':
-          set(s => ({ focusSessions: s.focusSessions.map(f => f.id === tempNumericId ? { ...f, id: to } : f) }))
-          break
-        case 'userPreference':
-          set(s => ({ preferences: s.preferences.map(p => p.id === tempNumericId ? { ...p, id: to } : p) }))
-          break
-      }
-      return
-    }
-
-    if (operation === 'delete') {
-      switch (entityType) {
-        case 'task':
-          set(s => ({ tasks: s.tasks.filter(t => t.id !== entityId) }))
-          break
-        case 'habit':
-          set(s => ({
-            habits: s.habits.filter(h => h.id !== entityId),
-            habitChecks: s.habitChecks.filter(c => c.habitId !== entityId),
-          }))
-          break
-        case 'habitCheck':
-          set(s => ({ habitChecks: s.habitChecks.filter(c => c.id !== entityId) }))
-          break
-        case 'goal':
-          set(s => ({ goals: s.goals.filter(g => g.id !== entityId) }))
-          break
-        case 'goalSub':
-          set(s => ({
-            goals: s.goals.map(g => ({
-              ...g,
-              subs: g.subs.filter(sub => sub.id !== entityId),
-            })),
-          }))
-          break
-        case 'journal':
-          set(s => ({ journalEntries: s.journalEntries.filter(e => e.id !== entityId) }))
-          break
-        case 'event':
-          set(s => ({ events: s.events.filter(e => e.id !== entityId) }))
-          break
-        case 'board':
-          set(s => ({ boards: s.boards.filter(b => b.id !== entityId) }))
-          break
-        case 'focusSession':
-          set(s => ({ focusSessions: s.focusSessions.filter(f => f.id !== entityId) }))
-          break
-        case 'userPreference':
-          set(s => ({ preferences: s.preferences.filter(p => p.id !== entityId) }))
-          break
-      }
-      return
-    }
-
-    if (operation === 'update') {
-      switch (entityType) {
-        case 'task':
-          set(s => ({ tasks: s.tasks.map(t => t.id === entityId ? { ...t, ...fields } : t) }))
-          break
-        case 'habit':
-          set(s => ({ habits: s.habits.map(h => h.id === entityId ? { ...h, ...fields } : h) }))
-          break
-        case 'goal':
-          set(s => ({ goals: s.goals.map(g => g.id === entityId ? { ...g, ...fields } : g) }))
-          break
-        case 'goalSub':
-          set(s => ({
-            goals: s.goals.map(g => ({
-              ...g,
-              subs: g.subs.map(sub => sub.id === entityId ? { ...sub, ...fields } : sub),
-            })),
-          }))
-          break
-        case 'journal':
-          set(s => ({ journalEntries: s.journalEntries.map(e => e.id === entityId ? { ...e, ...fields } : e) }))
-          break
-        case 'event':
-          set(s => ({ events: s.events.map(e => e.id === entityId ? { ...e, ...fields } : e) }))
-          break
-        case 'board':
-          set(s => ({ boards: s.boards.map(b => b.id === entityId ? { ...b, ...fields } : b) }))
-          break
-        case 'focusSession':
-          set(s => ({ focusSessions: s.focusSessions.map(f => f.id === entityId ? { ...f, ...fields } : f) }))
-          break
-        case 'userPreference':
-          set(s => ({ preferences: s.preferences.map(p => p.id === entityId ? { ...p, ...fields } : p) }))
-          break
-      }
-      return
-    }
-
-    if (operation === 'create') {
-      // Remote create — add to the collection if not already present
-      switch (entityType) {
-        case 'task':
-          set(s => {
-            if (s.tasks.some(t => t.id === entityId)) return s
-            return { tasks: [...s.tasks, { id: entityId, orgId: s.orgId ?? '', userId: '', ...fields } as Task] }
-          })
-          break
-        case 'habit':
-          set(s => {
-            if (s.habits.some(h => h.id === entityId)) return s
-            return { habits: [...s.habits, { id: entityId, orgId: s.orgId ?? '', userId: '', ...fields } as Habit] }
-          })
-          break
-        case 'goal':
-          set(s => {
-            if (s.goals.some(g => g.id === entityId)) return s
-            return { goals: [...s.goals, { id: entityId, orgId: s.orgId ?? '', userId: '', title: '', description: '', category: 'work', priority: 'medium', deadline: null, done: false, progress: 0, subs: [], ...fields } as Goal] }
-          })
-          break
-        case 'journal':
-          set(s => {
-            if (s.journalEntries.some(e => e.id === entityId)) return s
-            return { journalEntries: [{ id: entityId, orgId: s.orgId ?? '', userId: '', ...fields } as JournalEntry, ...s.journalEntries] }
-          })
-          break
-        case 'event':
-          set(s => {
-            if (s.events.some(e => e.id === entityId)) return s
-            return { events: [...s.events, { id: entityId, orgId: s.orgId ?? '', userId: '', ...fields } as CalEvent] }
-          })
-          break
-        case 'board':
-          set(s => {
-            if (s.boards.some(b => b.id === entityId)) return s
-            return { boards: [...s.boards, { id: entityId, orgId: s.orgId ?? '', userId: '', ...fields } as Board] }
-          })
-          break
-        case 'focusSession':
-          set(s => {
-            if (s.focusSessions.some(f => f.id === entityId)) return s
-            return { focusSessions: [...s.focusSessions, { id: entityId, orgId: s.orgId ?? '', userId: '', ...fields } as FocusSession] }
-          })
-          break
-        case 'userPreference':
-          set(s => {
-            if (s.preferences.some(p => p.id === entityId)) return s
-            return { preferences: [...s.preferences, { id: entityId, orgId: s.orgId ?? '', userId: '', ...fields } as UserPreference] }
-          })
-          break
-      }
-    }
-  },
+  // ── Bulk setters (used by PowerSyncBridge) ──
+  setTasks: (tasks) => set({ tasks }),
+  setHabits: (habits) => set({ habits }),
+  setHabitChecks: (habitChecks) => set({ habitChecks }),
+  setGoals: (goals) => set({ goals }),
+  setJournalEntries: (journalEntries) => set({ journalEntries }),
+  setEvents: (events) => set({ events }),
+  setBoards: (boards) => set({ boards }),
+  setFocusSessions: (focusSessions) => set({ focusSessions }),
+  setPreferences: (preferences) => set({ preferences }),
 
   // ── Task actions ──
   addTask: async (task) => {
-    const manager = get()._syncManager
-    const tempId = Date.now()
-
-    // Optimistic update
-    set(s => ({ tasks: [...s.tasks, { ...task, id: tempId, orgId: s.orgId ?? '', userId: '' } as Task] }))
-
-    syncMutate(manager, 'create', 'task', {
-      title: task.title, description: task.description ?? '', completed: task.completed ?? false,
-      priority: task.priority ?? 'medium', tag: task.tag ?? 'work', status: task.status ?? 'todo',
-      dueDate: task.dueDate ?? null,
-    })
+    const { orgId, userId } = get()
+    if (!orgId || !userId) return
+    const id = uuidv4()
+    const now = new Date().toISOString()
+    await db.execute(
+      `INSERT INTO tasks (id, org_id, user_id, title, description, completed, priority, tag, status, due_date, is_public, is_deleted, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, 0, ?, ?)`,
+      [id, orgId, userId, task.title, task.description ?? '', task.priority ?? 'medium',
+       task.tag ?? 'work', task.status ?? 'todo', task.dueDate ?? null,
+       task.isPublic ? 1 : 0, now, now]
+    )
   },
 
   updateTask: async (task) => {
-    set(s => ({ tasks: s.tasks.map(t => t.id === task.id ? task : t) }))
-    const manager = get()._syncManager
-    syncMutate(manager, 'update', 'task', task.id, {
-      title: task.title, description: task.description, completed: task.completed,
-      priority: task.priority, tag: task.tag, status: task.status, dueDate: task.dueDate,
-    })
+    await db.execute(
+      `UPDATE tasks SET title=?, description=?, completed=?, priority=?, tag=?, status=?, due_date=?, is_public=?, updated_at=? WHERE id=?`,
+      [task.title, task.description ?? '', task.completed ? 1 : 0, task.priority, task.tag,
+       task.status, task.dueDate ?? null, task.isPublic ? 1 : 0, new Date().toISOString(), task.id]
+    )
   },
 
   deleteTask: async (id) => {
-    set(s => ({ tasks: s.tasks.filter(t => t.id !== id) }))
-    const manager = get()._syncManager
-    syncMutate(manager, 'delete', 'task', id)
+    await db.execute(`UPDATE tasks SET is_deleted=1, updated_at=? WHERE id=?`, [new Date().toISOString(), id])
   },
 
-  toggleTask: (id) => {
-    set(s => ({
-      tasks: s.tasks.map(t => t.id === id ? { ...t, completed: !t.completed, status: (!t.completed ? 'done' : 'todo') as TaskStatus } : t),
-    }))
+  toggleTask: async (id) => {
     const task = get().tasks.find(t => t.id === id)
-    if (task) {
-      const manager = get()._syncManager
-      syncMutate(manager, 'update', 'task', id, { completed: task.completed, status: task.status })
-    }
+    if (!task) return
+    const newCompleted = !task.completed
+    const newStatus = newCompleted ? 'done' : 'todo'
+    await db.execute(
+      `UPDATE tasks SET completed=?, status=?, updated_at=? WHERE id=?`,
+      [newCompleted ? 1 : 0, newStatus, new Date().toISOString(), id]
+    )
   },
 
   // ── Habit actions ──
-  addHabit: async ({ name, emoji }) => {
-    const tempId = Date.now()
-    set(s => ({ habits: [...s.habits, { id: tempId, orgId: s.orgId ?? '', userId: '', name, emoji, sortOrder: s.habits.length }] }))
-    const manager = get()._syncManager
-    syncMutate(manager, 'create', 'habit', { name, emoji, sortOrder: get().habits.length - 1 })
+  addHabit: async ({ name, emoji, isPublic }) => {
+    const { orgId, userId, habits } = get()
+    if (!orgId || !userId) return
+    const id = uuidv4()
+    const now = new Date().toISOString()
+    await db.execute(
+      `INSERT INTO habits (id, org_id, user_id, name, emoji, sort_order, is_public, is_deleted, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?)`,
+      [id, orgId, userId, name, emoji, habits.length, isPublic ? 1 : 0, now]
+    )
   },
 
   deleteHabit: async (id) => {
-    set(s => ({ habits: s.habits.filter(h => h.id !== id), habitChecks: s.habitChecks.filter(c => c.habitId !== id) }))
-    const manager = get()._syncManager
-    syncMutate(manager, 'delete', 'habit', id)
+    await db.execute(`UPDATE habits SET is_deleted=1 WHERE id=?`, [id])
   },
 
   toggleHabitCheck: async (habitId, date) => {
     const existing = get().habitChecks.find(c => c.habitId === habitId && c.date === date)
-    const manager = get()._syncManager
     if (existing) {
-      set(s => ({ habitChecks: s.habitChecks.filter(c => c.id !== existing.id) }))
-      syncMutate(manager, 'delete', 'habitCheck', existing.id)
+      await db.execute(`DELETE FROM habit_checks WHERE id=?`, [existing.id])
     } else {
-      const tempId = Date.now()
-      set(s => ({ habitChecks: [...s.habitChecks, { id: tempId, habitId, date, checked: true }] }))
-      syncMutate(manager, 'create', 'habitCheck', { habitId, date, checked: true })
+      const id = uuidv4()
+      const now = new Date().toISOString()
+      await db.execute(
+        `INSERT INTO habit_checks (id, habit_id, date, checked, is_deleted, created_at) VALUES (?, ?, ?, 1, 0, ?)`,
+        [id, habitId, date, now]
+      )
     }
   },
 
   // ── Goal actions ──
   addGoal: async (goal) => {
-    const tempId = Date.now()
-    set(s => ({ goals: [...s.goals, { ...goal, id: tempId, orgId: s.orgId ?? '', userId: '', subs: [] } as Goal] }))
-    const manager = get()._syncManager
-    syncMutate(manager, 'create', 'goal', {
-      title: goal.title, description: goal.description ?? '', category: goal.category ?? 'work',
-      priority: goal.priority ?? 'medium', deadline: goal.deadline ?? null, done: goal.done ?? false,
-      progress: goal.progress ?? 0,
-    })
+    const { orgId, userId } = get()
+    if (!orgId || !userId) return
+    const id = uuidv4()
+    const now = new Date().toISOString()
+    await db.execute(
+      `INSERT INTO goals (id, org_id, user_id, title, description, category, priority, deadline, done, progress, is_public, is_deleted, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, 0, ?, ?)`,
+      [id, orgId, userId, goal.title, goal.description ?? '', goal.category ?? 'work',
+       goal.priority ?? 'medium', goal.deadline ?? null, goal.progress ?? 0,
+       goal.isPublic ? 1 : 0, now, now]
+    )
   },
 
   updateGoal: async (goal) => {
-    set(s => ({ goals: s.goals.map(g => g.id === goal.id ? goal : g) }))
-    const manager = get()._syncManager
-    syncMutate(manager, 'update', 'goal', goal.id, {
-      title: goal.title, description: goal.description, category: goal.category,
-      priority: goal.priority, deadline: goal.deadline, done: goal.done, progress: goal.progress,
-    })
+    await db.execute(
+      `UPDATE goals SET title=?, description=?, category=?, priority=?, deadline=?, done=?, progress=?, is_public=?, updated_at=? WHERE id=?`,
+      [goal.title, goal.description ?? '', goal.category, goal.priority,
+       goal.deadline ?? null, goal.done ? 1 : 0, goal.progress,
+       goal.isPublic ? 1 : 0, new Date().toISOString(), goal.id]
+    )
   },
 
   deleteGoal: async (id) => {
-    set(s => ({ goals: s.goals.filter(g => g.id !== id) }))
-    const manager = get()._syncManager
-    syncMutate(manager, 'delete', 'goal', id)
+    await db.execute(`UPDATE goals SET is_deleted=1, updated_at=? WHERE id=?`, [new Date().toISOString(), id])
   },
 
   toggleSubGoal: async (subId, done) => {
-    set(s => ({
-      goals: s.goals.map(g => ({
-        ...g,
-        subs: g.subs.map(sub => sub.id === subId ? { ...sub, done } : sub),
-      })),
-    }))
-    const manager = get()._syncManager
-    syncMutate(manager, 'update', 'goalSub', subId, { done })
+    await db.execute(`UPDATE goal_subs SET done=? WHERE id=?`, [done ? 1 : 0, subId])
   },
 
   addSubGoal: async (goalId, text) => {
-    const tempId = Date.now()
-    set(s => ({
-      goals: s.goals.map(g => g.id === goalId ? { ...g, subs: [...g.subs, { id: tempId, goalId, text, done: false }] } : g),
-    }))
-    const manager = get()._syncManager
-    syncMutate(manager, 'create', 'goalSub', { goalId, text, done: false })
+    const id = uuidv4()
+    await db.execute(
+      `INSERT INTO goal_subs (id, goal_id, text, done, is_deleted) VALUES (?, ?, ?, 0, 0)`,
+      [id, goalId, text]
+    )
+  },
+
+  deleteSubGoal: async (subId) => {
+    await db.execute(`UPDATE goal_subs SET is_deleted=1 WHERE id=?`, [subId])
   },
 
   // ── Journal actions ──
   addJournalEntry: async (entry) => {
-    const tempId = Date.now()
-    set(s => ({ journalEntries: [{ ...entry, id: tempId, orgId: s.orgId ?? '', userId: '' } as JournalEntry, ...s.journalEntries] }))
-    const manager = get()._syncManager
-    syncMutate(manager, 'create', 'journal', {
-      title: entry.title, content: entry.content ?? '', date: entry.date,
-      mood: entry.mood ?? '', tags: entry.tags ?? [],
-    })
+    const { orgId, userId } = get()
+    if (!orgId || !userId) return
+    const id = uuidv4()
+    const now = new Date().toISOString()
+    await db.execute(
+      `INSERT INTO journal_entries (id, org_id, user_id, title, content, date, mood, tags, is_public, is_deleted, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`,
+      [id, orgId, userId, entry.title, entry.content ?? '', entry.date,
+       entry.mood ?? '', JSON.stringify(entry.tags ?? []),
+       entry.isPublic ? 1 : 0, now, now]
+    )
   },
 
   updateJournalEntry: async (entry) => {
-    set(s => ({ journalEntries: s.journalEntries.map(e => e.id === entry.id ? entry : e) }))
-    const manager = get()._syncManager
-    syncMutate(manager, 'update', 'journal', entry.id, {
-      title: entry.title, content: entry.content, date: entry.date,
-      mood: entry.mood, tags: entry.tags,
-    })
+    await db.execute(
+      `UPDATE journal_entries SET title=?, content=?, date=?, mood=?, tags=?, is_public=?, updated_at=? WHERE id=?`,
+      [entry.title, entry.content ?? '', entry.date, entry.mood ?? '',
+       JSON.stringify(entry.tags ?? []), entry.isPublic ? 1 : 0,
+       new Date().toISOString(), entry.id]
+    )
   },
 
   deleteJournalEntry: async (id) => {
-    set(s => ({ journalEntries: s.journalEntries.filter(e => e.id !== id) }))
-    const manager = get()._syncManager
-    syncMutate(manager, 'delete', 'journal', id)
+    await db.execute(`UPDATE journal_entries SET is_deleted=1, updated_at=? WHERE id=?`, [new Date().toISOString(), id])
   },
 
   // ── Event actions ──
   addEvent: async (event) => {
-    const tempId = Date.now()
-    set(s => ({ events: [...s.events, { ...event, id: tempId, orgId: s.orgId ?? '', userId: '' } as CalEvent] }))
-    const manager = get()._syncManager
-    syncMutate(manager, 'create', 'event', {
-      title: event.title, date: event.date, dateEnd: event.dateEnd ?? null,
-      startTime: event.startTime ?? null, endTime: event.endTime ?? null,
-      tag: event.tag ?? 'default', recur: event.recur ?? null,
-    })
+    const { orgId, userId } = get()
+    if (!orgId || !userId) return
+    const id = uuidv4()
+    const now = new Date().toISOString()
+    await db.execute(
+      `INSERT INTO cal_events (id, org_id, user_id, title, date, date_end, start_time, end_time, tag, recur, is_public, is_deleted, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`,
+      [id, orgId, userId, event.title, event.date, event.dateEnd ?? null,
+       event.startTime ?? null, event.endTime ?? null, event.tag ?? 'default',
+       event.recur ?? null, event.isPublic ? 1 : 0, now, now]
+    )
   },
 
   updateEvent: async (event) => {
-    set(s => ({ events: s.events.map(e => e.id === event.id ? event : e) }))
-    const manager = get()._syncManager
-    syncMutate(manager, 'update', 'event', event.id, {
-      title: event.title, date: event.date, dateEnd: event.dateEnd,
-      startTime: event.startTime, endTime: event.endTime, tag: event.tag, recur: event.recur,
-    })
+    await db.execute(
+      `UPDATE cal_events SET title=?, date=?, date_end=?, start_time=?, end_time=?, tag=?, recur=?, is_public=?, updated_at=? WHERE id=?`,
+      [event.title, event.date, event.dateEnd ?? null, event.startTime ?? null,
+       event.endTime ?? null, event.tag, event.recur ?? null,
+       event.isPublic ? 1 : 0, new Date().toISOString(), event.id]
+    )
   },
 
   deleteEvent: async (id) => {
-    set(s => ({ events: s.events.filter(e => e.id !== id) }))
-    const manager = get()._syncManager
-    syncMutate(manager, 'delete', 'event', id)
+    await db.execute(`UPDATE cal_events SET is_deleted=1, updated_at=? WHERE id=?`, [new Date().toISOString(), id])
   },
 
   // ── Focus session actions ──
   addFocusSession: async (session) => {
-    const tempId = Date.now()
-    set(s => ({ focusSessions: [...s.focusSessions, { ...session, id: tempId, orgId: s.orgId ?? '', userId: '' } as FocusSession] }))
-    const manager = get()._syncManager
-    syncMutate(manager, 'create', 'focusSession', {
-      date: session.date, timerType: session.timerType ?? 'pomodoro',
-      totalCycles: session.totalCycles ?? 4, completedCycles: session.completedCycles ?? 0,
-      workMinutes: session.workMinutes ?? 25, restMinutes: session.restMinutes ?? 5,
-      longRestMinutes: session.longRestMinutes ?? 15, completedTasks: session.completedTasks ?? 0,
-      totalFocusSeconds: session.totalFocusSeconds ?? 0,
-    })
+    const { orgId, userId } = get()
+    if (!orgId || !userId) return
+    const id = uuidv4()
+    const now = new Date().toISOString()
+    await db.execute(
+      `INSERT INTO focus_sessions (id, org_id, user_id, date, timer_type, total_cycles, completed_cycles, work_minutes, rest_minutes, long_rest_minutes, completed_tasks, total_focus_seconds, is_public, is_deleted, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`,
+      [id, orgId, userId, session.date, session.timerType ?? 'pomodoro',
+       session.totalCycles ?? 4, session.completedCycles ?? 0,
+       session.workMinutes ?? 25, session.restMinutes ?? 5,
+       session.longRestMinutes ?? 15, session.completedTasks ?? 0,
+       session.totalFocusSeconds ?? 0, session.isPublic ? 1 : 0, now, now]
+    )
   },
 
   updateFocusSession: async (session) => {
-    set(s => ({ focusSessions: s.focusSessions.map(f => f.id === session.id ? session : f) }))
-    const manager = get()._syncManager
-    syncMutate(manager, 'update', 'focusSession', session.id, {
-      completedCycles: session.completedCycles, completedTasks: session.completedTasks,
-      totalFocusSeconds: session.totalFocusSeconds,
-    })
+    await db.execute(
+      `UPDATE focus_sessions SET completed_cycles=?, completed_tasks=?, total_focus_seconds=?, is_public=?, updated_at=? WHERE id=?`,
+      [session.completedCycles, session.completedTasks, session.totalFocusSeconds,
+       session.isPublic ? 1 : 0, new Date().toISOString(), session.id]
+    )
   },
 
   // ── Preference actions ──
   setPreference: async (key, value) => {
-    const manager = get()._syncManager
-    const existing = get().preferences.find(p => p.key === key)
+    const { orgId, userId, preferences } = get()
+    if (!orgId || !userId) return
+    const existing = preferences.find(p => p.key === key)
+    const now = new Date().toISOString()
     if (existing) {
-      set(s => ({ preferences: s.preferences.map(p => p.key === key ? { ...p, value } : p) }))
-      syncMutate(manager, 'update', 'userPreference', existing.id, { value })
+      await db.execute(
+        `UPDATE user_preferences SET value=?, updated_at=? WHERE id=?`,
+        [JSON.stringify(value), now, existing.id]
+      )
     } else {
-      const tempId = Date.now()
-      set(s => ({ preferences: [...s.preferences, { id: tempId, orgId: s.orgId ?? '', userId: '', key, value } as UserPreference] }))
-      syncMutate(manager, 'create', 'userPreference', { key, value })
+      const id = uuidv4()
+      await db.execute(
+        `INSERT INTO user_preferences (id, org_id, user_id, key, value, is_deleted, updated_at) VALUES (?, ?, ?, ?, ?, 0, ?)`,
+        [id, orgId, userId, key, JSON.stringify(value), now]
+      )
     }
   },
 
-  getPreference: (key) => {
-    return get().preferences.find(p => p.key === key)?.value ?? null
-  },
+  getPreference: (key) => get().preferences.find(p => p.key === key)?.value ?? null,
 
   // ── Selectors ──
   getHabitCheckMap: () => {

@@ -1,9 +1,9 @@
-import { pgTable, serial, integer, bigint, text, timestamp, varchar, boolean, json, jsonb, real, date, index, uniqueIndex } from 'drizzle-orm/pg-core'
+import { pgTable, serial, integer, bigint, text, timestamp, varchar, boolean, json, jsonb, real, date, uuid, index, uniqueIndex } from 'drizzle-orm/pg-core'
 
 /* ── Users ── */
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
-  clerkId: varchar('clerk_id', { length: 255 }).unique().notNull(),
+  supabaseId: uuid('supabase_id').unique().notNull(),
   email: varchar('email', { length: 255 }).unique().notNull(),
   username: varchar('username', { length: 255 }),
   phone: varchar('phone', { length: 32 }),
@@ -16,17 +16,29 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at').defaultNow(),
 })
 
-/* ── Organizations (synced from Clerk) ── */
+/* ── Organizations ── */
 export const organizations = pgTable('organizations', {
-  id: serial('id').primaryKey(),
-  clerkOrgId: varchar('clerk_org_id', { length: 255 }).unique().notNull(),
+  id: uuid('id').primaryKey().defaultRandom(),
   name: varchar('name', { length: 255 }),
+  createdBy: uuid('created_by').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
 })
+
+/* ── Organization Members ── */
+export const organizationMembers = pgTable('organization_members', {
+  id: serial('id').primaryKey(),
+  orgId: uuid('org_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').notNull(),
+  role: varchar('role', { length: 32 }).default('member').notNull(),
+  joinedAt: timestamp('joined_at').defaultNow(),
+}, (t) => [
+  uniqueIndex('org_members_org_user_idx').on(t.orgId, t.userId),
+])
 
 /* ── Notes ── */
 export const notes = pgTable('notes', {
   id: serial('id').primaryKey(),
+  clientId: text('client_id').unique(),
   orgId: varchar('org_id', { length: 255 }).notNull(),
   userId: varchar('user_id', { length: 255 }).notNull(),
   title: varchar('title', { length: 255 }).notNull(),
@@ -45,6 +57,7 @@ export const notes = pgTable('notes', {
 /* ── Tasks ── */
 export const tasks = pgTable('tasks', {
   id: serial('id').primaryKey(),
+  clientId: text('client_id').unique(),
   orgId: varchar('org_id', { length: 255 }).notNull(),
   userId: varchar('user_id', { length: 255 }).notNull(),
   title: varchar('title', { length: 255 }).notNull(),
@@ -54,6 +67,7 @@ export const tasks = pgTable('tasks', {
   tag: varchar('tag', { length: 32 }).default('work'),
   status: varchar('status', { length: 16 }).default('todo'),
   dueDate: varchar('due_date', { length: 32 }),
+  isPublic: boolean('is_public').default(false).notNull(),
   hlcTimestamp: varchar('hlc_timestamp', { length: 128 }),
   syncVersion: integer('sync_version').default(1),
   isDeleted: boolean('is_deleted').default(false),
@@ -66,11 +80,13 @@ export const tasks = pgTable('tasks', {
 /* ── Habits ── */
 export const habits = pgTable('habits', {
   id: serial('id').primaryKey(),
+  clientId: text('client_id').unique(),
   orgId: varchar('org_id', { length: 255 }).notNull(),
   userId: varchar('user_id', { length: 255 }).notNull(),
   name: varchar('name', { length: 255 }).notNull(),
   emoji: varchar('emoji', { length: 16 }).notNull().default('✅'),
   sortOrder: integer('sort_order').default(0),
+  isPublic: boolean('is_public').default(false).notNull(),
   hlcTimestamp: varchar('hlc_timestamp', { length: 128 }),
   syncVersion: integer('sync_version').default(1),
   isDeleted: boolean('is_deleted').default(false),
@@ -82,6 +98,7 @@ export const habits = pgTable('habits', {
 /* ── Habit Checks ── */
 export const habitChecks = pgTable('habit_checks', {
   id: serial('id').primaryKey(),
+  clientId: text('client_id').unique(),
   habitId: integer('habit_id').references(() => habits.id, { onDelete: 'cascade' }).notNull(),
   date: varchar('date', { length: 10 }).notNull(),
   checked: boolean('checked').default(true),
@@ -96,6 +113,7 @@ export const habitChecks = pgTable('habit_checks', {
 /* ── Goals ── */
 export const goals = pgTable('goals', {
   id: serial('id').primaryKey(),
+  clientId: text('client_id').unique(),
   orgId: varchar('org_id', { length: 255 }).notNull(),
   userId: varchar('user_id', { length: 255 }).notNull(),
   title: varchar('title', { length: 255 }).notNull(),
@@ -105,6 +123,7 @@ export const goals = pgTable('goals', {
   deadline: varchar('deadline', { length: 32 }),
   done: boolean('done').default(false),
   progress: real('progress').default(0),
+  isPublic: boolean('is_public').default(false).notNull(),
   hlcTimestamp: varchar('hlc_timestamp', { length: 128 }),
   syncVersion: integer('sync_version').default(1),
   isDeleted: boolean('is_deleted').default(false),
@@ -117,6 +136,7 @@ export const goals = pgTable('goals', {
 /* ── Goal Sub-tasks ── */
 export const goalSubs = pgTable('goal_subs', {
   id: serial('id').primaryKey(),
+  clientId: text('client_id').unique(),
   goalId: integer('goal_id').references(() => goals.id, { onDelete: 'cascade' }).notNull(),
   text: varchar('text', { length: 500 }).notNull(),
   done: boolean('done').default(false),
@@ -130,6 +150,7 @@ export const goalSubs = pgTable('goal_subs', {
 /* ── Journal Entries ── */
 export const journalEntries = pgTable('journal_entries', {
   id: serial('id').primaryKey(),
+  clientId: text('client_id').unique(),
   orgId: varchar('org_id', { length: 255 }).notNull(),
   userId: varchar('user_id', { length: 255 }).notNull(),
   title: varchar('title', { length: 255 }).notNull(),
@@ -137,6 +158,7 @@ export const journalEntries = pgTable('journal_entries', {
   date: varchar('date', { length: 10 }).notNull(),
   mood: varchar('mood', { length: 16 }),
   tags: json('tags'),
+  isPublic: boolean('is_public').default(false).notNull(),
   hlcTimestamp: varchar('hlc_timestamp', { length: 128 }),
   syncVersion: integer('sync_version').default(1),
   isDeleted: boolean('is_deleted').default(false),
@@ -149,6 +171,7 @@ export const journalEntries = pgTable('journal_entries', {
 /* ── Calendar Events ── */
 export const calEvents = pgTable('cal_events', {
   id: serial('id').primaryKey(),
+  clientId: text('client_id').unique(),
   orgId: varchar('org_id', { length: 255 }).notNull(),
   userId: varchar('user_id', { length: 255 }).notNull(),
   title: varchar('title', { length: 255 }).notNull(),
@@ -158,6 +181,7 @@ export const calEvents = pgTable('cal_events', {
   endTime: varchar('end_time', { length: 5 }),
   tag: varchar('tag', { length: 32 }).default('default'),
   recur: varchar('recur', { length: 16 }),
+  isPublic: boolean('is_public').default(false).notNull(),
   hlcTimestamp: varchar('hlc_timestamp', { length: 128 }),
   syncVersion: integer('sync_version').default(1),
   isDeleted: boolean('is_deleted').default(false),
@@ -170,12 +194,14 @@ export const calEvents = pgTable('cal_events', {
 /* ── Project Boards ── */
 export const boards = pgTable('boards', {
   id: serial('id').primaryKey(),
+  clientId: text('client_id').unique(),
   orgId: varchar('org_id', { length: 255 }).notNull(),
   userId: varchar('user_id', { length: 255 }).notNull(),
   name: varchar('name', { length: 255 }).notNull(),
   description: text('description'),
   color: varchar('color', { length: 32 }),
   icon: varchar('icon', { length: 16 }),
+  isPublic: boolean('is_public').default(false).notNull(),
   hlcTimestamp: varchar('hlc_timestamp', { length: 128 }),
   syncVersion: integer('sync_version').default(1),
   isDeleted: boolean('is_deleted').default(false),
@@ -188,6 +214,7 @@ export const boards = pgTable('boards', {
 /* ── Board Nodes ── */
 export const boardNodes = pgTable('board_nodes', {
   id: serial('id').primaryKey(),
+  clientId: text('client_id').unique(),
   boardId: integer('board_id').references(() => boards.id, { onDelete: 'cascade' }).notNull(),
   type: varchar('type', { length: 32 }).default('task'),
   title: varchar('title', { length: 255 }).notNull(),
@@ -207,6 +234,7 @@ export const boardNodes = pgTable('board_nodes', {
 /* ── Board Threads (connections between nodes) ── */
 export const boardThreads = pgTable('board_threads', {
   id: serial('id').primaryKey(),
+  clientId: text('client_id').unique(),
   boardId: integer('board_id').references(() => boards.id, { onDelete: 'cascade' }).notNull(),
   fromNodeId: integer('from_node_id').references(() => boardNodes.id, { onDelete: 'cascade' }).notNull(),
   toNodeId: integer('to_node_id').references(() => boardNodes.id, { onDelete: 'cascade' }).notNull(),
@@ -221,6 +249,7 @@ export const boardThreads = pgTable('board_threads', {
 /* ── Focus Sessions ── */
 export const focusSessions = pgTable('focus_sessions', {
   id: serial('id').primaryKey(),
+  clientId: text('client_id').unique(),
   orgId: varchar('org_id', { length: 255 }).notNull(),
   userId: varchar('user_id', { length: 255 }).notNull(),
   date: varchar('date', { length: 10 }).notNull(),
@@ -232,6 +261,7 @@ export const focusSessions = pgTable('focus_sessions', {
   longRestMinutes: integer('long_rest_minutes').default(15),
   completedTasks: integer('completed_tasks').default(0),
   totalFocusSeconds: integer('total_focus_seconds').default(0),
+  isPublic: boolean('is_public').default(false).notNull(),
   hlcTimestamp: varchar('hlc_timestamp', { length: 128 }),
   syncVersion: integer('sync_version').default(1),
   isDeleted: boolean('is_deleted').default(false),
@@ -245,6 +275,7 @@ export const focusSessions = pgTable('focus_sessions', {
 /* ── User Preferences ── */
 export const userPreferences = pgTable('user_preferences', {
   id: serial('id').primaryKey(),
+  clientId: text('client_id').unique(),
   orgId: varchar('org_id', { length: 255 }).notNull(),
   userId: varchar('user_id', { length: 255 }).notNull(),
   key: varchar('key', { length: 128 }).notNull(),

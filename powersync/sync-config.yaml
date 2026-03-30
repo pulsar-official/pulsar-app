@@ -1,0 +1,154 @@
+config:
+  edition: 3
+
+# CTE: extract org_id from the signed JWT (Clerk sets it as a custom claim)
+with:
+  user_org:
+    SELECT auth.jwt() ->> 'org_id' AS org_id
+
+streams:
+  # ── Private items: only synced to the owning user ──────────────────────────
+  private_data:
+    auto_subscribe: true
+    queries:
+      - SELECT id, client_id, org_id, user_id, title, description, completed,
+               priority, tag, status, due_date, is_public, is_deleted,
+               hlc_timestamp, sync_version, created_at, updated_at
+          FROM tasks
+         WHERE user_id = auth.user_id() AND is_public = false
+
+      - SELECT id, client_id, org_id, user_id, name, emoji, sort_order,
+               is_public, is_deleted, hlc_timestamp, sync_version, created_at
+          FROM habits
+         WHERE user_id = auth.user_id() AND is_public = false
+
+      - SELECT hc.id, hc.client_id, hc.habit_id, hc.date, hc.checked,
+               hc.is_deleted, hc.hlc_timestamp, hc.sync_version, hc.created_at
+          FROM habit_checks hc
+          JOIN habits h ON hc.habit_id = h.id
+         WHERE h.user_id = auth.user_id() AND h.is_public = false
+
+      - SELECT id, client_id, org_id, user_id, title, description, category,
+               priority, deadline, done, progress, is_public, is_deleted,
+               hlc_timestamp, sync_version, created_at, updated_at
+          FROM goals
+         WHERE user_id = auth.user_id() AND is_public = false
+
+      - SELECT gs.id, gs.client_id, gs.goal_id, gs.text, gs.done,
+               gs.is_deleted, gs.hlc_timestamp, gs.sync_version
+          FROM goal_subs gs
+          JOIN goals g ON gs.goal_id = g.id
+         WHERE g.user_id = auth.user_id() AND g.is_public = false
+
+      - SELECT id, client_id, org_id, user_id, title, content, date, mood,
+               tags::text AS tags, is_public, is_deleted, hlc_timestamp,
+               sync_version, created_at, updated_at
+          FROM journal_entries
+         WHERE user_id = auth.user_id() AND is_public = false
+
+      - SELECT id, client_id, org_id, user_id, title, date, date_end,
+               start_time, end_time, tag, recur, is_public, is_deleted,
+               hlc_timestamp, sync_version, created_at, updated_at
+          FROM cal_events
+         WHERE user_id = auth.user_id() AND is_public = false
+
+      - SELECT id, client_id, org_id, user_id, name, description, color, icon,
+               is_public, is_deleted, hlc_timestamp, sync_version, created_at, updated_at
+          FROM boards
+         WHERE user_id = auth.user_id() AND is_public = false
+
+      - SELECT bn.id, bn.client_id, bn.board_id, bn.type, bn.title, bn.body,
+               bn.x, bn.y, bn.status, bn.priority, bn.is_deleted,
+               bn.hlc_timestamp, bn.sync_version, bn.created_at
+          FROM board_nodes bn
+          JOIN boards b ON bn.board_id = b.id
+         WHERE b.user_id = auth.user_id() AND b.is_public = false
+
+      - SELECT bt.id, bt.client_id, bt.board_id, bt.from_node_id, bt.to_node_id,
+               bt.label, bt.is_deleted, bt.hlc_timestamp, bt.sync_version
+          FROM board_threads bt
+          JOIN boards b ON bt.board_id = b.id
+         WHERE b.user_id = auth.user_id() AND b.is_public = false
+
+      - SELECT id, client_id, org_id, user_id, date, timer_type, total_cycles,
+               completed_cycles, work_minutes, rest_minutes, long_rest_minutes,
+               completed_tasks, total_focus_seconds, is_public, is_deleted,
+               hlc_timestamp, sync_version, created_at, updated_at
+          FROM focus_sessions
+         WHERE user_id = auth.user_id() AND is_public = false
+
+      # Preferences are always private to the owning user
+      - SELECT id, client_id, org_id, user_id, key, value::text AS value,
+               is_deleted, hlc_timestamp, sync_version, updated_at
+          FROM user_preferences
+         WHERE user_id = auth.user_id()
+
+  # ── Public items: synced to all org members ─────────────────────────────────
+  org_public:
+    auto_subscribe: true
+    queries:
+      - SELECT id, client_id, org_id, user_id, title, description, completed,
+               priority, tag, status, due_date, is_public, is_deleted,
+               hlc_timestamp, sync_version, created_at, updated_at
+          FROM tasks
+         WHERE org_id = (SELECT org_id FROM user_org) AND is_public = true
+
+      - SELECT id, client_id, org_id, user_id, name, emoji, sort_order,
+               is_public, is_deleted, hlc_timestamp, sync_version, created_at
+          FROM habits
+         WHERE org_id = (SELECT org_id FROM user_org) AND is_public = true
+
+      - SELECT hc.id, hc.client_id, hc.habit_id, hc.date, hc.checked,
+               hc.is_deleted, hc.hlc_timestamp, hc.sync_version, hc.created_at
+          FROM habit_checks hc
+          JOIN habits h ON hc.habit_id = h.id
+         WHERE h.org_id = (SELECT org_id FROM user_org) AND h.is_public = true
+
+      - SELECT id, client_id, org_id, user_id, title, description, category,
+               priority, deadline, done, progress, is_public, is_deleted,
+               hlc_timestamp, sync_version, created_at, updated_at
+          FROM goals
+         WHERE org_id = (SELECT org_id FROM user_org) AND is_public = true
+
+      - SELECT gs.id, gs.client_id, gs.goal_id, gs.text, gs.done,
+               gs.is_deleted, gs.hlc_timestamp, gs.sync_version
+          FROM goal_subs gs
+          JOIN goals g ON gs.goal_id = g.id
+         WHERE g.org_id = (SELECT org_id FROM user_org) AND g.is_public = true
+
+      - SELECT id, client_id, org_id, user_id, title, content, date, mood,
+               tags::text AS tags, is_public, is_deleted, hlc_timestamp,
+               sync_version, created_at, updated_at
+          FROM journal_entries
+         WHERE org_id = (SELECT org_id FROM user_org) AND is_public = true
+
+      - SELECT id, client_id, org_id, user_id, title, date, date_end,
+               start_time, end_time, tag, recur, is_public, is_deleted,
+               hlc_timestamp, sync_version, created_at, updated_at
+          FROM cal_events
+         WHERE org_id = (SELECT org_id FROM user_org) AND is_public = true
+
+      - SELECT id, client_id, org_id, user_id, name, description, color, icon,
+               is_public, is_deleted, hlc_timestamp, sync_version, created_at, updated_at
+          FROM boards
+         WHERE org_id = (SELECT org_id FROM user_org) AND is_public = true
+
+      - SELECT bn.id, bn.client_id, bn.board_id, bn.type, bn.title, bn.body,
+               bn.x, bn.y, bn.status, bn.priority, bn.is_deleted,
+               bn.hlc_timestamp, bn.sync_version, bn.created_at
+          FROM board_nodes bn
+          JOIN boards b ON bn.board_id = b.id
+         WHERE b.org_id = (SELECT org_id FROM user_org) AND b.is_public = true
+
+      - SELECT bt.id, bt.client_id, bt.board_id, bt.from_node_id, bt.to_node_id,
+               bt.label, bt.is_deleted, bt.hlc_timestamp, bt.sync_version
+          FROM board_threads bt
+          JOIN boards b ON bt.board_id = b.id
+         WHERE b.org_id = (SELECT org_id FROM user_org) AND b.is_public = true
+
+      - SELECT id, client_id, org_id, user_id, date, timer_type, total_cycles,
+               completed_cycles, work_minutes, rest_minutes, long_rest_minutes,
+               completed_tasks, total_focus_seconds, is_public, is_deleted,
+               hlc_timestamp, sync_version, created_at, updated_at
+          FROM focus_sessions
+         WHERE org_id = (SELECT org_id FROM user_org) AND is_public = true

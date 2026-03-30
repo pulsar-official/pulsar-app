@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { auth } from '@clerk/nextjs/server'
+import { getOrgAndUser } from '@/lib/auth-helpers'
 import { db } from '@/lib/db'
 import { users } from '@/db/schema'
 import { eq } from 'drizzle-orm'
@@ -8,20 +8,20 @@ import { eq } from 'drizzle-orm'
 export async function POST(req: NextRequest) {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
   try {
-    const { userId } = await auth()
+    const { userId } = await getOrgAndUser()
     const { priceId, planName, email, phone } = await req.json()
 
     const customer = await stripe.customers.create({
       email: email || undefined,
       phone: phone || undefined,
-      metadata: { planName, clerkId: userId || '' },
+      metadata: { planName, supabaseId: userId || '' },
     })
 
     // Persist Stripe customer ID in our DB so webhooks can find this user
     if (userId) {
       await db.update(users)
         .set({ stripeCustomerId: customer.id, updatedAt: new Date() })
-        .where(eq(users.clerkId, userId))
+        .where(eq(users.supabaseId, userId))
     }
 
     const subscription = await stripe.subscriptions.create({

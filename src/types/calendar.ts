@@ -42,6 +42,7 @@ export interface CalEvent {
   end: string | null;
   tag: EventTag;
   recur: RecurRule;
+  isPublic?: boolean;
 }
 
 // ─── Modal Form State ─────────────────────────────────────────────────────────
@@ -58,6 +59,7 @@ export interface CalEventForm {
   endTime: string;
   tag: EventTag;
   recur: string;
+  isPublic: boolean;
 }
 
 // ─── Computed / Layout ────────────────────────────────────────────────────────

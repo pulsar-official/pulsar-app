@@ -1,0 +1,42 @@
+@use '@/styles/variables' as *;
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: $sp-1;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background $dur-fast $ease, border-color $dur-fast $ease, color $dur-fast $ease;
+  user-select: none;
+  white-space: nowrap;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.private {
+  background: oklch(0.18 0.02 290);
+  border-color: oklch(0.25 0.02 290);
+  color: oklch(0.48 0.04 260);
+
+  &:hover {
+    background: oklch(0.22 0.02 290);
+    border-color: oklch(0.30 0.02 290);
+    color: oklch(0.58 0.06 260);
+  }
+}
+
+.public {
+  background: oklch(0.20 0.06 240);
+  border-color: oklch(0.38 0.10 240);
+  color: oklch(0.72 0.14 240);
+
+  &:hover {
+    background: oklch(0.24 0.08 240);
+  }
+}

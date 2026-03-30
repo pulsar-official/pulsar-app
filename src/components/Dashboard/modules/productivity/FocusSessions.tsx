@@ -47,7 +47,7 @@ export default function FocusSessions() {
   const [customCycles, setCustomCycles]         = useState(4);
 
   const [tasks, setTasks]                       = useState<Task[]>(initialTasks);
-  const [selectedTaskIds, setSelectedTaskIds]   = useState<Set<number>>(new Set());
+  const [selectedTaskIds, setSelectedTaskIds]   = useState<Set<string>>(new Set());
   const [newTaskText, setNewTaskText]           = useState('');
 
   const [timeLeft, setTimeLeft]                 = useState(0);
@@ -56,7 +56,7 @@ export default function FocusSessions() {
   const [totalCycles, setTotalCycles]           = useState(4);
 
   const [showQuitModal, setShowQuitModal]       = useState(false);
-  const [finishConfirmId, setFinishConfirmId]   = useState<number | null>(null);
+  const [finishConfirmId, setFinishConfirmId]   = useState<string | null>(null);
   const [streak, setStreak]                     = useState(0);
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [completedInSession, setCompletedInSession] = useState(0);
@@ -209,7 +209,7 @@ export default function FocusSessions() {
   }, [activeConfig]);
 
   // ── TASK ACTIONS ──
-  const toggleTaskSelect = (id: number) => {
+  const toggleTaskSelect = (id: string) => {
     setSelectedTaskIds((prev) => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
@@ -225,13 +225,13 @@ export default function FocusSessions() {
     setNewTaskText('');
   };
 
-  const removeTask = (id: number, e: React.MouseEvent) => {
+  const removeTask = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setTasks((prev) => prev.filter((t) => t.id !== id));
     setSelectedTaskIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
   };
 
-  const markTaskDone = (id: number) => {
+  const markTaskDone = (id: string) => {
     setTasks((prev) => prev.map((t) => t.id === id ? { ...t, done: true, deferred: false } : t));
     setCompletedInSession((c) => c + 1);
     // Sync completion back to productivity store (read fresh state to avoid stale closure)
@@ -239,7 +239,7 @@ export default function FocusSessions() {
     if (currentTask && !currentTask.completed) storeToggleTask(id)
   };
 
-  const deferTask = (id: number) => {
+  const deferTask = (id: string) => {
     setTasks((prev) => {
       const task = prev.find((t) => t.id === id);
       if (!task) return prev;

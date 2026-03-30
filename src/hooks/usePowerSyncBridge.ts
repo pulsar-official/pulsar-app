@@ -42,7 +42,7 @@ const toRows = (rows: unknown): Row[] => {
 }
 
 const mapTask = (r: Row): Task => ({
-  id:          num(r.id),
+  id:          r.id as string,
   orgId:       r.org_id as string,
   userId:      r.user_id as string,
   title:       r.title as string,
@@ -55,7 +55,7 @@ const mapTask = (r: Row): Task => ({
 })
 
 const mapHabit = (r: Row): Habit => ({
-  id:        num(r.id),
+  id:        r.id as string,
   orgId:     r.org_id as string,
   userId:    r.user_id as string,
   name:      r.name as string,
@@ -64,21 +64,21 @@ const mapHabit = (r: Row): Habit => ({
 })
 
 const mapHabitCheck = (r: Row): HabitCheck => ({
-  id:      num(r.id),
-  habitId: num(r.habit_id),
+  id:      r.id as string,
+  habitId: r.habit_id as string,
   date:    r.date as string,
   checked: bool(r.checked),
 })
 
 const mapSub = (r: Row): SubGoal => ({
-  id:     num(r.id),
-  goalId: num(r.goal_id),
+  id:     r.id as string,
+  goalId: r.goal_id as string,
   text:   r.text as string,
   done:   bool(r.done),
 })
 
 const mapGoal = (r: Row, subs: SubGoal[]): Goal => ({
-  id:          num(r.id),
+  id:          r.id as string,
   orgId:       r.org_id as string,
   userId:      r.user_id as string,
   title:       r.title as string,
@@ -88,11 +88,11 @@ const mapGoal = (r: Row, subs: SubGoal[]): Goal => ({
   deadline:    (r.deadline ?? null) as string | null,
   done:        bool(r.done),
   progress:    Number(r.progress ?? 0),
-  subs:        subs.filter(s => s.goalId === num(r.id)),
+  subs:        subs.filter(s => s.goalId === (r.id as string)),
 })
 
 const mapJournal = (r: Row): JournalEntry => ({
-  id:      num(r.id),
+  id:      r.id as string,
   orgId:   r.org_id as string,
   userId:  r.user_id as string,
   title:   r.title as string,
@@ -103,7 +103,7 @@ const mapJournal = (r: Row): JournalEntry => ({
 })
 
 const mapEvent = (r: Row): CalEvent => ({
-  id:        num(r.id),
+  id:        r.id as string,
   orgId:     r.org_id as string,
   userId:    r.user_id as string,
   title:     r.title as string,
@@ -116,7 +116,7 @@ const mapEvent = (r: Row): CalEvent => ({
 })
 
 const mapFocusSession = (r: Row): FocusSession => ({
-  id:                num(r.id),
+  id:                r.id as string,
   orgId:             r.org_id as string,
   userId:            r.user_id as string,
   date:              r.date as string,
@@ -131,7 +131,7 @@ const mapFocusSession = (r: Row): FocusSession => ({
 })
 
 const mapPreference = (r: Row): UserPreference => ({
-  id:     num(r.id),
+  id:     r.id as string,
   orgId:  r.org_id as string,
   userId: r.user_id as string,
   key:    r.key as string,
@@ -187,8 +187,8 @@ export function usePowerSyncBridge() {
         const goals: Goal[] = toRows(rows).map(r => {
           const rawSubs = parseJson<Row[]>(r.subs_json, [])
           const subs: SubGoal[] = rawSubs.map(s => ({
-            id:     num(s.id),
-            goalId: num(s.goalId ?? s.goal_id),
+            id:     s.id as string,
+            goalId: (s.goalId ?? s.goal_id) as string,
             text:   s.text as string,
             done:   bool(s.done),
           }))
@@ -219,7 +219,7 @@ export function usePowerSyncBridge() {
         'SELECT * FROM boards WHERE is_deleted = 0 ORDER BY created_at DESC', [], { signal: sig }
       )) {
         set({ boards: toRows(rows).map(r => ({
-          id:          num(r.id),
+          id:          r.id as string,
           orgId:       r.org_id as string,
           userId:      r.user_id as string,
           name:        r.name as string,

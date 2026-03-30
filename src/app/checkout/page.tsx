@@ -1,6 +1,6 @@
 'use client'
 import { useState, Suspense } from 'react'
-import { SignIn, SignUp, useUser } from '@clerk/nextjs'
+import { useUser } from '@/hooks/useSupabaseAuth'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { useSearchParams, useRouter } from 'next/navigation'
@@ -127,8 +127,8 @@ function PaymentPanel({ priceId, planName, billing, amount }: { priceId: string;
 function CheckoutContent() {
   const params = useSearchParams()
   const router = useRouter()
-  const { isSignedIn, user } = useUser()
-  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin')
+  const { user } = useUser()
+  const isSignedIn = !!user
   const priceId = params.get('priceId') ?? ''
   const planName = params.get('plan') ?? ''
   const billing = params.get('billing') ?? 'monthly'
@@ -153,28 +153,21 @@ function CheckoutContent() {
             <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(110,231,183,0.15)', display: 'grid', placeItems: 'center', fontSize: 18, flexShrink: 0 }}>✓</div>
             <div>
               <div style={{ color: '#6ee7b7', fontWeight: 600, fontSize: '0.9rem' }}>Ready to pay</div>
-              <div style={{ color: '#7878a0', fontSize: '0.8rem', marginTop: 2 }}>{user?.emailAddresses[0]?.emailAddress}</div>
+              <div style={{ color: '#7878a0', fontSize: '0.8rem', marginTop: 2 }}>{user?.email}</div>
             </div>
           </div>
         ) : (
           /* Auth toggle + Clerk component */
-          <>
-            <div style={{ display: 'flex', gap: 0, marginBottom: 24, background: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 3 }}>
-              {(['signin', 'signup'] as const).map(mode => (
-                <button key={mode} onClick={() => setAuthMode(mode)}
-                  style={{ flex: 1, padding: '7px 0', borderRadius: 6, border: 'none', fontSize: '0.82rem', fontWeight: 600, fontFamily: "'Space Grotesk',system-ui,sans-serif", cursor: 'pointer', transition: 'all 0.2s',
-                    background: authMode === mode ? '#18182a' : 'transparent',
-                    color: authMode === mode ? '#eeeef5' : '#65657a',
-                  }}>
-                  {mode === 'signin' ? 'Sign In' : 'Create Account'}
-                </button>
-              ))}
-            </div>
-            {authMode === 'signin'
-              ? <SignIn  routing="hash" afterSignInUrl={afterUrl}  signUpUrl={'#'} appearance={CA} />
-              : <SignUp  routing="hash" afterSignUpUrl={afterUrl}  signInUrl={'#'} appearance={CA} />
-            }
-          </>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <a href={`/sign-in?redirect=${encodeURIComponent(afterUrl)}`}
+              style={{ display: 'block', width: '100%', padding: '13px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#a78bfa,#7c3aed)', color: '#fff', fontSize: '0.95rem', fontWeight: 600, cursor: 'pointer', textAlign: 'center', textDecoration: 'none', boxSizing: 'border-box' as const }}>
+              Sign In
+            </a>
+            <a href={`/sign-up?redirect=${encodeURIComponent(afterUrl)}`}
+              style={{ display: 'block', width: '100%', padding: '13px', borderRadius: 10, border: '1px solid rgba(167,139,250,0.3)', background: 'transparent', color: '#a78bfa', fontSize: '0.95rem', fontWeight: 600, cursor: 'pointer', textAlign: 'center', textDecoration: 'none', boxSizing: 'border-box' as const }}>
+              Create Account
+            </a>
+          </div>
         )}
       </div>
 

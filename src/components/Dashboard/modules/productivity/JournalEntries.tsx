@@ -26,7 +26,7 @@ const JournalEntries: React.FC<{ onNavigate?: (page: string) => void }> = ({ onN
   const storeDeleteEntry = useProductivityStore(s => s.deleteJournalEntry)
   const setSelectedEntryId = useProductivityStore(s => s.setSelectedJournalEntryId)
 
-  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [moodFilter, setMoodFilter] = useState<string | null>(null)
   const [tagFilter, setTagFilter] = useState<string | null>(null)

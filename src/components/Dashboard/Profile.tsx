@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef } from 'react'
-import { useUser } from '@clerk/nextjs'
+import { useUser } from '@/hooks/useSupabaseAuth'
 import styles from './Profile.module.scss'
 import { ProfileMenu } from './ProfileMenu'
 
@@ -19,7 +19,7 @@ export const Profile: React.FC<ProfileProps> = ({
   const { user } = useUser()
   const displayName = user?.fullName || user?.firstName || 'User'
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) || 'U'
-  const subtitle = user?.emailAddresses[0]?.emailAddress || 'Knowledge OS'
+  const subtitle = user?.email || 'Knowledge OS'
   const [menuOpen, setMenuOpen] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
 

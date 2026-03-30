@@ -32,7 +32,7 @@ const TYPE_PAGES: Record<ConnectionItemType, string> = {
 
 interface RelatedItemsProps {
   itemType: ConnectionItemType
-  itemId: number
+  itemId: string
   onNavigate?: (page: string) => void
   maxItems?: number
 }

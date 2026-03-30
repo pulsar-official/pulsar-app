@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth, clerkClient } from '@clerk/nextjs/server'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 
 const CATEGORY_EMOJI: Record<string, string> = {
   bug:     '🐛',
@@ -9,23 +9,19 @@ const CATEGORY_EMOJI: Record<string, string> = {
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await auth()
+    const supabase = await createSupabaseServerClient()
+    const { data: { user } } = await supabase.auth.getUser()
     const { message, category = 'general' } = await req.json()
 
     if (!message?.trim()) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 })
     }
 
-    // Enrich with user info if authenticated
     let userInfo = 'Anonymous'
-    if (userId) {
-      try {
-        const client = await clerkClient()
-        const user = await client.users.getUser(userId)
-        const email = user.emailAddresses[0]?.emailAddress ?? ''
-        const name = user.fullName || user.firstName || 'Unknown'
-        userInfo = email ? `${name} (${email})` : name
-      } catch { /* ignore */ }
+    if (user) {
+      const email = user.email ?? ''
+      const name = (user.user_metadata?.full_name as string) ?? (user.user_metadata?.username as string) ?? 'Unknown'
+      userInfo = email ? `${name} (${email})` : name
     }
 
     const webhookUrl = process.env.DISCORD_FEEDBACK_WEBHOOK_URL
@@ -47,7 +43,6 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify(payload),
       })
     } else {
-      // No webhook configured — log to console so it's not silently lost
       console.log('[Feedback]', { category, userInfo, message })
     }
 

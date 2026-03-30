@@ -1,39 +1,21 @@
 'use client'
-
 import { PowerSyncContext } from '@powersync/react'
-import { useAuth } from '@clerk/nextjs'
-import { useEffect, useState } from 'react'
-import { getPowerSyncDb } from '@/lib/powersync/database'
+import { Suspense } from 'react'
+import { db } from '@/lib/powersync/db'
 import { PulsarConnector } from '@/lib/powersync/connector'
-import type { PowerSyncDatabase } from '@powersync/web'
 
-export function PowerSyncProvider({ children }: { children: React.ReactNode }) {
-  const { userId } = useAuth()
-  const [db, setDb] = useState<PowerSyncDatabase | null>(null)
+// Module-scope singleton — stable across React re-renders and Strict Mode double-mounts
+const connector = new PulsarConnector()
+db.connect(connector) // fire-and-forget
 
-  useEffect(() => {
-    if (!userId) return
-
-    const database = getPowerSyncDb()
-    const connector = new PulsarConnector()
-
-    database.connect(connector).then(() => {
-      setDb(database)
-    })
-
-    return () => {
-      database.disconnect()
-      setDb(null)
-    }
-  }, [userId])
-
-  // Render children immediately so the app isn't blank while PowerSync connects.
-  // usePowerSyncBridge already guards on null db, so nothing throws.
-  if (!db) return <>{children}</>
-
+export function PulsarPowerSyncProvider({ children }: { children: React.ReactNode }) {
   return (
-    <PowerSyncContext.Provider value={db}>
-      {children}
-    </PowerSyncContext.Provider>
+    <Suspense>
+      <PowerSyncContext.Provider value={db}>{children}</PowerSyncContext.Provider>
+    </Suspense>
   )
+}
+
+export async function disconnectPowerSync() {
+  await db.disconnectAndClear()
 }

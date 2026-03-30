@@ -1,5 +1,6 @@
-import { verifySignatureAppRouter } from '@upstash/qstash/nextjs'
 import type { Job } from '@/lib/queue'
+
+export const dynamic = 'force-dynamic'
 
 async function handler(req: Request) {
   const job = await req.json() as Job
@@ -42,5 +43,9 @@ async function handler(req: Request) {
   return Response.json({ ok: true })
 }
 
-// Verifies QStash's HMAC signature before running the handler
-export const POST = verifySignatureAppRouter(handler)
+// Verifies QStash's HMAC signature before running the handler — lazy import avoids
+// reading signing keys at module eval time (which breaks Next.js static analysis)
+export async function POST(req: Request) {
+  const { verifySignatureAppRouter } = await import('@upstash/qstash/nextjs')
+  return verifySignatureAppRouter(handler)(req)
+}

@@ -7,6 +7,7 @@ import type { JournalEntry } from '@/types/productivity'
 import { MOODS, MOOD_COLORS, TAGS } from '@/constants/journal'
 import RelatedItems from '../shared/RelatedItems'
 import DeleteConfirmModal from '../shared/DeleteConfirmModal'
+import PrivacyToggle from '../shared/PrivacyToggle'
 
 function fmtDate(d: string) {
   const dt = new Date(d)
@@ -23,7 +24,7 @@ const JournalEditor: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNa
   const selectedEntryId = useProductivityStore(s => s.selectedJournalEntryId)
   const setSelectedEntryId = useProductivityStore(s => s.setSelectedJournalEntryId)
 
-  const [selectedId, setSelectedId] = useState<number | null>(selectedEntryId ?? entries[0]?.id ?? null)
+  const [selectedId, setSelectedId] = useState<string | null>(selectedEntryId ?? entries[0]?.id ?? null)
   const [searchQuery, setSearchQuery] = useState("")
   const [sortOrder, setSortOrder] = useState<'date' | 'title'>('date')
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved')
@@ -75,6 +76,11 @@ const JournalEditor: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNa
     if (!selected) return
     const tags = selected.tags.includes(tag) ? selected.tags.filter(t => t !== tag) : [...selected.tags, tag]
     updateEntry("tags", tags)
+  }
+
+  const togglePublic = (v: boolean) => {
+    if (!selected) return
+    storeUpdateEntry({ ...selected, isPublic: v })
   }
 
   const deleteEntry = () => {
@@ -178,6 +184,7 @@ const JournalEditor: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNa
               <div className={styles.footerRight}>
                 <span className={styles.saveIndicator}>{saveStatus === 'saving' ? 'Saving...' : 'Saved'}</span>
                 <span className={styles.wordCount}>{wordCount}w · {charCount}c · {readTime} min read</span>
+                <PrivacyToggle isPublic={selected.isPublic ?? false} onChange={togglePublic} />
                 <button className={styles.deleteEntryBtn} onClick={deleteEntry} title="Delete entry">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
                   Delete

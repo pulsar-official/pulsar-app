@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useUser, useClerk } from '@clerk/nextjs'
+import { useUser, useSignOut } from '@/hooks/useSupabaseAuth'
 import styles from './Settings.module.scss'
 
 const SECTIONS = [
@@ -31,17 +31,17 @@ const SHORTCUTS = [
 
 export default function Settings() {
   const { user } = useUser()
-  const { signOut, openUserProfile } = useClerk()
+  const signOut = useSignOut()
   const [activeSection, setActiveSection] = useState('profile')
   const [notifPrefs, setNotifPrefs] = useState({
     inApp: true, emailDigest: true, goalReminders: true, focusAlerts: true, streakAlerts: true,
   })
   const [confirmDelete, setConfirmDelete] = useState(false)
 
-  const plan = (user?.publicMetadata?.plan as string) || 'Free'
+  const plan = (user?.appMetadata?.plan as string) || 'Free'
   const planActive = plan !== 'Free'
   const displayName = user?.fullName || user?.firstName || 'User'
-  const email = user?.emailAddresses[0]?.emailAddress || ''
+  const email = user?.email || ''
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) || 'U'
 
   const toggleNotif = (key: keyof typeof notifPrefs) =>
@@ -71,7 +71,7 @@ export default function Settings() {
         {activeSection === 'profile' && (
           <div className={styles.section}>
             <h2 className={styles.sectionTitle}>Profile</h2>
-            <p className={styles.sectionDesc}>Your identity across Pulsar. Managed via your Clerk account.</p>
+            <p className={styles.sectionDesc}>Your identity across Pulsar.</p>
             <div className={styles.profileCard}>
               <div className={styles.avatar}>{initials}</div>
               <div className={styles.profileInfo}>
@@ -84,10 +84,7 @@ export default function Settings() {
                 </div>
               </div>
             </div>
-            <button className={styles.primaryBtn} onClick={() => openUserProfile()}>
-              Edit Profile in Clerk ↗
-            </button>
-            <p className={styles.hint}>Name, avatar, connected accounts, and password are managed through Clerk.</p>
+            <p className={styles.hint}>To update your name or password, use the password reset flow on the sign-in page.</p>
           </div>
         )}
 
@@ -227,7 +224,7 @@ export default function Settings() {
                 <div className={styles.dangerName}>Sign out all sessions</div>
                 <div className={styles.dangerHint}>Logs you out on every device immediately.</div>
               </div>
-              <button className={styles.dangerBtn} onClick={() => signOut({ redirectUrl: '/' })}>
+              <button className={styles.dangerBtn} onClick={() => signOut()}>
                 Sign Out Everywhere
               </button>
             </div>
@@ -240,7 +237,7 @@ export default function Settings() {
               {confirmDelete ? (
                 <div className={styles.dangerConfirm}>
                   <span className={styles.dangerConfirmText}>Are you sure?</span>
-                  <button className={styles.dangerBtnReal} onClick={() => user?.delete()}>Yes, delete</button>
+                  <button className={styles.dangerBtnReal} onClick={() => fetch('/api/auth/delete-account', { method: 'DELETE' }).then(() => signOut())}>Yes, delete</button>
                   <button className={styles.ghostBtn} onClick={() => setConfirmDelete(false)}>Cancel</button>
                 </div>
               ) : (

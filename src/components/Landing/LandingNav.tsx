@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { useAuth } from '@clerk/nextjs'
+import { useAuth } from '@/hooks/useSupabaseAuth'
 
 interface Props {
   variant?: 'sticky' | 'fixed'

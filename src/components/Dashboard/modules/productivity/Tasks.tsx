@@ -6,6 +6,7 @@ import { useProductivityStore } from '@/stores/productivityStore'
 import type { Task, Priority, TaskTag, TaskStatus } from '@/types/productivity'
 import RelatedItems from '../shared/RelatedItems'
 import DeleteConfirmModal from '../shared/DeleteConfirmModal'
+import PrivacyToggle from '../shared/PrivacyToggle'
 
 type DisplayPriority = "high" | "med" | "low"
 
@@ -16,8 +17,8 @@ const PRI_LABEL: Record<DisplayPriority,string> = { high:"● High", med:"● Me
 function toDisplayPri(p: Priority): DisplayPriority { return p === 'medium' ? 'med' : p as DisplayPriority }
 function toStorePri(p: DisplayPriority): Priority { return p === 'med' ? 'medium' : p as Priority }
 
-interface FormState { title:string; desc:string; priority:DisplayPriority; tag:TaskTag; due:string; status:TaskStatus }
-const DFORM: FormState = { title:"", desc:"", priority:"med", tag:"work", due:"", status:"todo" }
+interface FormState { title:string; desc:string; priority:DisplayPriority; tag:TaskTag; due:string; status:TaskStatus; isPublic:boolean }
+const DFORM: FormState = { title:"", desc:"", priority:"med", tag:"work", due:"", status:"todo", isPublic:false }
 
 const Tasks: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }) => {
   const tasks = useProductivityStore(s => s.tasks)
@@ -31,33 +32,33 @@ const Tasks: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
   const [open, setOpen] = useState(false)
   const [editTask, setEditTask] = useState<Task|null>(null)
   const [form, setForm] = useState<FormState>(DFORM)
-  const [confirmDeleteTaskId, setConfirmDeleteTaskId] = useState<number | null>(null)
+  const [confirmDeleteTaskId, setConfirmDeleteTaskId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
   const filtered = filter === "all" ? tasks : tasks.filter(t => t.tag === filter)
 
-  const toggleDone = (id: number) => {
+  const toggleDone = (id: string) => {
     storeToggleTask(id)
   }
 
   const openAdd = () => { setEditTask(null); setForm(DFORM); setOpen(true) }
   const openEdit = (t: Task) => {
     setEditTask(t)
-    setForm({ title:t.title, desc:t.description, priority:toDisplayPri(t.priority), tag:t.tag, due:t.dueDate ?? '', status:t.status })
+    setForm({ title:t.title, desc:t.description, priority:toDisplayPri(t.priority), tag:t.tag, due:t.dueDate ?? '', status:t.status, isPublic:t.isPublic ?? false })
     setOpen(true)
   }
 
   const save = () => {
     if (!form.title.trim()) return
     if (editTask) {
-      storeUpdateTask({ ...editTask, title:form.title, description:form.desc, priority:toStorePri(form.priority), tag:form.tag, dueDate:form.due || null, status:form.status, completed: form.status === "done" })
+      storeUpdateTask({ ...editTask, title:form.title, description:form.desc, priority:toStorePri(form.priority), tag:form.tag, dueDate:form.due || null, status:form.status, completed: form.status === "done", isPublic:form.isPublic })
     } else {
-      storeAddTask({ title:form.title, description:form.desc, priority:toStorePri(form.priority), tag:form.tag, dueDate:form.due || null, status:form.status, completed: form.status === "done" })
+      storeAddTask({ title:form.title, description:form.desc, priority:toStorePri(form.priority), tag:form.tag, dueDate:form.due || null, status:form.status, completed: form.status === "done", isPublic:form.isPublic })
     }
     setOpen(false)
   }
 
-  const del = async (id: number) => {
+  const del = async (id: string) => {
     setIsDeleting(true)
     await storeDeleteTask(id)
     setIsDeleting(false)
@@ -212,6 +213,7 @@ const Tasks: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
             {editTask && <RelatedItems itemType="task" itemId={editTask.id} onNavigate={onNavigate} />}
             <div className={styles.modalFooter}>
               {editTask && <button className={styles.deleteBtn} onClick={() => setConfirmDeleteTaskId(editTask.id)}>Delete</button>}
+              <PrivacyToggle isPublic={form.isPublic} onChange={v => setForm(f => ({...f, isPublic: v}))} />
               <button className={styles.cancelBtn} onClick={() => setOpen(false)}>Cancel</button>
               <button className={styles.saveBtn} onClick={save}>Save</button>
             </div>

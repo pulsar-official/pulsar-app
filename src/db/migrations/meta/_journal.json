@@ -8,6 +8,13 @@
       "when": 1774240947445,
       "tag": "0000_premium_ultron",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1774737673118,
+      "tag": "0002_large_fabian_cortez",
+      "breakpoints": true
     }
   ]
 }

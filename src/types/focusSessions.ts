@@ -7,7 +7,7 @@ export type Priority = 'high' | 'medium' | 'low';
 export type TimerTypeId = 'pomodoro' | 'deepwork' | 'sprint' | 'adaptive' | 'custom';
 
 export interface Task {
-  id: number;
+  id: string;
   title: string;
   priority: Priority;
   done: boolean;

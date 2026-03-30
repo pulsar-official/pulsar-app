@@ -5,6 +5,7 @@ import styles from "./Goals.module.scss"
 import { useProductivityStore } from '@/stores/productivityStore'
 import type { Goal, GoalCategory, Priority } from '@/types/productivity'
 import RelatedItems from '../shared/RelatedItems'
+import PrivacyToggle from '../shared/PrivacyToggle'
 
 type Cat = GoalCategory
 type Pri = Priority
@@ -66,13 +67,13 @@ const Goals: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
   const storeToggleSubGoal = useProductivityStore(s => s.toggleSubGoal)
   const storeAddSubGoal = useProductivityStore(s => s.addSubGoal)
 
-  const [selectedId, setSelectedId] = useState<number | null>(goals[0]?.id ?? null)
+  const [selectedId, setSelectedId] = useState<string | null>(goals[0]?.id ?? null)
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all')
   const [filterCat, setFilterCat] = useState<Cat | 'all'>('all')
   const [sortBy, setSortBy] = useState<SortBy>('priority')
   const [modalOpen, setModalOpen] = useState(false)
   const [editGoal, setEditGoal] = useState<Goal | null>(null)
-  const [confirmId, setConfirmId] = useState<number | null>(null)
+  const [confirmId, setConfirmId] = useState<string | null>(null)
   const [undo, setUndo] = useState<{ goal: Goal; show: boolean } | null>(null)
   const [newSubText, setNewSubText] = useState("")
 
@@ -83,6 +84,7 @@ const Goals: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
   const [fPri, setFPri] = useState<Pri>("medium")
   const [fDeadline, setFDeadline] = useState("")
   const [fProgress, setFProgress] = useState(0)
+  const [fIsPublic, setFIsPublic] = useState(false)
 
   const selected = useMemo(() => goals.find(g => g.id === selectedId) ?? null, [goals, selectedId])
 
@@ -124,28 +126,28 @@ const Goals: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
   }, [goals])
 
   const openAdd = () => {
-    setEditGoal(null); setFTitle(""); setFDesc(""); setFCat("work"); setFPri("medium"); setFDeadline(""); setFProgress(0)
+    setEditGoal(null); setFTitle(""); setFDesc(""); setFCat("work"); setFPri("medium"); setFDeadline(""); setFProgress(0); setFIsPublic(false)
     setModalOpen(true)
   }
   const openEdit = () => {
     if (!selected) return
     setEditGoal(selected); setFTitle(selected.title); setFDesc(selected.description)
-    setFCat(selected.category); setFPri(selected.priority); setFDeadline(selected.deadline ?? ''); setFProgress(selected.progress)
+    setFCat(selected.category); setFPri(selected.priority); setFDeadline(selected.deadline ?? ''); setFProgress(selected.progress); setFIsPublic(selected.isPublic ?? false)
     setModalOpen(true)
   }
 
   const save = () => {
     if (!fTitle.trim()) return
     if (editGoal) {
-      storeUpdateGoal({ ...editGoal, title: fTitle, description: fDesc, category: fCat, priority: fPri, deadline: fDeadline || null, progress: fProgress })
+      storeUpdateGoal({ ...editGoal, title: fTitle, description: fDesc, category: fCat, priority: fPri, deadline: fDeadline || null, progress: fProgress, isPublic: fIsPublic })
     } else {
-      storeAddGoal({ title: fTitle, description: fDesc, category: fCat, priority: fPri, deadline: fDeadline || null, done: false, progress: fProgress })
+      storeAddGoal({ title: fTitle, description: fDesc, category: fCat, priority: fPri, deadline: fDeadline || null, done: false, progress: fProgress, isPublic: fIsPublic })
     }
     setModalOpen(false)
   }
 
   const toggleDone = (g: Goal) => storeUpdateGoal({ ...g, done: !g.done })
-  const toggleSubDone = (sid: number) => {
+  const toggleSubDone = (sid: string) => {
     if (!selected) return
     const sub = selected.subs.find(s => s.id === sid)
     if (sub) storeToggleSubGoal(sid, !sub.done)
@@ -439,6 +441,7 @@ const Goals: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
               </div>
             </div>
             <div className={styles.modalFooter}>
+              <PrivacyToggle isPublic={fIsPublic} onChange={setFIsPublic} />
               <button className={styles.cancelBtn} onClick={() => setModalOpen(false)}>Cancel</button>
               <button className={styles.saveBtn} onClick={save}>Save</button>
             </div>

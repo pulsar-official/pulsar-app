@@ -1,36 +1,26 @@
-import { auth } from '@clerk/nextjs/server'
-import * as jose from 'jose'
-
-const POWERSYNC_URL = process.env.NEXT_PUBLIC_POWERSYNC_URL!
-const KEY_ID = process.env.POWERSYNC_KEY_ID ?? 'pulsar-key-1'
-
-// Cache the imported key per cold start (jose v6 uses CryptoKey, not KeyLike)
-let privateKey: CryptoKey | null = null
-
-async function getPrivateKey(): Promise<CryptoKey> {
-  if (privateKey) return privateKey
-  const pem = process.env.POWERSYNC_PRIVATE_KEY!.replace(/\\n/g, '\n')
-  privateKey = await jose.importPKCS8(pem, 'ES256')
-  return privateKey
-}
+import { getOrgAndUser } from '@/lib/auth-helpers'
+import { SignJWT, importPKCS8 } from 'jose'
 
 export async function GET() {
-  const { userId } = await auth()
-  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const { orgId, userId } = await getOrgAndUser()
+  if (!orgId || !userId) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  }
 
-  const key = await getPrivateKey()
+  if (!process.env.POWERSYNC_PRIVATE_KEY) {
+    return Response.json({ error: 'PowerSync not configured' }, { status: 503 })
+  }
+  const privateKey = await importPKCS8(process.env.POWERSYNC_PRIVATE_KEY, 'RS256')
 
-  const token = await new jose.SignJWT({
-    sub: userId,       // maps to auth.user_id() in PowerSync sync rules
-    aud: 'pulsar-app', // must match the audience in PowerSync console
-  })
-    .setProtectedHeader({ alg: 'ES256', kid: KEY_ID })
+  const token = await new SignJWT({ sub: userId, user_id: userId, org_id: orgId })
+    .setProtectedHeader({ alg: 'RS256' })
     .setIssuedAt()
     .setExpirationTime('1h')
-    .sign(key)
+    .sign(privateKey)
 
   return Response.json({
-    endpoint: POWERSYNC_URL,
     token,
+    powersync_url: process.env.NEXT_PUBLIC_POWERSYNC_URL,
+    expires_at: new Date(Date.now() + 3600 * 1000).toISOString(),
   })
 }

@@ -1,7 +1,7 @@
 export type ConnectionItemType = 'task' | 'goal' | 'habit' | 'journal' | 'event'
 
 export interface ConnectionItem {
-  id: number
+  id: string
   type: ConnectionItemType
   title: string
 }
