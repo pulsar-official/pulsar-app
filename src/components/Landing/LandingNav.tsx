@@ -57,7 +57,7 @@ export default function LandingNav({ variant = 'sticky', scrolled = false, onGet
       }}>
         {/* Logo */}
         <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none', color: '#eeeef5' }}>
-          <div style={{ width: 26, height: 26, borderRadius: 7, background: 'linear-gradient(135deg,#a78bfa,#7c3aed)', display: 'grid', placeItems: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>P</div>
+          <div style={{ width: 26, height: 26, borderRadius: 7, background: '#7c3aed', display: 'grid', placeItems: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>P</div>
           <span style={{ fontWeight: 600, fontSize: '0.92rem', letterSpacing: '-0.01em', fontFamily: "'JetBrains Mono',monospace" }}>pulsar</span>
         </a>
 
@@ -89,7 +89,7 @@ export default function LandingNav({ variant = 'sticky', scrolled = false, onGet
             {isAuthed ? (
               <button
                 onClick={() => onGetStarted ? onGetStarted() : router.push('/')}
-                style={{ padding: '7px 18px', borderRadius: 7, border: 'none', background: 'linear-gradient(135deg,#a78bfa,#7c3aed)', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', fontFamily: "'JetBrains Mono',monospace", transition: `all 0.2s ${E}` }}
+                style={{ padding: '7px 18px', borderRadius: 7, border: 'none', background: '#7c3aed', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', fontFamily: "'JetBrains Mono',monospace", transition: `all 0.2s ${E}` }}
                 onMouseEnter={e => { e.currentTarget.style.opacity = '0.88' }}
                 onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
               >dashboard →</button>
@@ -103,7 +103,7 @@ export default function LandingNav({ variant = 'sticky', scrolled = false, onGet
                 >sign in</button>
                 <button
                   onClick={() => onGetStarted ? onGetStarted() : router.push('/sign-up')}
-                  style={{ padding: '7px 18px', borderRadius: 7, border: 'none', background: 'linear-gradient(135deg,#a78bfa,#7c3aed)', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', fontFamily: "'JetBrains Mono',monospace", transition: `all 0.2s ${E}` }}
+                  style={{ padding: '7px 18px', borderRadius: 7, border: 'none', background: '#7c3aed', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', fontFamily: "'JetBrains Mono',monospace", transition: `all 0.2s ${E}` }}
                   onMouseEnter={e => { e.currentTarget.style.opacity = '0.88' }}
                   onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
                 >join waitlist</button>
@@ -137,7 +137,7 @@ export default function LandingNav({ variant = 'sticky', scrolled = false, onGet
           <div style={{ padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
             {isAuthed ? (
               <button onClick={() => { setMenuOpen(false); onGetStarted ? onGetStarted() : router.push('/') }}
-                style={{ padding: '12px 20px', borderRadius: 7, border: 'none', background: 'linear-gradient(135deg,#a78bfa,#7c3aed)', color: '#fff', fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer', fontFamily: "'JetBrains Mono',monospace" }}
+                style={{ padding: '12px 20px', borderRadius: 7, border: 'none', background: '#7c3aed', color: '#fff', fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer', fontFamily: "'JetBrains Mono',monospace" }}
               >dashboard →</button>
             ) : (
               <>
@@ -145,7 +145,7 @@ export default function LandingNav({ variant = 'sticky', scrolled = false, onGet
                   style={{ padding: '12px 20px', borderRadius: 7, border: '1px solid rgba(255,255,255,0.08)', background: 'transparent', color: '#a0a0b8', fontSize: '0.88rem', fontWeight: 500, cursor: 'pointer', fontFamily: "'JetBrains Mono',monospace" }}
                 >sign in</button>
                 <button onClick={() => { setMenuOpen(false); onGetStarted ? onGetStarted() : router.push('/sign-up') }}
-                  style={{ padding: '12px 20px', borderRadius: 7, border: 'none', background: 'linear-gradient(135deg,#a78bfa,#7c3aed)', color: '#fff', fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer', fontFamily: "'JetBrains Mono',monospace" }}
+                  style={{ padding: '12px 20px', borderRadius: 7, border: 'none', background: '#7c3aed', color: '#fff', fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer', fontFamily: "'JetBrains Mono',monospace" }}
                 >join waitlist</button>
               </>
             )}
