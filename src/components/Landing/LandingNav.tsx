@@ -46,9 +46,10 @@ export default function LandingNav({ variant = 'sticky', scrolled = false, onGet
       <nav style={{
         position: isFixed ? 'fixed' : 'sticky',
         top: 0, left: 0, right: 0, zIndex: 100,
-        padding: isFixed ? (scrolled ? '10px 40px' : '18px 40px') : '14px 40px',
-        paddingLeft: isMobile ? 20 : undefined,
-        paddingRight: isMobile ? 20 : undefined,
+        paddingTop: isFixed ? (scrolled ? 10 : 18) : 14,
+        paddingBottom: isFixed ? (scrolled ? 10 : 18) : 14,
+        paddingLeft: isMobile ? 20 : 40,
+        paddingRight: isMobile ? 20 : 40,
         background: showGlass ? 'rgba(7,7,12,0.94)' : 'transparent',
         backdropFilter: showGlass ? 'blur(20px) saturate(1.4)' : 'none',
         borderBottom: '1px solid ' + (showGlass ? 'rgba(255,255,255,0.06)' : 'transparent'),
