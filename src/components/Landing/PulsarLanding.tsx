@@ -135,6 +135,12 @@ const STYLES = `
 @keyframes blobDrift   { 0% { transform:translate(0,0) } 50% { transform:translate(16px,-12px) } 100% { transform:translate(0,0) } }
 @keyframes plPulse     { 0%,100% { box-shadow:0 0 0 0 rgba(124,58,237,0.5) } 50% { box-shadow:0 0 0 10px rgba(124,58,237,0) } }
 @keyframes plSpin      { from { transform:rotate(0deg) } to { transform:rotate(360deg) } }
+@keyframes plLineDraw  { from { transform:scaleY(0); transform-origin:top center } to { transform:scaleY(1); transform-origin:top center } }
+@keyframes plDotPop    { 0% { transform:scale(0) } 65% { transform:scale(1.3) } 100% { transform:scale(1) } }
+@keyframes plBarGrow   { from { height:0% } to { height:var(--bar-h) } }
+@keyframes plCheckmark { 0% { stroke-dashoffset:20 } 100% { stroke-dashoffset:0 } }
+@keyframes plTaskSlide { from { opacity:0; transform:translateX(-8px) } to { opacity:1; transform:translateX(0) } }
+@keyframes plTimerTick { 0%,100% { opacity:1 } 50% { opacity:0.4 } }
 
 .pl { --bg:#07070c; --s1:#0c0c14; --s2:#111119; --s3:#18182a; --s4:#222236;
   --bd:rgba(255,255,255,0.06); --bd2:rgba(255,255,255,0.1);
@@ -199,31 +205,120 @@ function Blob({ color, opacity, width, height, top, right, bottom, left, style }
   )
 }
 
-function CorespaceMock() {
+function LiveCorespace() {
   const E = 'cubic-bezier(0.16,1,0.3,1)'
+  // Live countdown timer — starts at 24:33 and counts down
+  const [secs, setSecs] = useState(24 * 60 + 33)
+  const [tasks, setTasks] = useState([
+    { label: 'Review transformer paper', done: true },
+    { label: 'Write section 3.2', done: false },
+    { label: 'Sync with mentor', done: false },
+  ])
+  const [activeTask, setActiveTask] = useState(1)
+
+  useEffect(() => {
+    const id = setInterval(() => setSecs(s => s > 0 ? s - 1 : 25 * 60), 1000)
+    return () => clearInterval(id)
+  }, [])
+
+  // Cycle active task highlight every 3s
+  useEffect(() => {
+    const id = setInterval(() => setActiveTask(i => (i + 1) % 3), 3000)
+    return () => clearInterval(id)
+  }, [])
+
+  const mins = Math.floor(secs / 60).toString().padStart(2, '0')
+  const seconds = (secs % 60).toString().padStart(2, '0')
+  const progress = 1 - secs / (25 * 60)
+  const circumference = 2 * Math.PI * 22
+
   return (
-    <div style={{ background: '#07070c', borderRadius: 8, padding: 16, fontFamily: "'JetBrains Mono',monospace", fontSize: '0.72rem' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        {[
-          { title: 'Active Projects', sub: '5 in progress · 2 blocked', color: '#a78bfa' },
-          { title: 'Focus Today',     sub: '3h 47m · 4 sessions',       color: '#6ee7b7' },
-          { title: 'Streak',          sub: '🔥 21 days · 847 pts',      color: '#fbbf24' },
-          { title: 'Today',           sub: '6 tasks · 3 events',         color: '#38bdf8' },
-        ].map((c, i) => (
-          <div key={i} style={{ padding: '10px 12px', borderRadius: 6, background: 'rgba(255,255,255,0.03)', border: `1px solid ${c.color}18` }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#eeeef5', marginBottom: 3 }}>{c.title}</div>
-            <div style={{ fontSize: '0.65rem', color: '#65657a' }}>{c.sub}</div>
+    <div style={{ background: '#07070c', borderRadius: 8, padding: 14, fontFamily: "'JetBrains Mono',monospace", fontSize: '0.7rem' }}>
+      {/* Top row: timer + streak */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+        {/* Focus timer */}
+        <div style={{ padding: '10px 12px', borderRadius: 6, background: 'rgba(110,231,183,0.06)', border: '1px solid rgba(110,231,183,0.15)', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <svg width="50" height="50" viewBox="0 0 50 50" style={{ flexShrink: 0 }}>
+            <circle cx="25" cy="25" r="22" fill="none" stroke="rgba(110,231,183,0.08)" strokeWidth="2.5" />
+            <circle cx="25" cy="25" r="22" fill="none" stroke="#6ee7b7" strokeWidth="2.5"
+              strokeDasharray={circumference}
+              strokeDashoffset={circumference * (1 - progress)}
+              strokeLinecap="round"
+              transform="rotate(-90 25 25)"
+              style={{ transition: 'stroke-dashoffset 1s linear' }}
+            />
+            <text x="25" y="28" textAnchor="middle" fill="#6ee7b7" fontSize="9" fontWeight="700">{mins}:{seconds}</text>
+          </svg>
+          <div>
+            <div style={{ fontSize: '0.6rem', color: '#45455a', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>Focus</div>
+            <div style={{ fontSize: '0.65rem', color: '#6ee7b7', fontWeight: 600 }}>Deep Work</div>
+            <div style={{ fontSize: '0.58rem', color: '#45455a', marginTop: 2 }}>Session 3/4</div>
+          </div>
+        </div>
+        {/* Streak */}
+        <div style={{ padding: '10px 12px', borderRadius: 6, background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.15)' }}>
+          <div style={{ fontSize: '0.6rem', color: '#45455a', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Streak</div>
+          <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#fbbf24', letterSpacing: '-0.04em', lineHeight: 1 }}>21</div>
+          <div style={{ fontSize: '0.58rem', color: '#fbbf24', opacity: 0.6, marginTop: 2 }}>days · 🔥</div>
+          <div style={{ display: 'flex', gap: 2, marginTop: 6 }}>
+            {[1,1,1,1,1,1,0].map((d, i) => (
+              <div key={i} style={{ width: 8, height: 8, borderRadius: 2, background: d ? '#fbbf24' : 'rgba(255,255,255,0.04)', border: `1px solid ${d ? '#fbbf2440' : 'rgba(255,255,255,0.04)'}` }} />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Task list */}
+      <div style={{ padding: '10px 12px', borderRadius: 6, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', marginBottom: 10 }}>
+        <div style={{ fontSize: '0.58rem', color: '#45455a', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Today&apos;s Tasks</div>
+        {tasks.map((t, i) => (
+          <div key={i} style={{
+            display: 'flex', alignItems: 'center', gap: 7, padding: '5px 0',
+            borderBottom: i < tasks.length - 1 ? '1px solid rgba(255,255,255,0.03)' : 'none',
+            opacity: activeTask === i ? 1 : 0.55,
+            transition: `opacity 0.4s ${E}`,
+            animation: `plTaskSlide 0.4s ${E} ${i * 0.1}s both`,
+          }}>
+            <div style={{
+              width: 14, height: 14, borderRadius: 4, flexShrink: 0,
+              border: `1.5px solid ${t.done ? '#6ee7b7' : 'rgba(255,255,255,0.12)'}`,
+              background: t.done ? 'rgba(110,231,183,0.15)' : 'transparent',
+              display: 'grid', placeItems: 'center', transition: `all 0.3s ${E}`,
+            }}>
+              {t.done && (
+                <svg width="8" height="8" viewBox="0 0 10 10">
+                  <polyline points="2,5 4.5,7.5 8,2.5" stroke="#6ee7b7" strokeWidth="1.5" fill="none"
+                    strokeLinecap="round" strokeLinejoin="round"
+                    strokeDasharray="20" strokeDashoffset="0"
+                    style={{ animation: 'plCheckmark 0.3s ease forwards' }}
+                  />
+                </svg>
+              )}
+            </div>
+            <span style={{
+              fontSize: '0.65rem', color: t.done ? '#45455a' : '#a0a0b8',
+              textDecoration: t.done ? 'line-through' : 'none', flex: 1,
+              transition: `color 0.3s ${E}`,
+            }}>{t.label}</span>
+            {activeTask === i && !t.done && (
+              <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#a78bfa', animation: 'plTimerTick 1.2s ease infinite', flexShrink: 0 }} />
+            )}
           </div>
         ))}
       </div>
-      <div style={{ marginTop: 10, padding: '10px 12px', borderRadius: 6, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
-        <div style={{ fontSize: '0.6rem', color: '#45455a', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>This week</div>
-        <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end', height: 40 }}>
+
+      {/* Focus bars */}
+      <div style={{ padding: '8px 12px', borderRadius: 6, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
+        <div style={{ fontSize: '0.58rem', color: '#45455a', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8, display: 'flex', justifyContent: 'space-between' }}>
+          <span>This week</span><span style={{ color: '#a78bfa' }}>3h 47m today</span>
+        </div>
+        <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end', height: 36 }}>
           {[35, 70, 55, 85, 72, 60, 28].map((h, i) => (
             <div key={i} style={{
-              flex: 1, height: `${h}%`, borderRadius: '2px 2px 0 0',
-              background: h > 60 ? '#a78bfa66' : '#a78bfa28',
-              transition: `height 0.6s ${E} ${i * 0.05}s`,
+              flex: 1, borderRadius: '2px 2px 0 0',
+              background: h > 60 ? '#a78bfa55' : '#a78bfa22',
+              animation: `plBarGrow 0.7s ${E} ${i * 0.06}s both`,
+              ['--bar-h' as string]: `${h}%`,
             }} />
           ))}
         </div>
@@ -305,7 +400,6 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
   const pillarsR  = useReveal(0.05)
   const stackR    = useReveal(0.07)
   const featR     = useReveal(0.06)
-  const quotesR   = useReveal(0.07)
   const ctaR      = useReveal(0.08)
 
   useEffect(() => {
@@ -455,7 +549,7 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
                   }}>pulsar.zone/dashboard</div>
                 </div>
                 <div style={{ background: '#07070c', padding: 20 }}>
-                  <CorespaceMock />
+                  <LiveCorespace />
                 </div>
               </div>
             </div>
@@ -543,44 +637,64 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
         </div>
       </section>
 
-      {/* ── HOW IT WORKS — 3 steps ── */}
+      {/* ── HOW IT WORKS — vertical timeline ── */}
       <section className="pl-sec" style={{ background: '#0c0c14', borderTop: '1px solid rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.04)', position: 'relative', overflow: 'hidden' }}>
         <Blob color="#818cf8" opacity={0.03} width={400} height={300} bottom="-60px" right="-60px" />
         <div ref={howR.ref} className="pl-max" style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ textAlign: 'center', marginBottom: 60 }}>
-            <div className="pl-label" style={{ justifyContent: 'center' }}>How It Works</div>
+          <div style={{ marginBottom: 56 }}>
+            <div className="pl-label">How It Works</div>
             <h2 style={{ fontSize: 'clamp(1.5rem, 2.8vw, 2.1rem)', fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.2 }}>
               Three steps. One system.
             </h2>
           </div>
-          <div className="pl-how-grid" style={{ display: 'flex', alignItems: 'flex-start' }}>
-            {HOW_STEPS.map((step, i) => (
-              <React.Fragment key={i}>
-                <div style={{
-                  flex: 1, padding: '0 24px',
+
+          {/* Timeline */}
+          <div style={{ display: 'flex', gap: 48 }}>
+            {/* Left: vertical track */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 32, flexShrink: 0, paddingTop: 6 }}>
+              {HOW_STEPS.map((step, i) => (
+                <React.Fragment key={i}>
+                  {/* Dot */}
+                  <div style={{
+                    width: 14, height: 14, borderRadius: '50%', flexShrink: 0,
+                    background: step.color,
+                    border: `3px solid #0c0c14`,
+                    boxShadow: `0 0 16px ${step.color}60`,
+                    transform: howR.vis ? 'scale(1)' : 'scale(0)',
+                    transition: `transform 0.45s cubic-bezier(0.34,1.56,0.64,1) ${0.1 + i * 0.22}s`,
+                    zIndex: 1,
+                  }} />
+                  {/* Connector line segment */}
+                  {i < HOW_STEPS.length - 1 && (
+                    <div style={{
+                      width: 1, flex: '0 0 120px', minHeight: 100,
+                      background: `linear-gradient(to bottom, ${HOW_STEPS[i].color}60, ${HOW_STEPS[i + 1].color}30)`,
+                      transformOrigin: 'top center',
+                      transform: howR.vis ? 'scaleY(1)' : 'scaleY(0)',
+                      transition: `transform 0.6s cubic-bezier(0.16,1,0.3,1) ${0.3 + i * 0.22}s`,
+                      margin: '4px 0',
+                    }} />
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+
+            {/* Right: content blocks */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0 }}>
+              {HOW_STEPS.map((step, i) => (
+                <div key={i} style={{
+                  paddingBottom: i < HOW_STEPS.length - 1 ? 44 : 0,
                   opacity: howR.vis ? 1 : 0,
-                  transform: howR.vis ? 'none' : 'translateY(20px)',
-                  transition: `all 0.6s ${E} ${0.05 + i * 0.15}s`,
+                  transform: howR.vis ? 'none' : 'translateX(-20px)',
+                  transition: `all 0.55s ${E} ${0.15 + i * 0.22}s`,
                 }}>
-                  <div style={{ fontSize: '0.58rem', color: step.color, fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, letterSpacing: '0.22em', marginBottom: 14, opacity: 0.6 }}>{step.num}</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 10, background: step.color + '12', border: `1px solid ${step.color}25`, display: 'grid', placeItems: 'center', fontSize: '1rem', flexShrink: 0 }}>
-                      {['⚡', '🔗', '🎯'][i]}
-                    </div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#eeeef5', letterSpacing: '-0.03em' }}>{step.title}</div>
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: step.color, fontFamily: "'JetBrains Mono',monospace", marginBottom: 14, fontWeight: 500 }}>{step.sub}</div>
-                  <div style={{ width: 28, height: 2, background: step.color, opacity: 0.35, borderRadius: 1, marginBottom: 16 }} />
-                  <p style={{ fontSize: '0.82rem', color: '#65657a', lineHeight: 1.7 }}>{step.desc}</p>
+                  <div style={{ fontSize: '0.56rem', color: step.color, fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, letterSpacing: '0.24em', marginBottom: 10, opacity: 0.55 }}>{step.num}</div>
+                  <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#eeeef5', letterSpacing: '-0.03em', marginBottom: 6 }}>{step.title}</div>
+                  <div style={{ fontSize: '0.72rem', color: step.color, fontFamily: "'JetBrains Mono',monospace", fontWeight: 600, marginBottom: 14 }}>{step.sub}</div>
+                  <p style={{ fontSize: '0.88rem', color: '#65657a', lineHeight: 1.72, maxWidth: 480 }}>{step.desc}</p>
                 </div>
-                {i < HOW_STEPS.length - 1 && (
-                  <div className="pl-how-sep" style={{
-                    display: 'flex', alignItems: 'center', paddingTop: 60, color: '#222236', fontSize: '1.4rem', flexShrink: 0,
-                    opacity: howR.vis ? 1 : 0, transition: `all 0.5s ${E} ${0.3 + i * 0.1}s`,
-                  }}>→</div>
-                )}
-              </React.Fragment>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -751,48 +865,6 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
                 <div style={{ fontSize: '1.1rem', marginBottom: 10, color: f.color }}>{f.icon}</div>
                 <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#eeeef5', marginBottom: 4, letterSpacing: '-0.01em' }}>{f.label}</div>
                 <div style={{ fontSize: '0.75rem', color: '#65657a' }}>{f.desc}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── TESTIMONIALS ── */}
-      <section className="pl-sec" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
-        <div className="pl-max" ref={quotesR.ref} style={{ opacity: quotesR.vis ? 1 : 0, transform: quotesR.vis ? 'none' : 'translateY(20px)', transition: `all 0.7s ${E}` }}>
-          <div style={{ textAlign: 'center', marginBottom: 48 }}>
-            <div className="pl-label" style={{ justifyContent: 'center' }}>Early Users</div>
-            <h2 style={{ fontSize: 'clamp(1.4rem, 2.5vw, 1.9rem)', fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.2 }}>
-              People who switched.
-            </h2>
-          </div>
-          <div className="pl-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
-            {QUOTES.map((q, i) => (
-              <div key={i} style={{
-                padding: '24px', borderRadius: 10,
-                border: '1px solid rgba(255,255,255,0.06)', background: '#0c0c14',
-                display: 'flex', flexDirection: 'column', gap: 16,
-                opacity: quotesR.vis ? 1 : 0,
-                transform: quotesR.vis ? 'none' : 'translateY(16px)',
-                transition: `all 0.5s ${E} ${i * 0.1}s`,
-              }}>
-                <div style={{ display: 'flex', gap: 2 }}>
-                  {[...Array(5)].map((_, j) => (
-                    <svg key={j} width="10" height="10" viewBox="0 0 10 10">
-                      <polygon points="5,1 6.2,3.8 9.5,3.8 7,5.8 7.9,9 5,7.2 2.1,9 3,5.8 0.5,3.8 3.8,3.8" fill="#fbbf24" opacity="0.75" />
-                    </svg>
-                  ))}
-                </div>
-                <p style={{ fontSize: '0.83rem', color: '#a0a0b8', lineHeight: 1.72, flex: 1 }}>"{q.text}"</p>
-                <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ width: 30, height: 30, borderRadius: '50%', background: q.color + '20', border: `1px solid ${q.color}35`, display: 'grid', placeItems: 'center', fontSize: '0.75rem', fontWeight: 700, color: q.color, flexShrink: 0 }}>
-                    {q.author[0]}
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#eeeef5' }}>{q.author}</div>
-                    <div style={{ fontSize: '0.68rem', color: '#45455a', marginTop: 2, fontFamily: "'JetBrains Mono',monospace" }}>{q.role}</div>
-                  </div>
-                </div>
               </div>
             ))}
           </div>
