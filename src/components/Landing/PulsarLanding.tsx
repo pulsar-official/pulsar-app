@@ -377,9 +377,9 @@ function Footer() {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-interface PulsarLandingProps { onEnter: () => void }
+interface PulsarLandingProps { onEnter: () => void; isAuthed?: boolean }
 
-export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
+export default function PulsarLanding({ onEnter, isAuthed = false }: PulsarLandingProps) {
   const router = useRouter()
   const E = 'cubic-bezier(0.22,1,0.36,1)'
   const typedWord = useTyping(TYPING_WORDS)
@@ -484,7 +484,7 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
               }}
                 onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; e.currentTarget.style.transform = 'translateY(-2px)' }}
                 onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'none' }}
-              >Join Waitlist</button>
+              >{isAuthed ? 'Go to Dashboard' : 'Join Waitlist'}</button>
               <button onClick={() => router.push('/features')} style={{
                 padding: '13px 28px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.08)',
                 background: 'transparent', color: '#a0a0b8', fontSize: '0.86rem', fontWeight: 500,
@@ -898,7 +898,7 @@ export default function PulsarLanding({ onEnter }: PulsarLandingProps) {
           }}
             onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; e.currentTarget.style.transform = 'translateY(-2px)' }}
             onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'none' }}
-          >Join Waitlist →</button>
+          >{isAuthed ? 'Go to Dashboard →' : 'Join Waitlist →'}</button>
         </div>
       </section>
 
