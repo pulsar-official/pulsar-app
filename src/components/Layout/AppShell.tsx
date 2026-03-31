@@ -199,7 +199,8 @@ export default function AppShell() {
 
   return (
     <PulsarLanding
-      onEnter={() => router.push(userId ? '/waitlist' : '/sign-up')}
+      onEnter={() => router.push(userId ? '/' : '/sign-up')}
+      isAuthed={!!userId}
     />
   )
 }
