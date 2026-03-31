@@ -10,6 +10,7 @@ import { useServiceWorker } from '@/hooks/useServiceWorker'
 import { PulsarPowerSyncProvider } from '@/providers/PowerSyncProvider'
 
 const BETA_OPEN = process.env.NEXT_PUBLIC_BETA_OPEN === 'true'
+const DASHBOARD_ALLOWLIST = ['yoshigar304@gmail.com']
 
 // ── Live reactivity bridge ────────────────────────────────────────────────────
 // Subscribes to SQLite queries and pushes results into Zustand store.
@@ -185,7 +186,9 @@ export default function AppShell() {
 
   if (!isLoaded) return null
 
-  if (userId && (BETA_OPEN || isAdmin)) {
+  const isAllowed = BETA_OPEN || isAdmin || DASHBOARD_ALLOWLIST.includes(user?.email ?? '')
+
+  if (userId && isAllowed) {
     return (
       <PulsarPowerSyncProvider>
         {orgId && <PowerSyncBridge orgId={orgId} />}
