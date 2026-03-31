@@ -75,14 +75,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSession(sess)
     setUser(mapUser(sess.user))
 
-    const orgs = await fetchMemberships()
-    setMemberships(orgs)
+    let orgs = await fetchMemberships()
+    let currentSess = sess
 
-    const activeId = sess.user.app_metadata?.active_org_id as string | undefined
+    // Auto-provision a personal workspace for brand-new users
+    if (orgs.length === 0) {
+      const res = await fetch('/api/organizations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Personal Workspace' }),
+      })
+      if (res.ok) {
+        // Refresh session so app_metadata.active_org_id is updated
+        const { data: { session: refreshed } } = await supabase.auth.refreshSession()
+        if (refreshed) {
+          currentSess = refreshed
+          setSession(refreshed)
+          setUser(mapUser(refreshed.user))
+        }
+        orgs = await fetchMemberships()
+      }
+    }
+
+    setMemberships(orgs)
+    const activeId = currentSess.user.app_metadata?.active_org_id as string | undefined
     const org = orgs.find(o => o.id === activeId) ?? orgs[0] ?? null
     setActiveOrgState(org ? { id: org.id, name: org.name } : null)
     setIsLoaded(true)
-  }, [fetchMemberships])
+  }, [fetchMemberships, supabase])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
