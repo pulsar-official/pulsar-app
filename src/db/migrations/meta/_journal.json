@@ -15,6 +15,13 @@
       "when": 1774737673118,
       "tag": "0002_large_fabian_cortez",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1775003990002,
+      "tag": "0003_whole_sentinel",
+      "breakpoints": true
     }
   ]
 }

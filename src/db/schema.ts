@@ -39,8 +39,8 @@ export const organizationMembers = pgTable('organization_members', {
 export const notes = pgTable('notes', {
   id: serial('id').primaryKey(),
   clientId: text('client_id').unique(),
-  orgId: varchar('org_id', { length: 255 }).notNull(),
-  userId: varchar('user_id', { length: 255 }).notNull(),
+  orgId: uuid('org_id').notNull(),
+  userId: uuid('user_id').notNull(),
   title: varchar('title', { length: 255 }).notNull(),
   content: text('content'),
   isPublic: boolean('is_public').default(false),
@@ -58,8 +58,8 @@ export const notes = pgTable('notes', {
 export const tasks = pgTable('tasks', {
   id: serial('id').primaryKey(),
   clientId: text('client_id').unique(),
-  orgId: varchar('org_id', { length: 255 }).notNull(),
-  userId: varchar('user_id', { length: 255 }).notNull(),
+  orgId: uuid('org_id').notNull(),
+  userId: uuid('user_id').notNull(),
   title: varchar('title', { length: 255 }).notNull(),
   description: text('description'),
   completed: boolean('completed').default(false),
@@ -81,8 +81,8 @@ export const tasks = pgTable('tasks', {
 export const habits = pgTable('habits', {
   id: serial('id').primaryKey(),
   clientId: text('client_id').unique(),
-  orgId: varchar('org_id', { length: 255 }).notNull(),
-  userId: varchar('user_id', { length: 255 }).notNull(),
+  orgId: uuid('org_id').notNull(),
+  userId: uuid('user_id').notNull(),
   name: varchar('name', { length: 255 }).notNull(),
   emoji: varchar('emoji', { length: 16 }).notNull().default('✅'),
   sortOrder: integer('sort_order').default(0),
@@ -114,8 +114,8 @@ export const habitChecks = pgTable('habit_checks', {
 export const goals = pgTable('goals', {
   id: serial('id').primaryKey(),
   clientId: text('client_id').unique(),
-  orgId: varchar('org_id', { length: 255 }).notNull(),
-  userId: varchar('user_id', { length: 255 }).notNull(),
+  orgId: uuid('org_id').notNull(),
+  userId: uuid('user_id').notNull(),
   title: varchar('title', { length: 255 }).notNull(),
   description: text('description'),
   category: varchar('category', { length: 32 }).default('work'),
@@ -151,8 +151,8 @@ export const goalSubs = pgTable('goal_subs', {
 export const journalEntries = pgTable('journal_entries', {
   id: serial('id').primaryKey(),
   clientId: text('client_id').unique(),
-  orgId: varchar('org_id', { length: 255 }).notNull(),
-  userId: varchar('user_id', { length: 255 }).notNull(),
+  orgId: uuid('org_id').notNull(),
+  userId: uuid('user_id').notNull(),
   title: varchar('title', { length: 255 }).notNull(),
   content: text('content'),
   date: varchar('date', { length: 10 }).notNull(),
@@ -172,8 +172,8 @@ export const journalEntries = pgTable('journal_entries', {
 export const calEvents = pgTable('cal_events', {
   id: serial('id').primaryKey(),
   clientId: text('client_id').unique(),
-  orgId: varchar('org_id', { length: 255 }).notNull(),
-  userId: varchar('user_id', { length: 255 }).notNull(),
+  orgId: uuid('org_id').notNull(),
+  userId: uuid('user_id').notNull(),
   title: varchar('title', { length: 255 }).notNull(),
   date: varchar('date', { length: 10 }).notNull(),
   dateEnd: varchar('date_end', { length: 10 }),
@@ -195,8 +195,8 @@ export const calEvents = pgTable('cal_events', {
 export const boards = pgTable('boards', {
   id: serial('id').primaryKey(),
   clientId: text('client_id').unique(),
-  orgId: varchar('org_id', { length: 255 }).notNull(),
-  userId: varchar('user_id', { length: 255 }).notNull(),
+  orgId: uuid('org_id').notNull(),
+  userId: uuid('user_id').notNull(),
   name: varchar('name', { length: 255 }).notNull(),
   description: text('description'),
   color: varchar('color', { length: 32 }),
@@ -250,8 +250,8 @@ export const boardThreads = pgTable('board_threads', {
 export const focusSessions = pgTable('focus_sessions', {
   id: serial('id').primaryKey(),
   clientId: text('client_id').unique(),
-  orgId: varchar('org_id', { length: 255 }).notNull(),
-  userId: varchar('user_id', { length: 255 }).notNull(),
+  orgId: uuid('org_id').notNull(),
+  userId: uuid('user_id').notNull(),
   date: varchar('date', { length: 10 }).notNull(),
   timerType: varchar('timer_type', { length: 32 }).default('pomodoro'),
   totalCycles: integer('total_cycles').default(4),
@@ -276,8 +276,8 @@ export const focusSessions = pgTable('focus_sessions', {
 export const userPreferences = pgTable('user_preferences', {
   id: serial('id').primaryKey(),
   clientId: text('client_id').unique(),
-  orgId: varchar('org_id', { length: 255 }).notNull(),
-  userId: varchar('user_id', { length: 255 }).notNull(),
+  orgId: uuid('org_id').notNull(),
+  userId: uuid('user_id').notNull(),
   key: varchar('key', { length: 128 }).notNull(),
   value: jsonb('value'),
   hlcTimestamp: varchar('hlc_timestamp', { length: 128 }),
@@ -291,8 +291,8 @@ export const userPreferences = pgTable('user_preferences', {
 /* ── Changes Log (legacy audit trail — kept for migration) ── */
 export const changes = pgTable('changes', {
   id: serial('id').primaryKey(),
-  orgId: varchar('org_id', { length: 255 }).notNull(),
-  userId: varchar('user_id', { length: 255 }).notNull(),
+  orgId: uuid('org_id').notNull(),
+  userId: uuid('user_id').notNull(),
   entityType: varchar('entity_type', { length: 32 }).notNull(),
   entityId: integer('entity_id').notNull(),
   field: varchar('field', { length: 128 }).notNull(),
@@ -311,8 +311,8 @@ export const changes = pgTable('changes', {
 export const syncOperations = pgTable('sync_operations', {
   id: serial('id').primaryKey(),
   opId: varchar('op_id', { length: 255 }).unique().notNull(),
-  orgId: varchar('org_id', { length: 255 }).notNull(),
-  userId: varchar('user_id', { length: 255 }).notNull(),
+  orgId: uuid('org_id').notNull(),
+  userId: uuid('user_id').notNull(),
   deviceId: varchar('device_id', { length: 255 }).notNull(),
   entityType: varchar('entity_type', { length: 32 }).notNull(),
   entityId: varchar('entity_id', { length: 64 }).notNull(),
@@ -330,8 +330,8 @@ export const syncOperations = pgTable('sync_operations', {
 /* ── Sync Cursors (tracks each device's last-seen server_seq for catch-up) ── */
 export const syncCursors = pgTable('sync_cursors', {
   id: serial('id').primaryKey(),
-  orgId: varchar('org_id', { length: 255 }).notNull(),
-  userId: varchar('user_id', { length: 255 }).notNull(),
+  orgId: uuid('org_id').notNull(),
+  userId: uuid('user_id').notNull(),
   deviceId: varchar('device_id', { length: 255 }).notNull(),
   lastSeq: integer('last_seq').notNull().default(0),
   updatedAt: timestamp('updated_at').defaultNow(),

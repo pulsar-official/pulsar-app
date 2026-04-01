@@ -172,10 +172,15 @@ export class PulsarConnector implements PowerSyncBackendConnector {
           body: JSON.stringify(body),
         })
 
+        if (res.status === 401 || res.status === 403) {
+          // Auth error — throw so the transaction is NOT completed and PowerSync retries later
+          throw new Error(`[PowerSync] Auth error ${res.status} uploading ${op.table} ${op.op}`)
+        }
+
         if (res.status >= 400 && res.status < 500) {
-          // 4xx = bad data — clear from queue so it doesn't block forever
+          // Bad data (400/409/422) — log and skip to avoid blocking the queue forever
           console.error(`[PowerSync] 4xx error for ${op.table} ${op.op}:`, await res.text())
-          continue // do NOT throw — just skip and complete the transaction
+          continue
         }
 
         if (!res.ok) {
