@@ -22,11 +22,13 @@ export function useOrganization() {
 }
 
 export function useOrganizationList() {
-  const { memberships, isLoaded, setActiveOrg, createOrganization } = useAuthContext()
+  const { memberships, isLoaded, setActiveOrg, createOrganization, deleteOrganization, renameOrganization } = useAuthContext()
   return {
     memberships,
     isLoaded,
     setActive: ({ organization }: { organization: string }) => setActiveOrg(organization),
     createOrganization,
+    deleteOrganization,
+    renameOrganization,
   }
 }

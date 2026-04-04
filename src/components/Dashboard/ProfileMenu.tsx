@@ -4,13 +4,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react'
 import { useUser, useSignOut, useOrganization, useOrganizationList } from '@/hooks/useSupabaseAuth'
 import styles from './ProfileMenu.module.scss'
 
-const WORKSPACE_LIMITS: Record<string, number> = {
-  Free: 1,
-  Atom: 1,
-  Molecule: 3,
-  Neuron: Infinity,
-  Quantum: Infinity,
-}
+const MAX_WORKSPACES = 3
 
 interface ProfileMenuProps {
   onClose?: () => void
@@ -28,22 +22,24 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
   const signOut = useSignOut()
   const { user } = useUser()
   const { organization: activeOrg } = useOrganization()
-  const { memberships, isLoaded: orgsLoaded, setActive, createOrganization } = useOrganizationList()
+  const { memberships, isLoaded: orgsLoaded, setActive, createOrganization, deleteOrganization, renameOrganization } = useOrganizationList()
   const menuRef = useRef<HTMLDivElement>(null)
   const [position, setPosition] = useState({ top: 0, left: 0 })
   const [creatingWorkspace, setCreatingWorkspace] = useState(false)
   const [newWorkspaceName, setNewWorkspaceName] = useState('')
   const [createLoading, setCreateLoading] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editName, setEditName] = useState('')
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const plan = (user?.appMetadata?.plan as string) || 'Free'
   const planActive = plan !== 'Free'
   const displayName = user?.fullName || user?.firstName || 'User'
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
 
-  const workspaceLimit = WORKSPACE_LIMITS[plan] ?? 1
   const orgList = memberships ?? []
   const workspaceCount = orgList.length
-  const canCreateWorkspace = workspaceCount < workspaceLimit
+  const canCreateWorkspace = workspaceCount < MAX_WORKSPACES
 
   // Viewport-aware positioning
   const updatePosition = useCallback(() => {
@@ -55,44 +51,28 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
     let top = rect.bottom + 8
     let left = rect.left
 
-    // Right edge overflow
-    if (left + menuWidth > window.innerWidth - 12) {
-      left = window.innerWidth - menuWidth - 12
-    }
-    // Left edge overflow
+    if (left + menuWidth > window.innerWidth - 12) left = window.innerWidth - menuWidth - 12
     if (left < 12) left = 12
-
-    // Bottom edge overflow — position above trigger
-    if (top + menuHeight > window.innerHeight - 12) {
-      top = rect.top - menuHeight - 8
-    }
-    // Top edge overflow (if flipped above)
+    if (top + menuHeight > window.innerHeight - 12) top = rect.top - menuHeight - 8
     if (top < 12) top = 12
 
     setPosition({ top, left })
   }, [triggerRef])
 
-  useEffect(() => {
-    updatePosition()
-  }, [updatePosition])
+  useEffect(() => { updatePosition() }, [updatePosition])
 
-  // Close on resize
   useEffect(() => {
     const handleResize = () => onClose?.()
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [onClose])
 
-  // ESC key handler
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose?.()
-    }
+    const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose?.() }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [onClose])
 
-  // Click outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -110,6 +90,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
 
   const handleSwitchWorkspace = async (orgId: string) => {
     if (orgId === activeOrg?.id) return
+    onClose?.()
     await setActive?.({ organization: orgId })
   }
 
@@ -120,10 +101,37 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
       await createOrganization?.(newWorkspaceName.trim())
       setNewWorkspaceName('')
       setCreatingWorkspace(false)
+      onClose?.()
     } catch {
       // silently handle
     } finally {
       setCreateLoading(false)
+    }
+  }
+
+  const handleStartEdit = (org: { id: string; name: string }, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setEditingId(org.id)
+    setEditName(org.name)
+    setDeletingId(null)
+  }
+
+  const handleSaveEdit = async (orgId: string) => {
+    if (editName.trim() && editName.trim() !== orgList.find(o => o.id === orgId)?.name) {
+      await renameOrganization?.(orgId, editName.trim())
+    }
+    setEditingId(null)
+  }
+
+  const handleDeleteConfirm = async (orgId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (deletingId === orgId) {
+      await deleteOrganization?.(orgId)
+      setDeletingId(null)
+      if (workspaceCount <= 1) onClose?.()
+    } else {
+      setDeletingId(orgId)
+      setEditingId(null)
     }
   }
 
@@ -147,35 +155,76 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
           <div className={styles.sectionLabel}>Workspace</div>
-          <div className={styles.sectionCount}>
-            {workspaceLimit === Infinity ? workspaceCount : `${workspaceCount}/${workspaceLimit}`}
-          </div>
+          <div className={styles.sectionCount}>{workspaceCount}/{MAX_WORKSPACES}</div>
         </div>
         <div className={styles.workspacesList}>
           {orgsLoaded && orgList.map((org) => {
             const isActive = org.id === activeOrg?.id
+            const isEditing = editingId === org.id
+            const isDeleting = deletingId === org.id
+
             return (
-              <button
-                key={org.id}
-                className={`${styles.workspaceItem} ${isActive ? styles.workspaceActive : ''}`}
-                onClick={() => handleSwitchWorkspace(org.id)}
-              >
-                <div className={styles.workspaceIcon}>
-                  {org.name.charAt(0).toUpperCase()}
-                </div>
-                <div className={styles.workspaceDetails}>
-                  <div className={styles.workspaceName}>{org.name}</div>
-                </div>
-                {isActive && (
-                  <div className={styles.activeIndicator}>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <div key={org.id} className={`${styles.workspaceItem} ${isActive ? styles.workspaceActive : ''}`}>
+                {isEditing ? (
+                  <input
+                    className={styles.createWorkspaceInput}
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleSaveEdit(org.id)
+                      if (e.key === 'Escape') setEditingId(null)
+                    }}
+                    onBlur={() => handleSaveEdit(org.id)}
+                    autoFocus
+                    style={{ flex: 1, margin: '0 4px' }}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                ) : (
+                  <button
+                    className={styles.workspaceItemBtn}
+                    onClick={() => handleSwitchWorkspace(org.id)}
+                  >
+                    <div className={styles.workspaceIcon}>{org.name.charAt(0).toUpperCase()}</div>
+                    <div className={styles.workspaceDetails}>
+                      <div className={styles.workspaceName}>{org.name}</div>
+                    </div>
+                    {isActive && (
+                      <div className={styles.activeIndicator}>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                      </div>
+                    )}
+                  </button>
+                )}
+
+                {/* Action icons */}
+                {!isEditing && (
+                  <div className={styles.workspaceActions}>
+                    <button
+                      className={styles.wsActionBtn}
+                      onClick={(e) => handleStartEdit(org, e)}
+                      title="Rename workspace"
+                    >
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                    {workspaceCount > 1 && (
+                      <button
+                        className={`${styles.wsActionBtn} ${isDeleting ? styles.wsActionDanger : ''}`}
+                        onClick={(e) => handleDeleteConfirm(org.id, e)}
+                        title={isDeleting ? 'Click again to confirm delete' : 'Delete workspace'}
+                      >
+                        {isDeleting
+                          ? <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                          : <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                        }
+                      </button>
+                    )}
                   </div>
                 )}
-              </button>
+              </div>
             )
           })}
 
-          {/* Fallback if no orgs loaded or empty */}
+          {/* Fallback if no orgs */}
           {orgsLoaded && orgList.length === 0 && (
             <button className={styles.workspaceItem}>
               <div className={styles.workspaceIcon}>{initials.slice(0, 1)}</div>
@@ -212,7 +261,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
               className={`${styles.workspaceItem} ${styles.addWorkspace}`}
               onClick={() => setCreatingWorkspace(true)}
               disabled={!canCreateWorkspace}
-              title={!canCreateWorkspace ? `Upgrade your plan to add more workspaces (${plan} plan: ${workspaceLimit === Infinity ? 'unlimited' : workspaceLimit})` : 'Create a new workspace'}
+              title={!canCreateWorkspace ? `Maximum ${MAX_WORKSPACES} workspaces allowed` : 'Create a new workspace'}
             >
               <div className={styles.workspaceIcon}>
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>

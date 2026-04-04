@@ -1,5 +1,6 @@
 'use client'
 import { useAuth, useUser } from '@/hooks/useSupabaseAuth'
+import { useAuthContext } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { usePowerSyncQuery } from '@powersync/react'
@@ -30,9 +31,9 @@ function PowerSyncBridge({ orgId }: { orgId: string }) {
 
   const taskRows = usePowerSyncQuery(`SELECT * FROM tasks WHERE org_id = ? AND ${notDeleted}`, [orgId])
   const habitRows = usePowerSyncQuery(`SELECT * FROM habits WHERE org_id = ? AND ${notDeleted}`, [orgId])
-  const checkRows = usePowerSyncQuery(`SELECT hc.* FROM habit_checks hc JOIN habits h ON hc.habit_id = h.id WHERE h.org_id = ? AND ${notDeleted}`, [orgId])
+  const checkRows = usePowerSyncQuery(`SELECT hc.* FROM habit_checks hc JOIN habits h ON hc.habit_id = h.id WHERE h.org_id = ? AND (hc.is_deleted = 0 OR hc.is_deleted IS NULL)`, [orgId])
   const goalRows = usePowerSyncQuery(`SELECT * FROM goals WHERE org_id = ? AND ${notDeleted}`, [orgId])
-  const subRows = usePowerSyncQuery(`SELECT gs.* FROM goal_subs gs JOIN goals g ON gs.goal_id = g.id WHERE g.org_id = ? AND ${notDeleted}`, [orgId])
+  const subRows = usePowerSyncQuery(`SELECT gs.* FROM goal_subs gs JOIN goals g ON gs.goal_id = g.id WHERE g.org_id = ? AND (gs.is_deleted = 0 OR gs.is_deleted IS NULL)`, [orgId])
   const journalRows = usePowerSyncQuery(`SELECT * FROM journal_entries WHERE org_id = ? AND ${notDeleted}`, [orgId])
   const eventRows = usePowerSyncQuery(`SELECT * FROM cal_events WHERE org_id = ? AND ${notDeleted}`, [orgId])
   const boardRows = usePowerSyncQuery(`SELECT * FROM boards WHERE org_id = ? AND ${notDeleted}`, [orgId])
@@ -169,6 +170,7 @@ function mapSub(r: Record<string, unknown>) {
 export default function AppShell() {
   const { isLoaded, userId, orgId } = useAuth()
   const { user } = useUser()
+  const { isSwitchingWorkspace } = useAuthContext()
   const router = useRouter()
   const hydrateFromPowerSync = useProductivityStore(s => s.hydrateFromPowerSync)
   const storeOrgId = useProductivityStore(s => s.orgId)
@@ -191,6 +193,18 @@ export default function AppShell() {
   if (userId && isAllowed) {
     return (
       <PulsarPowerSyncProvider>
+        {isSwitchingWorkspace && (
+          <div style={{
+            position: 'fixed', inset: 0,
+            background: 'oklch(0.08 0 0)',
+            zIndex: 9999,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <div style={{ color: 'oklch(0.5 0 0)', fontSize: '13px', letterSpacing: '0.04em' }}>
+              Switching workspace…
+            </div>
+          </div>
+        )}
         {orgId && <PowerSyncBridge orgId={orgId} />}
         <AppLayout />
       </PulsarPowerSyncProvider>

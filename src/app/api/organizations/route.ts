@@ -50,6 +50,9 @@ export async function POST(request: NextRequest) {
     const { name } = await request.json()
     if (!name?.trim()) return NextResponse.json({ error: 'name required' }, { status: 400 })
 
+    const existing = await db.select().from(organizationMembers).where(eq(organizationMembers.userId, user.id))
+    if (existing.length >= 3) return NextResponse.json({ error: 'Workspace limit reached (max 3)' }, { status: 400 })
+
     const [org] = await db.insert(organizations).values({
       name: name.trim(),
       createdBy: user.id,
