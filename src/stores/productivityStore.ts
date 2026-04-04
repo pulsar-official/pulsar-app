@@ -282,13 +282,20 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
     if (!orgId || !userId) return
     const id = uuidv4()
     const now = new Date().toISOString()
-    await db.execute(
+    const newTask: Task = {
+      id, orgId, userId, title: task.title, description: task.description ?? '',
+      completed: false, priority: task.priority ?? 'medium', tag: task.tag ?? 'work',
+      status: (task.status ?? 'todo') as TaskStatus, dueDate: task.dueDate ?? null,
+      isPublic: task.isPublic ?? false, isDeleted: false,
+    }
+    set(state => ({ tasks: [...state.tasks, newTask] }))
+    db.execute(
       `INSERT INTO tasks (id, org_id, user_id, title, description, completed, priority, tag, status, due_date, is_public, is_deleted, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, 0, ?, ?)`,
       [id, orgId, userId, task.title, task.description ?? '', task.priority ?? 'medium',
        task.tag ?? 'work', task.status ?? 'todo', task.dueDate ?? null,
        task.isPublic ? 1 : 0, now, now]
-    )
+    ).catch(err => console.error('[db] addTask', err))
     fire('/api/productivity/tasks', 'POST', {
       clientId: id, title: task.title, description: task.description ?? '',
       completed: false, priority: task.priority ?? 'medium', tag: task.tag ?? 'work',
@@ -297,11 +304,12 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
   },
 
   updateTask: async (task) => {
-    await db.execute(
+    set(state => ({ tasks: state.tasks.map(t => t.id === task.id ? { ...t, ...task } : t) }))
+    db.execute(
       `UPDATE tasks SET title=?, description=?, completed=?, priority=?, tag=?, status=?, due_date=?, is_public=?, updated_at=? WHERE id=?`,
       [task.title, task.description ?? '', task.completed ? 1 : 0, task.priority, task.tag,
        task.status, task.dueDate ?? null, task.isPublic ? 1 : 0, new Date().toISOString(), task.id]
-    )
+    ).catch(err => console.error('[db] updateTask', err))
     fire('/api/productivity/tasks', 'POST', {
       clientId: task.id, title: task.title, description: task.description ?? '',
       completed: task.completed, priority: task.priority, tag: task.tag,
@@ -310,7 +318,9 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
   },
 
   deleteTask: async (id) => {
-    await db.execute(`UPDATE tasks SET is_deleted=1, updated_at=? WHERE id=?`, [new Date().toISOString(), id])
+    set(state => ({ tasks: state.tasks.filter(t => t.id !== id) }))
+    db.execute(`UPDATE tasks SET is_deleted=1, updated_at=? WHERE id=?`, [new Date().toISOString(), id])
+      .catch(err => console.error('[db] deleteTask', err))
     fire('/api/productivity/tasks', 'DELETE', { clientId: id })
   },
 
@@ -318,11 +328,12 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
     const task = get().tasks.find(t => t.id === id)
     if (!task) return
     const newCompleted = !task.completed
-    const newStatus = newCompleted ? 'done' : 'todo'
-    await db.execute(
+    const newStatus: TaskStatus = newCompleted ? 'done' : 'todo'
+    set(state => ({ tasks: state.tasks.map(t => t.id === id ? { ...t, completed: newCompleted, status: newStatus } : t) }))
+    db.execute(
       `UPDATE tasks SET completed=?, status=?, updated_at=? WHERE id=?`,
       [newCompleted ? 1 : 0, newStatus, new Date().toISOString(), id]
-    )
+    ).catch(err => console.error('[db] toggleTask', err))
     fire('/api/productivity/tasks', 'POST', {
       clientId: id, title: task.title, description: task.description ?? '',
       completed: newCompleted, priority: task.priority, tag: task.tag,
@@ -336,33 +347,41 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
     if (!orgId || !userId) return
     const id = uuidv4()
     const now = new Date().toISOString()
-    await db.execute(
+    const newHabit: Habit = { id, orgId, userId, name, emoji, sortOrder: habits.length, isPublic: isPublic ?? false, isDeleted: false }
+    set(state => ({ habits: [...state.habits, newHabit] }))
+    db.execute(
       `INSERT INTO habits (id, org_id, user_id, name, emoji, sort_order, is_public, is_deleted, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?)`,
       [id, orgId, userId, name, emoji, habits.length, isPublic ? 1 : 0, now]
-    )
+    ).catch(err => console.error('[db] addHabit', err))
     fire('/api/productivity/habits', 'POST', {
       clientId: id, name, emoji, sortOrder: habits.length, isPublic: isPublic ?? false,
     })
   },
 
   deleteHabit: async (id) => {
-    await db.execute(`UPDATE habits SET is_deleted=1 WHERE id=?`, [id])
+    set(state => ({ habits: state.habits.filter(h => h.id !== id) }))
+    db.execute(`UPDATE habits SET is_deleted=1 WHERE id=?`, [id])
+      .catch(err => console.error('[db] deleteHabit', err))
     fire('/api/productivity/habits', 'DELETE', { clientId: id })
   },
 
   toggleHabitCheck: async (habitId, date) => {
     const existing = get().habitChecks.find(c => c.habitId === habitId && c.date === date)
     if (existing) {
-      await db.execute(`DELETE FROM habit_checks WHERE id=?`, [existing.id])
+      set(state => ({ habitChecks: state.habitChecks.filter(c => c.id !== existing.id) }))
+      db.execute(`DELETE FROM habit_checks WHERE id=?`, [existing.id])
+        .catch(err => console.error('[db] toggleHabitCheck delete', err))
       fire('/api/productivity/habits', 'POST', { action: 'deleteCheck', clientId: existing.id })
     } else {
       const id = uuidv4()
       const now = new Date().toISOString()
-      await db.execute(
+      const newCheck: HabitCheck = { id, habitId, date, checked: true, isDeleted: false }
+      set(state => ({ habitChecks: [...state.habitChecks, newCheck] }))
+      db.execute(
         `INSERT INTO habit_checks (id, habit_id, date, checked, is_deleted, created_at) VALUES (?, ?, ?, 1, 0, ?)`,
         [id, habitId, date, now]
-      )
+      ).catch(err => console.error('[db] toggleHabitCheck insert', err))
       fire('/api/productivity/habits', 'POST', {
         action: 'insertCheck', clientId: id, habitClientId: habitId, date, checked: true,
       })
@@ -375,13 +394,20 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
     if (!orgId || !userId) return
     const id = uuidv4()
     const now = new Date().toISOString()
-    await db.execute(
+    const newGoal: Goal = {
+      id, orgId, userId, title: goal.title, description: goal.description ?? '',
+      category: goal.category ?? 'work', priority: goal.priority ?? 'medium',
+      deadline: goal.deadline ?? null, done: false, progress: goal.progress ?? 0,
+      isPublic: goal.isPublic ?? false, isDeleted: false, subs: [],
+    }
+    set(state => ({ goals: [...state.goals, newGoal] }))
+    db.execute(
       `INSERT INTO goals (id, org_id, user_id, title, description, category, priority, deadline, done, progress, is_public, is_deleted, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, 0, ?, ?)`,
       [id, orgId, userId, goal.title, goal.description ?? '', goal.category ?? 'work',
        goal.priority ?? 'medium', goal.deadline ?? null, goal.progress ?? 0,
        goal.isPublic ? 1 : 0, now, now]
-    )
+    ).catch(err => console.error('[db] addGoal', err))
     fire('/api/productivity/goals', 'POST', {
       clientId: id, title: goal.title, description: goal.description ?? '',
       category: goal.category ?? 'work', priority: goal.priority ?? 'medium',
@@ -391,12 +417,13 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
   },
 
   updateGoal: async (goal) => {
-    await db.execute(
+    set(state => ({ goals: state.goals.map(g => g.id === goal.id ? { ...g, ...goal } : g) }))
+    db.execute(
       `UPDATE goals SET title=?, description=?, category=?, priority=?, deadline=?, done=?, progress=?, is_public=?, updated_at=? WHERE id=?`,
       [goal.title, goal.description ?? '', goal.category, goal.priority,
        goal.deadline ?? null, goal.done ? 1 : 0, goal.progress,
        goal.isPublic ? 1 : 0, new Date().toISOString(), goal.id]
-    )
+    ).catch(err => console.error('[db] updateGoal', err))
     fire('/api/productivity/goals', 'POST', {
       clientId: goal.id, title: goal.title, description: goal.description ?? '',
       category: goal.category, priority: goal.priority, deadline: goal.deadline ?? null,
@@ -405,28 +432,45 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
   },
 
   deleteGoal: async (id) => {
-    await db.execute(`UPDATE goals SET is_deleted=1, updated_at=? WHERE id=?`, [new Date().toISOString(), id])
+    set(state => ({ goals: state.goals.filter(g => g.id !== id) }))
+    db.execute(`UPDATE goals SET is_deleted=1, updated_at=? WHERE id=?`, [new Date().toISOString(), id])
+      .catch(err => console.error('[db] deleteGoal', err))
     fire('/api/productivity/goals', 'DELETE', { clientId: id })
   },
 
   toggleSubGoal: async (subId, done) => {
-    await db.execute(`UPDATE goal_subs SET done=? WHERE id=?`, [done ? 1 : 0, subId])
+    set(state => ({
+      goals: state.goals.map(g => ({
+        ...g,
+        subs: g.subs.map(s => s.id === subId ? { ...s, done } : s),
+      })),
+    }))
+    db.execute(`UPDATE goal_subs SET done=? WHERE id=?`, [done ? 1 : 0, subId])
+      .catch(err => console.error('[db] toggleSubGoal', err))
     fire('/api/productivity/goals', 'POST', { action: 'toggleSub', clientId: subId, done })
   },
 
   addSubGoal: async (goalId, text) => {
     const id = uuidv4()
-    await db.execute(
+    const newSub: SubGoal = { id, goalId, text, done: false, isDeleted: false }
+    set(state => ({
+      goals: state.goals.map(g => g.id === goalId ? { ...g, subs: [...g.subs, newSub] } : g),
+    }))
+    db.execute(
       `INSERT INTO goal_subs (id, goal_id, text, done, is_deleted) VALUES (?, ?, ?, 0, 0)`,
       [id, goalId, text]
-    )
+    ).catch(err => console.error('[db] addSubGoal', err))
     fire('/api/productivity/goals', 'POST', {
       action: 'addSub', clientId: id, goalClientId: goalId, text, done: false,
     })
   },
 
   deleteSubGoal: async (subId) => {
-    await db.execute(`UPDATE goal_subs SET is_deleted=1 WHERE id=?`, [subId])
+    set(state => ({
+      goals: state.goals.map(g => ({ ...g, subs: g.subs.filter(s => s.id !== subId) })),
+    }))
+    db.execute(`UPDATE goal_subs SET is_deleted=1 WHERE id=?`, [subId])
+      .catch(err => console.error('[db] deleteSubGoal', err))
     fire('/api/productivity/goals', 'POST', { action: 'deleteSub', clientId: subId })
   },
 
@@ -436,13 +480,19 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
     if (!orgId || !userId) return
     const id = uuidv4()
     const now = new Date().toISOString()
-    await db.execute(
+    const newEntry: JournalEntry = {
+      id, orgId, userId, title: entry.title, content: entry.content ?? '',
+      date: entry.date, mood: entry.mood ?? '', tags: entry.tags ?? [],
+      isPublic: entry.isPublic ?? false, isDeleted: false,
+    }
+    set(state => ({ journalEntries: [...state.journalEntries, newEntry] }))
+    db.execute(
       `INSERT INTO journal_entries (id, org_id, user_id, title, content, date, mood, tags, is_public, is_deleted, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`,
       [id, orgId, userId, entry.title, entry.content ?? '', entry.date,
        entry.mood ?? '', JSON.stringify(entry.tags ?? []),
        entry.isPublic ? 1 : 0, now, now]
-    )
+    ).catch(err => console.error('[db] addJournalEntry', err))
     fire('/api/productivity/journal', 'POST', {
       clientId: id, title: entry.title, content: entry.content ?? '',
       date: entry.date, mood: entry.mood ?? '', tags: entry.tags ?? [],
@@ -451,12 +501,13 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
   },
 
   updateJournalEntry: async (entry) => {
-    await db.execute(
+    set(state => ({ journalEntries: state.journalEntries.map(e => e.id === entry.id ? { ...e, ...entry } : e) }))
+    db.execute(
       `UPDATE journal_entries SET title=?, content=?, date=?, mood=?, tags=?, is_public=?, updated_at=? WHERE id=?`,
       [entry.title, entry.content ?? '', entry.date, entry.mood ?? '',
        JSON.stringify(entry.tags ?? []), entry.isPublic ? 1 : 0,
        new Date().toISOString(), entry.id]
-    )
+    ).catch(err => console.error('[db] updateJournalEntry', err))
     fire('/api/productivity/journal', 'POST', {
       clientId: entry.id, title: entry.title, content: entry.content ?? '',
       date: entry.date, mood: entry.mood ?? '', tags: entry.tags ?? [],
@@ -465,7 +516,9 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
   },
 
   deleteJournalEntry: async (id) => {
-    await db.execute(`UPDATE journal_entries SET is_deleted=1, updated_at=? WHERE id=?`, [new Date().toISOString(), id])
+    set(state => ({ journalEntries: state.journalEntries.filter(e => e.id !== id) }))
+    db.execute(`UPDATE journal_entries SET is_deleted=1, updated_at=? WHERE id=?`, [new Date().toISOString(), id])
+      .catch(err => console.error('[db] deleteJournalEntry', err))
     fire('/api/productivity/journal', 'DELETE', { clientId: id })
   },
 
@@ -475,13 +528,20 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
     if (!orgId || !userId) return
     const id = uuidv4()
     const now = new Date().toISOString()
-    await db.execute(
+    const newEvent: CalEvent = {
+      id, orgId, userId, title: event.title, date: event.date,
+      dateEnd: event.dateEnd ?? null, startTime: event.startTime ?? null,
+      endTime: event.endTime ?? null, tag: event.tag ?? 'default',
+      recur: event.recur ?? null, isPublic: event.isPublic ?? false, isDeleted: false,
+    }
+    set(state => ({ events: [...state.events, newEvent] }))
+    db.execute(
       `INSERT INTO cal_events (id, org_id, user_id, title, date, date_end, start_time, end_time, tag, recur, is_public, is_deleted, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`,
       [id, orgId, userId, event.title, event.date, event.dateEnd ?? null,
        event.startTime ?? null, event.endTime ?? null, event.tag ?? 'default',
        event.recur ?? null, event.isPublic ? 1 : 0, now, now]
-    )
+    ).catch(err => console.error('[db] addEvent', err))
     fire('/api/productivity/events', 'POST', {
       clientId: id, title: event.title, date: event.date, dateEnd: event.dateEnd ?? null,
       startTime: event.startTime ?? null, endTime: event.endTime ?? null,
@@ -490,12 +550,13 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
   },
 
   updateEvent: async (event) => {
-    await db.execute(
+    set(state => ({ events: state.events.map(e => e.id === event.id ? { ...e, ...event } : e) }))
+    db.execute(
       `UPDATE cal_events SET title=?, date=?, date_end=?, start_time=?, end_time=?, tag=?, recur=?, is_public=?, updated_at=? WHERE id=?`,
       [event.title, event.date, event.dateEnd ?? null, event.startTime ?? null,
        event.endTime ?? null, event.tag, event.recur ?? null,
        event.isPublic ? 1 : 0, new Date().toISOString(), event.id]
-    )
+    ).catch(err => console.error('[db] updateEvent', err))
     fire('/api/productivity/events', 'POST', {
       clientId: event.id, title: event.title, date: event.date, dateEnd: event.dateEnd ?? null,
       startTime: event.startTime ?? null, endTime: event.endTime ?? null,
@@ -504,7 +565,9 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
   },
 
   deleteEvent: async (id) => {
-    await db.execute(`UPDATE cal_events SET is_deleted=1, updated_at=? WHERE id=?`, [new Date().toISOString(), id])
+    set(state => ({ events: state.events.filter(e => e.id !== id) }))
+    db.execute(`UPDATE cal_events SET is_deleted=1, updated_at=? WHERE id=?`, [new Date().toISOString(), id])
+      .catch(err => console.error('[db] deleteEvent', err))
     fire('/api/productivity/events', 'DELETE', { clientId: id })
   },
 
@@ -514,7 +577,15 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
     if (!orgId || !userId) return
     const id = uuidv4()
     const now = new Date().toISOString()
-    await db.execute(
+    const newSession: FocusSession = {
+      id, orgId, userId, date: session.date, timerType: session.timerType ?? 'pomodoro',
+      totalCycles: session.totalCycles ?? 4, completedCycles: session.completedCycles ?? 0,
+      workMinutes: session.workMinutes ?? 25, restMinutes: session.restMinutes ?? 5,
+      longRestMinutes: session.longRestMinutes ?? 15, completedTasks: session.completedTasks ?? 0,
+      totalFocusSeconds: session.totalFocusSeconds ?? 0, isPublic: session.isPublic ?? false, isDeleted: false,
+    }
+    set(state => ({ focusSessions: [...state.focusSessions, newSession] }))
+    db.execute(
       `INSERT INTO focus_sessions (id, org_id, user_id, date, timer_type, total_cycles, completed_cycles, work_minutes, rest_minutes, long_rest_minutes, completed_tasks, total_focus_seconds, is_public, is_deleted, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`,
       [id, orgId, userId, session.date, session.timerType ?? 'pomodoro',
@@ -522,7 +593,7 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
        session.workMinutes ?? 25, session.restMinutes ?? 5,
        session.longRestMinutes ?? 15, session.completedTasks ?? 0,
        session.totalFocusSeconds ?? 0, session.isPublic ? 1 : 0, now, now]
-    )
+    ).catch(err => console.error('[db] addFocusSession', err))
     fire('/api/productivity/focus-sessions', 'POST', {
       clientId: id, date: session.date, timerType: session.timerType ?? 'pomodoro',
       totalCycles: session.totalCycles ?? 4, completedCycles: session.completedCycles ?? 0,
@@ -533,11 +604,12 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
   },
 
   updateFocusSession: async (session) => {
-    await db.execute(
+    set(state => ({ focusSessions: state.focusSessions.map(s => s.id === session.id ? { ...s, ...session } : s) }))
+    db.execute(
       `UPDATE focus_sessions SET completed_cycles=?, completed_tasks=?, total_focus_seconds=?, is_public=?, updated_at=? WHERE id=?`,
       [session.completedCycles, session.completedTasks, session.totalFocusSeconds,
        session.isPublic ? 1 : 0, new Date().toISOString(), session.id]
-    )
+    ).catch(err => console.error('[db] updateFocusSession', err))
     fire('/api/productivity/focus-sessions', 'POST', {
       clientId: session.id, date: session.date, timerType: session.timerType,
       totalCycles: session.totalCycles, completedCycles: session.completedCycles,
@@ -554,17 +626,20 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
     const existing = preferences.find(p => p.key === key)
     const now = new Date().toISOString()
     if (existing) {
-      await db.execute(
+      set(state => ({ preferences: state.preferences.map(p => p.key === key ? { ...p, value } : p) }))
+      db.execute(
         `UPDATE user_preferences SET value=?, updated_at=? WHERE id=?`,
         [JSON.stringify(value), now, existing.id]
-      )
+      ).catch(err => console.error('[db] setPreference update', err))
       fire('/api/productivity/preferences', 'POST', { clientId: existing.id, key, value })
     } else {
       const id = uuidv4()
-      await db.execute(
+      const newPref: UserPreference = { id, orgId, userId, key, value, isDeleted: false }
+      set(state => ({ preferences: [...state.preferences, newPref] }))
+      db.execute(
         `INSERT INTO user_preferences (id, org_id, user_id, key, value, is_deleted, updated_at) VALUES (?, ?, ?, ?, ?, 0, ?)`,
         [id, orgId, userId, key, JSON.stringify(value), now]
-      )
+      ).catch(err => console.error('[db] setPreference insert', err))
       fire('/api/productivity/preferences', 'POST', { clientId: id, key, value })
     }
   },
