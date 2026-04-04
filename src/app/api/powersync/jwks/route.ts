@@ -1,5 +1,5 @@
 import { exportJWK } from 'jose'
-import { createPublicKey } from 'crypto'
+import { createPublicKey, createPrivateKey } from 'crypto'
 
 function algForKey(keyObject: ReturnType<typeof createPublicKey>): string {
   const t = keyObject.asymmetricKeyType
@@ -15,13 +15,25 @@ function algForKey(keyObject: ReturnType<typeof createPublicKey>): string {
 }
 
 export async function GET() {
-  if (!process.env.POWERSYNC_PUBLIC_KEY) {
+  const rawPublic = process.env.POWERSYNC_PUBLIC_KEY
+  const rawPrivate = process.env.POWERSYNC_PRIVATE_KEY
+
+  if (!rawPublic && !rawPrivate) {
     return Response.json({ error: 'PowerSync not configured' }, { status: 503 })
   }
 
   try {
-    const rawKey = process.env.POWERSYNC_PUBLIC_KEY.replace(/\\n/g, '\n')
-    const publicKey = createPublicKey({ key: rawKey, format: 'pem' })
+    let publicKey: ReturnType<typeof createPublicKey>
+
+    if (rawPublic) {
+      // Use explicitly provided public key
+      publicKey = createPublicKey({ key: rawPublic.replace(/\\n/g, '\n'), format: 'pem' })
+    } else {
+      // Derive public key from private key — no separate env var needed
+      const privateKey = createPrivateKey({ key: rawPrivate!.replace(/\\n/g, '\n'), format: 'pem' })
+      publicKey = createPublicKey(privateKey)
+    }
+
     const alg = algForKey(publicKey)
     const jwk = await exportJWK(publicKey)
 
@@ -31,7 +43,7 @@ export async function GET() {
     )
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
-    console.error('[powersync/jwks] key error:', msg)
+    console.error('[powersync/jwks] error:', msg)
     return Response.json({ error: 'Failed to export JWKS', detail: msg }, { status: 500 })
   }
 }
