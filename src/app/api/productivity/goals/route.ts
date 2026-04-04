@@ -71,18 +71,19 @@ export async function POST(req: Request) {
     return Response.json({ ok: true })
   }
 
-  // Toggle sub-goal
+  // Toggle sub-goal (supports both integer id and clientId UUID)
   if (body.action === 'toggleSub') {
-    if (!body.subId) return Response.json({ error: 'subId required' }, { status: 400 })
-    const [sub] = await db.select({ id: goalSubs.id, goalId: goalSubs.goalId }).from(goalSubs)
-      .where(eq(goalSubs.id, body.subId))
+    if (!body.subId && !body.clientId) return Response.json({ error: 'subId or clientId required' }, { status: 400 })
+    const lookupWhere = body.clientId ? eq(goalSubs.clientId, body.clientId) : eq(goalSubs.id, body.subId)
+    const [sub] = await db.select({ id: goalSubs.id, goalId: goalSubs.goalId }).from(goalSubs).where(lookupWhere)
     if (!sub) return Response.json({ error: 'Not found' }, { status: 404 })
     const [goal] = await db.select({ id: goals.id }).from(goals)
       .where(and(eq(goals.id, sub.goalId), eq(goals.orgId, orgId)))
     if (!goal) return Response.json({ error: 'Not found' }, { status: 404 })
+    const updateWhere = body.clientId ? eq(goalSubs.clientId, body.clientId) : eq(goalSubs.id, body.subId)
     const [row] = await db.update(goalSubs)
       .set({ done: body.done })
-      .where(eq(goalSubs.id, body.subId))
+      .where(updateWhere)
       .returning()
     return Response.json(row)
   }

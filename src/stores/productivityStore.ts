@@ -9,6 +9,16 @@ import type { Connection } from '@/types/connections'
 import { computeConnections } from '@/lib/connectionEngine'
 import { db } from '@/lib/powersync/db'
 
+// Fire-and-forget direct API sync — guarantees data reaches Supabase
+// regardless of PowerSync cloud connection status. Idempotent via clientId.
+function fire(url: string, method: string, body: Record<string, unknown>): void {
+  fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  }).catch(err => console.warn('[sync]', method, url, err))
+}
+
 // ── Row mappers (SQLite snake_case + int booleans → TS types) ────────────────
 
 function toBool(v: unknown): boolean { return v === 1 || v === true }
@@ -279,6 +289,11 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
        task.tag ?? 'work', task.status ?? 'todo', task.dueDate ?? null,
        task.isPublic ? 1 : 0, now, now]
     )
+    fire('/api/productivity/tasks', 'POST', {
+      clientId: id, title: task.title, description: task.description ?? '',
+      completed: false, priority: task.priority ?? 'medium', tag: task.tag ?? 'work',
+      status: task.status ?? 'todo', dueDate: task.dueDate ?? null, isPublic: task.isPublic ?? false,
+    })
   },
 
   updateTask: async (task) => {
@@ -287,10 +302,16 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
       [task.title, task.description ?? '', task.completed ? 1 : 0, task.priority, task.tag,
        task.status, task.dueDate ?? null, task.isPublic ? 1 : 0, new Date().toISOString(), task.id]
     )
+    fire('/api/productivity/tasks', 'POST', {
+      clientId: task.id, title: task.title, description: task.description ?? '',
+      completed: task.completed, priority: task.priority, tag: task.tag,
+      status: task.status, dueDate: task.dueDate ?? null, isPublic: task.isPublic,
+    })
   },
 
   deleteTask: async (id) => {
     await db.execute(`UPDATE tasks SET is_deleted=1, updated_at=? WHERE id=?`, [new Date().toISOString(), id])
+    fire('/api/productivity/tasks', 'DELETE', { clientId: id })
   },
 
   toggleTask: async (id) => {
@@ -302,6 +323,11 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
       `UPDATE tasks SET completed=?, status=?, updated_at=? WHERE id=?`,
       [newCompleted ? 1 : 0, newStatus, new Date().toISOString(), id]
     )
+    fire('/api/productivity/tasks', 'POST', {
+      clientId: id, title: task.title, description: task.description ?? '',
+      completed: newCompleted, priority: task.priority, tag: task.tag,
+      status: newStatus, dueDate: task.dueDate ?? null, isPublic: task.isPublic,
+    })
   },
 
   // ── Habit actions ──
@@ -315,16 +341,21 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
        VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?)`,
       [id, orgId, userId, name, emoji, habits.length, isPublic ? 1 : 0, now]
     )
+    fire('/api/productivity/habits', 'POST', {
+      clientId: id, name, emoji, sortOrder: habits.length, isPublic: isPublic ?? false,
+    })
   },
 
   deleteHabit: async (id) => {
     await db.execute(`UPDATE habits SET is_deleted=1 WHERE id=?`, [id])
+    fire('/api/productivity/habits', 'DELETE', { clientId: id })
   },
 
   toggleHabitCheck: async (habitId, date) => {
     const existing = get().habitChecks.find(c => c.habitId === habitId && c.date === date)
     if (existing) {
       await db.execute(`DELETE FROM habit_checks WHERE id=?`, [existing.id])
+      fire('/api/productivity/habits', 'POST', { action: 'deleteCheck', clientId: existing.id })
     } else {
       const id = uuidv4()
       const now = new Date().toISOString()
@@ -332,6 +363,9 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
         `INSERT INTO habit_checks (id, habit_id, date, checked, is_deleted, created_at) VALUES (?, ?, ?, 1, 0, ?)`,
         [id, habitId, date, now]
       )
+      fire('/api/productivity/habits', 'POST', {
+        action: 'insertCheck', clientId: id, habitClientId: habitId, date, checked: true,
+      })
     }
   },
 
@@ -348,6 +382,12 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
        goal.priority ?? 'medium', goal.deadline ?? null, goal.progress ?? 0,
        goal.isPublic ? 1 : 0, now, now]
     )
+    fire('/api/productivity/goals', 'POST', {
+      clientId: id, title: goal.title, description: goal.description ?? '',
+      category: goal.category ?? 'work', priority: goal.priority ?? 'medium',
+      deadline: goal.deadline ?? null, done: false, progress: goal.progress ?? 0,
+      isPublic: goal.isPublic ?? false,
+    })
   },
 
   updateGoal: async (goal) => {
@@ -357,14 +397,21 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
        goal.deadline ?? null, goal.done ? 1 : 0, goal.progress,
        goal.isPublic ? 1 : 0, new Date().toISOString(), goal.id]
     )
+    fire('/api/productivity/goals', 'POST', {
+      clientId: goal.id, title: goal.title, description: goal.description ?? '',
+      category: goal.category, priority: goal.priority, deadline: goal.deadline ?? null,
+      done: goal.done, progress: goal.progress, isPublic: goal.isPublic,
+    })
   },
 
   deleteGoal: async (id) => {
     await db.execute(`UPDATE goals SET is_deleted=1, updated_at=? WHERE id=?`, [new Date().toISOString(), id])
+    fire('/api/productivity/goals', 'DELETE', { clientId: id })
   },
 
   toggleSubGoal: async (subId, done) => {
     await db.execute(`UPDATE goal_subs SET done=? WHERE id=?`, [done ? 1 : 0, subId])
+    fire('/api/productivity/goals', 'POST', { action: 'toggleSub', clientId: subId, done })
   },
 
   addSubGoal: async (goalId, text) => {
@@ -373,10 +420,14 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
       `INSERT INTO goal_subs (id, goal_id, text, done, is_deleted) VALUES (?, ?, ?, 0, 0)`,
       [id, goalId, text]
     )
+    fire('/api/productivity/goals', 'POST', {
+      action: 'addSub', clientId: id, goalClientId: goalId, text, done: false,
+    })
   },
 
   deleteSubGoal: async (subId) => {
     await db.execute(`UPDATE goal_subs SET is_deleted=1 WHERE id=?`, [subId])
+    fire('/api/productivity/goals', 'POST', { action: 'deleteSub', clientId: subId })
   },
 
   // ── Journal actions ──
@@ -392,6 +443,11 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
        entry.mood ?? '', JSON.stringify(entry.tags ?? []),
        entry.isPublic ? 1 : 0, now, now]
     )
+    fire('/api/productivity/journal', 'POST', {
+      clientId: id, title: entry.title, content: entry.content ?? '',
+      date: entry.date, mood: entry.mood ?? '', tags: entry.tags ?? [],
+      isPublic: entry.isPublic ?? false,
+    })
   },
 
   updateJournalEntry: async (entry) => {
@@ -401,10 +457,16 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
        JSON.stringify(entry.tags ?? []), entry.isPublic ? 1 : 0,
        new Date().toISOString(), entry.id]
     )
+    fire('/api/productivity/journal', 'POST', {
+      clientId: entry.id, title: entry.title, content: entry.content ?? '',
+      date: entry.date, mood: entry.mood ?? '', tags: entry.tags ?? [],
+      isPublic: entry.isPublic ?? false,
+    })
   },
 
   deleteJournalEntry: async (id) => {
     await db.execute(`UPDATE journal_entries SET is_deleted=1, updated_at=? WHERE id=?`, [new Date().toISOString(), id])
+    fire('/api/productivity/journal', 'DELETE', { clientId: id })
   },
 
   // ── Event actions ──
@@ -420,6 +482,11 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
        event.startTime ?? null, event.endTime ?? null, event.tag ?? 'default',
        event.recur ?? null, event.isPublic ? 1 : 0, now, now]
     )
+    fire('/api/productivity/events', 'POST', {
+      clientId: id, title: event.title, date: event.date, dateEnd: event.dateEnd ?? null,
+      startTime: event.startTime ?? null, endTime: event.endTime ?? null,
+      tag: event.tag ?? 'default', recur: event.recur ?? null, isPublic: event.isPublic ?? false,
+    })
   },
 
   updateEvent: async (event) => {
@@ -429,10 +496,16 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
        event.endTime ?? null, event.tag, event.recur ?? null,
        event.isPublic ? 1 : 0, new Date().toISOString(), event.id]
     )
+    fire('/api/productivity/events', 'POST', {
+      clientId: event.id, title: event.title, date: event.date, dateEnd: event.dateEnd ?? null,
+      startTime: event.startTime ?? null, endTime: event.endTime ?? null,
+      tag: event.tag, recur: event.recur ?? null, isPublic: event.isPublic ?? false,
+    })
   },
 
   deleteEvent: async (id) => {
     await db.execute(`UPDATE cal_events SET is_deleted=1, updated_at=? WHERE id=?`, [new Date().toISOString(), id])
+    fire('/api/productivity/events', 'DELETE', { clientId: id })
   },
 
   // ── Focus session actions ──
@@ -450,6 +523,13 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
        session.longRestMinutes ?? 15, session.completedTasks ?? 0,
        session.totalFocusSeconds ?? 0, session.isPublic ? 1 : 0, now, now]
     )
+    fire('/api/productivity/focus-sessions', 'POST', {
+      clientId: id, date: session.date, timerType: session.timerType ?? 'pomodoro',
+      totalCycles: session.totalCycles ?? 4, completedCycles: session.completedCycles ?? 0,
+      workMinutes: session.workMinutes ?? 25, restMinutes: session.restMinutes ?? 5,
+      longRestMinutes: session.longRestMinutes ?? 15, completedTasks: session.completedTasks ?? 0,
+      totalFocusSeconds: session.totalFocusSeconds ?? 0, isPublic: session.isPublic ?? false,
+    })
   },
 
   updateFocusSession: async (session) => {
@@ -458,6 +538,13 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
       [session.completedCycles, session.completedTasks, session.totalFocusSeconds,
        session.isPublic ? 1 : 0, new Date().toISOString(), session.id]
     )
+    fire('/api/productivity/focus-sessions', 'POST', {
+      clientId: session.id, date: session.date, timerType: session.timerType,
+      totalCycles: session.totalCycles, completedCycles: session.completedCycles,
+      workMinutes: session.workMinutes, restMinutes: session.restMinutes,
+      longRestMinutes: session.longRestMinutes, completedTasks: session.completedTasks,
+      totalFocusSeconds: session.totalFocusSeconds, isPublic: session.isPublic ?? false,
+    })
   },
 
   // ── Preference actions ──
@@ -471,12 +558,14 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
         `UPDATE user_preferences SET value=?, updated_at=? WHERE id=?`,
         [JSON.stringify(value), now, existing.id]
       )
+      fire('/api/productivity/preferences', 'POST', { clientId: existing.id, key, value })
     } else {
       const id = uuidv4()
       await db.execute(
         `INSERT INTO user_preferences (id, org_id, user_id, key, value, is_deleted, updated_at) VALUES (?, ?, ?, ?, ?, 0, ?)`,
         [id, orgId, userId, key, JSON.stringify(value), now]
       )
+      fire('/api/productivity/preferences', 'POST', { clientId: id, key, value })
     }
   },
 
