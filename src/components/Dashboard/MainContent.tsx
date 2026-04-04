@@ -4,6 +4,7 @@ import React, { useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import styles from './MainContent.module.scss'
 import { useUIStore } from '@/stores/uiStore'
+import { useAuth } from '@/hooks/useSupabaseAuth'
 import { pageToUrl } from '@/lib/routing'
 
 // Dashboard
@@ -156,7 +157,8 @@ const FULLSCREEN_MODULES = new Set(['calendar'])
 
 export const MainContent: React.FC = () => {
   const router = useRouter()
-  const { currentPage, setCurrentPage } = useUIStore()
+  const { currentPage, setCurrentPage, setLastVisited } = useUIStore()
+  const { orgId } = useAuth()
 
   const Component = MODULES[currentPage]
   const isFull = FULLSCREEN_MODULES.has(currentPage)
@@ -166,12 +168,18 @@ export const MainContent: React.FC = () => {
   useEffect(() => {
     if (currentPage) {
       const targetUrl = pageToUrl(currentPage)
-      // Only push if the URL doesn't already match the target
       if (pathname !== targetUrl) {
         router.push(targetUrl)
       }
     }
   }, [currentPage, pathname, router])
+
+  // Track last visited page per org (skip dashboard — it's the landing page)
+  useEffect(() => {
+    if (orgId && currentPage && currentPage !== 'dashboard') {
+      setLastVisited(orgId, currentPage)
+    }
+  }, [currentPage, orgId, setLastVisited])
 
   if (!Component) return (
     <main className={styles.main}>

@@ -14,6 +14,9 @@ interface UIState {
   /** Optional extra breadcrumb segment pushed by detail views (e.g. board name, note title) */
   subBreadcrumb: string | null
   setSubBreadcrumb: (label: string | null) => void
+  /** Tracks the last visited page per org for "continue where you left off" */
+  lastVisited: Record<string, string>
+  setLastVisited: (orgId: string, page: string) => void
 }
 
 export const useUIStore = create<UIState>()(
@@ -31,6 +34,10 @@ export const useUIStore = create<UIState>()(
       closeMobileMenu: () => set({ mobileMenuOpen: false }),
       subBreadcrumb: null,
       setSubBreadcrumb: (label) => set({ subBreadcrumb: label }),
+      lastVisited: {},
+      setLastVisited: (orgId, page) => set((state) => ({
+        lastVisited: { ...state.lastVisited, [orgId]: page },
+      })),
     }),
     {
       name: 'pulsar-ui-state',
@@ -39,6 +46,7 @@ export const useUIStore = create<UIState>()(
         currentPillarIndex: state.currentPillarIndex,
         sidebarCollapsed: state.sidebarCollapsed,
         subBreadcrumb: state.subBreadcrumb,
+        lastVisited: state.lastVisited,
         // Explicitly exclude: mobileMenuOpen (should close on reload)
       }),
     }

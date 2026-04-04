@@ -91,3 +91,56 @@
   font-size: $font-size-xs;
   margin: 0;
 }
+
+.continueCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  background: $surface-2;
+  border: 1px solid $border;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  width: 100%;
+  max-width: 380px;
+  transition: background $dur-fast $ease, border-color $dur-fast $ease, transform $dur-fast $ease;
+
+  &:hover {
+    background: $surface-3;
+    border-color: oklch(0.55 0.18 290 / 0.5);
+    transform: translateY(-1px);
+  }
+}
+
+.continueIcon {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 8px;
+  background: oklch(0.22 0.08 290);
+  color: oklch(0.72 0.16 290);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+}
+
+.continueText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.continueName {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $text-1;
+}
+
+.continueHint {
+  font-size: $font-size-xs;
+  color: $text-3;
+}

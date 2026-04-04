@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser'
+import { useUIStore } from '@/stores/uiStore'
 import type { User, Session } from '@supabase/supabase-js'
 
 interface MappedUser {
@@ -27,9 +28,12 @@ interface AuthContextValue {
   session: Session | null
   activeOrg: { id: string; name: string } | null
   memberships: OrgMembership[]
+  isSwitchingWorkspace: boolean
   signOut: () => Promise<void>
   setActiveOrg: (orgId: string) => Promise<void>
   createOrganization: (name: string) => Promise<void>
+  deleteOrganization: (orgId: string) => Promise<void>
+  renameOrganization: (orgId: string, name: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -56,6 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false)
   const [memberships, setMemberships] = useState<OrgMembership[]>([])
   const [activeOrg, setActiveOrgState] = useState<{ id: string; name: string } | null>(null)
+  const [isSwitchingWorkspace, setIsSwitchingWorkspace] = useState(false)
 
   const fetchMemberships = useCallback(async () => {
     const res = await fetch('/api/organizations')
@@ -80,10 +85,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Auto-provision a personal workspace for brand-new users
     if (orgs.length === 0) {
+      const firstName = (sess.user.user_metadata?.first_name as string)
+        ?? (sess.user.email ?? '').split('@')[0]
+        ?? 'My'
       const res = await fetch('/api/organizations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'Personal Workspace' }),
+        body: JSON.stringify({ name: `${firstName}'s workspace` }),
       })
       if (res.ok) {
         // Refresh session so app_metadata.active_org_id is updated
@@ -123,6 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [supabase, router])
 
   const setActiveOrg = useCallback(async (orgId: string) => {
+    setIsSwitchingWorkspace(true)
     await fetch('/api/auth/set-active-org', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -135,6 +144,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const org = memberships.find(o => o.id === orgId)
       if (org) setActiveOrgState({ id: org.id, name: org.name })
     }
+    useUIStore.getState().setCurrentPage('dashboard')
+    setIsSwitchingWorkspace(false)
   }, [supabase, memberships])
 
   const createOrganization = useCallback(async (name: string) => {
@@ -149,10 +160,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await setActiveOrg(org.id)
   }, [setActiveOrg])
 
+  const deleteOrganization = useCallback(async (orgId: string) => {
+    await fetch(`/api/organizations/${orgId}`, { method: 'DELETE' })
+    const remaining = memberships.filter(o => o.id !== orgId)
+    setMemberships(remaining)
+    if (activeOrg?.id === orgId) {
+      const next = remaining[0]
+      if (next) await setActiveOrg(next.id)
+    }
+  }, [memberships, activeOrg, setActiveOrg])
+
+  const renameOrganization = useCallback(async (orgId: string, name: string) => {
+    const res = await fetch(`/api/organizations/${orgId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    })
+    if (!res.ok) return
+    setMemberships(prev => prev.map(o => o.id === orgId ? { ...o, name } : o))
+    if (activeOrg?.id === orgId) setActiveOrgState(prev => prev ? { ...prev, name } : prev)
+  }, [activeOrg])
+
   return (
     <AuthContext.Provider value={{
       user, userId: user?.id ?? null, isLoaded, session,
-      activeOrg, memberships, signOut, setActiveOrg, createOrganization,
+      activeOrg, memberships, isSwitchingWorkspace,
+      signOut, setActiveOrg, createOrganization, deleteOrganization, renameOrganization,
     }}>
       {children}
     </AuthContext.Provider>

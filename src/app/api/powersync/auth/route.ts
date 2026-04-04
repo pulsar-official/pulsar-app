@@ -10,7 +10,8 @@ export async function GET() {
   if (!process.env.POWERSYNC_PRIVATE_KEY) {
     return Response.json({ error: 'PowerSync not configured' }, { status: 503 })
   }
-  const privateKey = await importPKCS8(process.env.POWERSYNC_PRIVATE_KEY, 'RS256')
+  const rawKey = process.env.POWERSYNC_PRIVATE_KEY.replace(/\\n/g, '\n')
+  const privateKey = await importPKCS8(rawKey, 'RS256')
 
   const token = await new SignJWT({ sub: userId, user_id: userId, org_id: orgId })
     .setProtectedHeader({ alg: 'RS256' })

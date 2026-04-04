@@ -2,6 +2,9 @@
 
 import React from 'react'
 import styles from './Dashboard.module.scss'
+import { useUIStore } from '@/stores/uiStore'
+import { useAuth } from '@/hooks/useSupabaseAuth'
+import { PILLARS } from '@/constants/pillars'
 
 interface DashboardProps {
   onNavigate?: (page: string) => void
@@ -13,13 +16,43 @@ const STATS = [
   { title: 'Notes Created', value: '8', trend: '↑ 5% this week', color: 150 },
 ]
 
+// Build page name lookup from PILLARS
+const PAGE_LABELS: Record<string, string> = { dashboard: 'Dashboard' }
+for (const pillar of PILLARS) {
+  for (const section of pillar.sections) {
+    for (const item of section.items) {
+      PAGE_LABELS[item.page] = item.name
+    }
+  }
+}
+
 export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
+  const { orgId } = useAuth()
+  const lastVisited = useUIStore(s => s.lastVisited)
+
+  const lastPage = orgId ? lastVisited[orgId] : null
+  const showContinue = lastPage && lastPage !== 'dashboard'
+  const lastPageLabel = lastPage ? (PAGE_LABELS[lastPage] ?? lastPage) : ''
+
   return (
     <div className={styles.dashboard}>
       <div className={styles.header}>
         <h1>Dashboard</h1>
         <p>Your personal command center</p>
       </div>
+
+      {showContinue && (
+        <div className={styles.section}>
+          <h2>Continue where you left off</h2>
+          <button className={styles.continueCard} onClick={() => onNavigate?.(lastPage!)}>
+            <div className={styles.continueIcon}>↗</div>
+            <div className={styles.continueText}>
+              <div className={styles.continueName}>{lastPageLabel}</div>
+              <div className={styles.continueHint}>Pick up right where you stopped</div>
+            </div>
+          </button>
+        </div>
+      )}
 
       <div className={styles.section}>
         <h2>Overview</h2>

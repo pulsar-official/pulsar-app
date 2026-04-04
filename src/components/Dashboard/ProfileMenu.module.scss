@@ -144,26 +144,31 @@
   align-items: center;
 }
 
+// Row wrapper — becomes a div when containing action buttons
 .workspaceItem {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 6px;
+  gap: 4px;
+  padding: 2px 4px;
   border: none;
   background: transparent;
   border-radius: 6px;
-  cursor: pointer;
   font-size: 12px;
   color: $text-2;
   font-family: inherit;
   transition: background 120ms ease, color 120ms ease;
   text-align: left;
   width: 100%;
+  cursor: pointer;
 
   &:hover {
     background: $surface-3;
     color: $text-1;
+
+    .workspaceActions {
+      opacity: 1;
+    }
   }
 
   &:disabled {
@@ -174,6 +179,63 @@
       background: transparent;
       color: $text-2;
     }
+  }
+}
+
+// Inner button for clicking to switch workspace
+.workspaceItemBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 2px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  text-align: left;
+  min-width: 0;
+}
+
+// Hover action icons (pencil + trash)
+.workspaceActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.wsActionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: $text-3;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 100ms ease, color 100ms ease;
+
+  &:hover {
+    background: $surface-4;
+    color: $text-1;
+  }
+}
+
+.wsActionDanger {
+  color: oklch(0.65 0.15 20) !important;
+  background: oklch(0.2 0.05 20) !important;
+
+  &:hover {
+    background: oklch(0.25 0.08 20) !important;
+    color: oklch(0.72 0.15 20) !important;
   }
 }
 
