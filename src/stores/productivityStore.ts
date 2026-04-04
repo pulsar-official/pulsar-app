@@ -223,9 +223,9 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
       journalRows, eventRows, boardRows, focusRows, prefRows] = await Promise.all([
       db.getAll(`SELECT * FROM tasks WHERE org_id = ? AND ${notDeleted}`, [orgId]),
       db.getAll(`SELECT * FROM habits WHERE org_id = ? AND ${notDeleted}`, [orgId]),
-      db.getAll(`SELECT hc.* FROM habit_checks hc JOIN habits h ON hc.habit_id = h.id WHERE h.org_id = ? AND ${notDeleted}`, [orgId]),
+      db.getAll(`SELECT hc.* FROM habit_checks hc JOIN habits h ON hc.habit_id = h.id WHERE h.org_id = ? AND (hc.is_deleted = 0 OR hc.is_deleted IS NULL)`, [orgId]),
       db.getAll(`SELECT * FROM goals WHERE org_id = ? AND ${notDeleted}`, [orgId]),
-      db.getAll(`SELECT gs.* FROM goal_subs gs JOIN goals g ON gs.goal_id = g.id WHERE g.org_id = ? AND ${notDeleted}`, [orgId]),
+      db.getAll(`SELECT gs.* FROM goal_subs gs JOIN goals g ON gs.goal_id = g.id WHERE g.org_id = ? AND (gs.is_deleted = 0 OR gs.is_deleted IS NULL)`, [orgId]),
       db.getAll(`SELECT * FROM journal_entries WHERE org_id = ? AND ${notDeleted}`, [orgId]),
       db.getAll(`SELECT * FROM cal_events WHERE org_id = ? AND ${notDeleted}`, [orgId]),
       db.getAll(`SELECT * FROM boards WHERE org_id = ? AND ${notDeleted}`, [orgId]),
