@@ -3,9 +3,9 @@
  * Handles offline support, caching, and background sync
  */
 
-const CACHE_NAME = 'pulsar-v1'
-const ASSET_CACHE = 'pulsar-assets-v1'
-const API_CACHE = 'pulsar-api-v1'
+const CACHE_NAME = 'pulsar-v2'
+const ASSET_CACHE = 'pulsar-assets-v2'
+const API_CACHE = 'pulsar-api-v2'
 const API_CACHE_MAX_AGE = 5 * 60 * 1000 // 5 minutes
 
 // Assets to pre-cache on install
@@ -135,20 +135,21 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Assets - cache first, then network
-  if (request.destination === 'style' || request.destination === 'script' || request.destination === 'image') {
+  // Next.js hashed chunks (_next/static/) are immutable by URL — skip SW caching,
+  // let the browser HTTP cache handle them. This prevents stale chunks after deploys.
+  if (url.pathname.startsWith('/_next/static/')) {
+    return // fall through to browser HTTP cache
+  }
+
+  // Other assets (styles, images) — cache first, then network
+  if (request.destination === 'style' || request.destination === 'image') {
     event.respondWith(
       caches.open(ASSET_CACHE).then((cache) => {
         return cache.match(request).then((response) => {
-          if (response) {
-            return response
-          }
-
+          if (response) return response
           return fetch(request).then((response) => {
-            // Cache successful asset responses
             if (response.status === 200) {
-              const responseClone = response.clone()
-              cache.put(request, responseClone)
+              cache.put(request, response.clone())
             }
             return response
           })
@@ -158,15 +159,13 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Default - network first
+  // Default — network first, cache fallback (never return undefined)
   event.respondWith(
     fetch(request)
-      .then((response) => {
-        return response
-      })
-      .catch(() => {
-        // Offline fallback
-        return caches.match(request)
+      .then((response) => response)
+      .catch(async () => {
+        const cached = await caches.match(request)
+        return cached ?? new Response('Offline', { status: 503, statusText: 'Offline' })
       })
   )
 })
