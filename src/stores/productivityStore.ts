@@ -33,6 +33,8 @@ function mapTask(r: Row): Task {
     completed: toBool(r.completed), priority: r.priority ?? 'medium',
     tag: r.tag ?? 'work', status: r.status ?? 'todo',
     dueDate: r.due_date ?? null, isPublic: toBool(r.is_public),
+    impact: r.impact ?? 3, effort: r.effort ?? 'm', goalId: r.goal_id ?? null,
+    parentId: r.parent_id ?? null, pinned: toBool(r.pinned), sortOrder: r.sort_order ?? 0,
     isDeleted: toBool(r.is_deleted),
   }
 }
@@ -42,6 +44,8 @@ function mapHabit(r: Row): Habit {
     id: r.id, orgId: r.org_id, userId: r.user_id,
     name: r.name, emoji: r.emoji ?? '✅',
     sortOrder: r.sort_order ?? 0, isPublic: toBool(r.is_public),
+    category: r.category ?? 'health', archived: toBool(r.archived),
+    frequency: r.frequency ?? 'daily',
     isDeleted: toBool(r.is_deleted),
   }
 }
@@ -70,6 +74,7 @@ function mapGoal(r: Row, subs: SubGoal[]): Goal {
     deadline: r.deadline ?? null, done: toBool(r.done),
     progress: r.progress ?? 0, isPublic: toBool(r.is_public),
     isDeleted: toBool(r.is_deleted), subs,
+    updatedAt: r.updated_at ?? null,
   }
 }
 
@@ -80,7 +85,7 @@ function mapJournalEntry(r: Row): JournalEntry {
     id: r.id, orgId: r.org_id, userId: r.user_id,
     title: r.title, content: r.content ?? '',
     date: r.date, mood: r.mood ?? '',
-    tags, isPublic: toBool(r.is_public),
+    tags, pinned: toBool(r.pinned), isPublic: toBool(r.is_public),
     isDeleted: toBool(r.is_deleted),
   }
 }
@@ -147,6 +152,10 @@ interface ProductivityState {
   loading: boolean
   initialized: boolean
 
+  // Undo toast
+  undoToast: { label: string; onUndo: () => void } | null
+  clearUndoToast: () => void
+
   // Initial hydration from local SQLite (called once on mount)
   hydrateFromPowerSync: (orgId: string, userId: string) => Promise<void>
 
@@ -168,7 +177,8 @@ interface ProductivityState {
   toggleTask: (id: string) => Promise<void>
 
   // Habit actions
-  addHabit: (habit: { name: string; emoji: string; isPublic?: boolean }) => Promise<void>
+  addHabit: (habit: { name: string; emoji: string; isPublic?: boolean; category?: string; frequency?: string }) => Promise<void>
+  updateHabit: (habit: Habit) => Promise<void>
   deleteHabit: (id: string) => Promise<void>
   toggleHabitCheck: (habitId: string, date: string) => Promise<void>
 
@@ -213,6 +223,9 @@ interface ProductivityState {
   getSmartConnections: () => Connection[]
 }
 
+// ── Module-level undo timer ──────────────────────────────────────────────────
+let undoTimer: ReturnType<typeof setTimeout> | null = null
+
 // ── Store ────────────────────────────────────────────────────────────────────
 
 export const useProductivityStore = create<ProductivityState>((set, get) => ({
@@ -221,6 +234,11 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
   focusSessions: [], preferences: [],
   orgId: null, userId: null,
   loading: false, initialized: false,
+  undoToast: null,
+  clearUndoToast: () => {
+    if (undoTimer) { clearTimeout(undoTimer); undoTimer = null }
+    set({ undoToast: null })
+  },
   selectedJournalEntryId: null,
   setSelectedJournalEntryId: (id) => set({ selectedJournalEntryId: id }),
 
@@ -263,6 +281,116 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
       preferences: (prefRows as Row[]).map(mapPreference),
       loading: false, initialized: true,
     })
+
+    // Background cross-device sync: fetch server data and merge items missing locally
+    ;(async () => {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const safe = (p: Promise<Response>) => p.then(r => r.ok ? r.json() : null).catch(() => null)
+        const [serverTasks, habitsData, serverGoals, serverJournal, serverEvents] = await Promise.all([
+          safe(fetch('/api/productivity/tasks')),
+          safe(fetch('/api/productivity/habits')),
+          safe(fetch('/api/productivity/goals')),
+          safe(fetch('/api/productivity/journal')),
+          safe(fetch('/api/productivity/events')),
+        ])
+
+        const s = get()
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const taskList: any[] = Array.isArray(serverTasks) ? serverTasks : []
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const habitList: any[] = Array.isArray(habitsData?.habits) ? habitsData.habits : []
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const checkList: any[] = Array.isArray(habitsData?.checks) ? habitsData.checks : []
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const goalList: any[] = Array.isArray(serverGoals) ? serverGoals : []
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const journalList: any[] = Array.isArray(serverJournal) ? serverJournal : []
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const eventList: any[] = Array.isArray(serverEvents) ? serverEvents : []
+
+        const localTaskIds = new Set(s.tasks.map(t => t.id))
+        const localHabitIds = new Set(s.habits.map(h => h.id))
+        const localCheckIds = new Set(s.habitChecks.map(c => c.id))
+        const localGoalIds = new Set(s.goals.map(g => g.id))
+        const localJournalIds = new Set(s.journalEntries.map(e => e.id))
+        const localEventIds = new Set(s.events.map(e => e.id))
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const serverHabitIdToClientId = new Map<number, string>()
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        for (const h of habitList) { if (h.clientId) serverHabitIdToClientId.set(h.id, h.clientId) }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const newTasks: Task[] = taskList.filter(t => !localTaskIds.has(t.clientId ?? String(t.id))).map((t: any) => ({
+          id: t.clientId ?? String(t.id), orgId: t.orgId, userId: t.userId,
+          title: t.title, description: t.description ?? '',
+          completed: t.completed ?? false, priority: t.priority ?? 'medium',
+          tag: t.tag ?? 'work', status: (t.status ?? 'todo') as TaskStatus,
+          dueDate: t.dueDate ?? null, isPublic: t.isPublic ?? false, isDeleted: false,
+        }))
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const newHabits: Habit[] = habitList.filter(h => !localHabitIds.has(h.clientId ?? String(h.id))).map((h: any) => ({
+          id: h.clientId ?? String(h.id), orgId: h.orgId, userId: h.userId,
+          name: h.name, emoji: h.emoji ?? '✅', sortOrder: h.sortOrder ?? 0,
+          isPublic: h.isPublic ?? false, isDeleted: false,
+        }))
+
+        const newChecks: HabitCheck[] = checkList
+          .filter(c => !localCheckIds.has(c.clientId ?? String(c.id)))
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .map((c: any) => ({
+            id: c.clientId ?? String(c.id),
+            habitId: serverHabitIdToClientId.get(c.habitId) ?? String(c.habitId),
+            date: c.date, checked: c.checked ?? true, isDeleted: false,
+          }))
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const newGoals: Goal[] = goalList.filter(g => !localGoalIds.has(g.clientId ?? String(g.id))).map((g: any) => ({
+          id: g.clientId ?? String(g.id), orgId: g.orgId, userId: g.userId,
+          title: g.title, description: g.description ?? '',
+          category: g.category ?? 'work', priority: g.priority ?? 'medium',
+          deadline: g.deadline ?? null, done: g.done ?? false,
+          progress: g.progress ?? 0, isPublic: g.isPublic ?? false, isDeleted: false,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          subs: (g.subs ?? []).map((s: any) => ({
+            id: s.clientId ?? String(s.id), goalId: g.clientId ?? String(g.id),
+            text: s.text, done: s.done ?? false, isDeleted: false,
+          })),
+        }))
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const newJournalEntries: JournalEntry[] = journalList.filter(e => !localJournalIds.has(e.clientId ?? String(e.id))).map((e: any) => ({
+          id: e.clientId ?? String(e.id), orgId: e.orgId, userId: e.userId,
+          title: e.title, content: e.content ?? '', date: e.date,
+          mood: e.mood ?? '', tags: Array.isArray(e.tags) ? e.tags : [],
+          isPublic: e.isPublic ?? false, isDeleted: false,
+        }))
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const newEvents: CalEvent[] = eventList.filter(e => !localEventIds.has(e.clientId ?? String(e.id))).map((e: any) => ({
+          id: e.clientId ?? String(e.id), orgId: e.orgId, userId: e.userId,
+          title: e.title, date: e.date, dateEnd: e.dateEnd ?? null,
+          startTime: e.startTime ?? null, endTime: e.endTime ?? null,
+          tag: e.tag ?? 'default', recur: e.recur ?? null,
+          isPublic: e.isPublic ?? false, isDeleted: false,
+        }))
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const updates: Partial<ProductivityState> = {}
+        if (newTasks.length) updates.tasks = [...get().tasks, ...newTasks]
+        if (newHabits.length) updates.habits = [...get().habits, ...newHabits]
+        if (newChecks.length) updates.habitChecks = [...get().habitChecks, ...newChecks]
+        if (newGoals.length) updates.goals = [...get().goals, ...newGoals]
+        if (newJournalEntries.length) updates.journalEntries = [...get().journalEntries, ...newJournalEntries]
+        if (newEvents.length) updates.events = [...get().events, ...newEvents]
+        if (Object.keys(updates).length > 0) set(updates)
+      } catch (err) {
+        console.warn('[sync] cross-device sync failed', err)
+      }
+    })()
   },
 
   // ── Bulk setters (used by PowerSyncBridge) ──
@@ -287,41 +415,66 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
       completed: false, priority: task.priority ?? 'medium', tag: task.tag ?? 'work',
       status: (task.status ?? 'todo') as TaskStatus, dueDate: task.dueDate ?? null,
       isPublic: task.isPublic ?? false, isDeleted: false,
+      impact: task.impact ?? 3, effort: task.effort ?? 'm', goalId: task.goalId ?? null,
+      parentId: task.parentId ?? null, pinned: task.pinned ?? false, sortOrder: task.sortOrder ?? 0,
     }
     set(state => ({ tasks: [...state.tasks, newTask] }))
     db.execute(
-      `INSERT INTO tasks (id, org_id, user_id, title, description, completed, priority, tag, status, due_date, is_public, is_deleted, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, 0, ?, ?)`,
+      `INSERT INTO tasks (id, org_id, user_id, title, description, completed, priority, tag, status, due_date, is_public, impact, effort, goal_id, parent_id, pinned, sort_order, is_deleted, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`,
       [id, orgId, userId, task.title, task.description ?? '', task.priority ?? 'medium',
        task.tag ?? 'work', task.status ?? 'todo', task.dueDate ?? null,
-       task.isPublic ? 1 : 0, now, now]
+       task.isPublic ? 1 : 0, task.impact ?? 3, task.effort ?? 'm', task.goalId ?? null,
+       task.parentId ?? null, task.pinned ? 1 : 0, task.sortOrder ?? 0, now, now]
     ).catch(err => console.error('[db] addTask', err))
     fire('/api/productivity/tasks', 'POST', {
       clientId: id, title: task.title, description: task.description ?? '',
       completed: false, priority: task.priority ?? 'medium', tag: task.tag ?? 'work',
       status: task.status ?? 'todo', dueDate: task.dueDate ?? null, isPublic: task.isPublic ?? false,
+      impact: task.impact ?? 3, effort: task.effort ?? 'm', goalId: task.goalId ?? null,
+      parentId: task.parentId ?? null, pinned: task.pinned ?? false, sortOrder: task.sortOrder ?? 0,
     })
   },
 
   updateTask: async (task) => {
     set(state => ({ tasks: state.tasks.map(t => t.id === task.id ? { ...t, ...task } : t) }))
     db.execute(
-      `UPDATE tasks SET title=?, description=?, completed=?, priority=?, tag=?, status=?, due_date=?, is_public=?, updated_at=? WHERE id=?`,
+      `UPDATE tasks SET title=?, description=?, completed=?, priority=?, tag=?, status=?, due_date=?, is_public=?, impact=?, effort=?, goal_id=?, parent_id=?, pinned=?, sort_order=?, updated_at=? WHERE id=?`,
       [task.title, task.description ?? '', task.completed ? 1 : 0, task.priority, task.tag,
-       task.status, task.dueDate ?? null, task.isPublic ? 1 : 0, new Date().toISOString(), task.id]
+       task.status, task.dueDate ?? null, task.isPublic ? 1 : 0,
+       task.impact ?? 3, task.effort ?? 'm', task.goalId ?? null,
+       task.parentId ?? null, task.pinned ? 1 : 0, task.sortOrder ?? 0,
+       new Date().toISOString(), task.id]
     ).catch(err => console.error('[db] updateTask', err))
     fire('/api/productivity/tasks', 'POST', {
       clientId: task.id, title: task.title, description: task.description ?? '',
       completed: task.completed, priority: task.priority, tag: task.tag,
       status: task.status, dueDate: task.dueDate ?? null, isPublic: task.isPublic,
+      impact: task.impact ?? 3, effort: task.effort ?? 'm', goalId: task.goalId ?? null,
+      parentId: task.parentId ?? null, pinned: task.pinned ?? false, sortOrder: task.sortOrder ?? 0,
     })
   },
 
   deleteTask: async (id) => {
+    const task = get().tasks.find(t => t.id === id)
+    if (!task) return
     set(state => ({ tasks: state.tasks.filter(t => t.id !== id) }))
     db.execute(`UPDATE tasks SET is_deleted=1, updated_at=? WHERE id=?`, [new Date().toISOString(), id])
       .catch(err => console.error('[db] deleteTask', err))
     fire('/api/productivity/tasks', 'DELETE', { clientId: id })
+    if (undoTimer) clearTimeout(undoTimer)
+    set({
+      undoToast: {
+        label: `Deleted "${task.title}"`,
+        onUndo: () => {
+          set(state => ({ tasks: [...state.tasks, { ...task, isDeleted: false }], undoToast: null }))
+          db.execute(`UPDATE tasks SET is_deleted=0, updated_at=? WHERE id=?`, [new Date().toISOString(), id])
+            .catch(err => console.error('[db] restoreTask', err))
+          fire('/api/productivity/tasks', 'DELETE', { clientId: id, isDeleted: false })
+        },
+      },
+    })
+    undoTimer = setTimeout(() => { set({ undoToast: null }); undoTimer = null }, 5000)
   },
 
   toggleTask: async (id) => {
@@ -342,28 +495,64 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
   },
 
   // ── Habit actions ──
-  addHabit: async ({ name, emoji, isPublic }) => {
+  addHabit: async ({ name, emoji, isPublic, category, frequency }) => {
     const { orgId, userId, habits } = get()
     if (!orgId || !userId) return
     const id = uuidv4()
     const now = new Date().toISOString()
-    const newHabit: Habit = { id, orgId, userId, name, emoji, sortOrder: habits.length, isPublic: isPublic ?? false, isDeleted: false }
+    const newHabit: Habit = {
+      id, orgId, userId, name, emoji, sortOrder: habits.length,
+      isPublic: isPublic ?? false, isDeleted: false,
+      category: (category ?? 'health') as Habit['category'],
+      archived: false, frequency: (frequency ?? 'daily') as Habit['frequency'],
+    }
     set(state => ({ habits: [...state.habits, newHabit] }))
     db.execute(
-      `INSERT INTO habits (id, org_id, user_id, name, emoji, sort_order, is_public, is_deleted, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?)`,
-      [id, orgId, userId, name, emoji, habits.length, isPublic ? 1 : 0, now]
+      `INSERT INTO habits (id, org_id, user_id, name, emoji, sort_order, is_public, category, archived, frequency, is_deleted, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 0, ?)`,
+      [id, orgId, userId, name, emoji, habits.length, isPublic ? 1 : 0, category ?? 'health', frequency ?? 'daily', now]
     ).catch(err => console.error('[db] addHabit', err))
     fire('/api/productivity/habits', 'POST', {
       clientId: id, name, emoji, sortOrder: habits.length, isPublic: isPublic ?? false,
+      category: category ?? 'health', archived: false, frequency: frequency ?? 'daily',
+    })
+  },
+
+  updateHabit: async (habit) => {
+    set(state => ({ habits: state.habits.map(h => h.id === habit.id ? { ...h, ...habit } : h) }))
+    db.execute(
+      `UPDATE habits SET name=?, emoji=?, sort_order=?, is_public=?, category=?, archived=?, frequency=? WHERE id=?`,
+      [habit.name, habit.emoji, habit.sortOrder ?? 0, habit.isPublic ? 1 : 0,
+       habit.category ?? 'health', habit.archived ? 1 : 0, habit.frequency ?? 'daily', habit.id]
+    ).catch(err => console.error('[db] updateHabit', err))
+    fire('/api/productivity/habits', 'POST', {
+      clientId: habit.id, name: habit.name, emoji: habit.emoji,
+      sortOrder: habit.sortOrder ?? 0, isPublic: habit.isPublic ?? false,
+      category: habit.category ?? 'health', archived: habit.archived ?? false,
+      frequency: habit.frequency ?? 'daily',
     })
   },
 
   deleteHabit: async (id) => {
+    const habit = get().habits.find(h => h.id === id)
+    if (!habit) return
     set(state => ({ habits: state.habits.filter(h => h.id !== id) }))
     db.execute(`UPDATE habits SET is_deleted=1 WHERE id=?`, [id])
       .catch(err => console.error('[db] deleteHabit', err))
     fire('/api/productivity/habits', 'DELETE', { clientId: id })
+    if (undoTimer) clearTimeout(undoTimer)
+    set({
+      undoToast: {
+        label: `Deleted "${habit.name}"`,
+        onUndo: () => {
+          set(state => ({ habits: [...state.habits, { ...habit, isDeleted: false }], undoToast: null }))
+          db.execute(`UPDATE habits SET is_deleted=0 WHERE id=?`, [id])
+            .catch(err => console.error('[db] restoreHabit', err))
+          fire('/api/productivity/habits', 'DELETE', { clientId: id, isDeleted: false })
+        },
+      },
+    })
+    undoTimer = setTimeout(() => { set({ undoToast: null }); undoTimer = null }, 5000)
   },
 
   toggleHabitCheck: async (habitId, date) => {
@@ -432,10 +621,25 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
   },
 
   deleteGoal: async (id) => {
+    const goal = get().goals.find(g => g.id === id)
+    if (!goal) return
     set(state => ({ goals: state.goals.filter(g => g.id !== id) }))
     db.execute(`UPDATE goals SET is_deleted=1, updated_at=? WHERE id=?`, [new Date().toISOString(), id])
       .catch(err => console.error('[db] deleteGoal', err))
     fire('/api/productivity/goals', 'DELETE', { clientId: id })
+    if (undoTimer) clearTimeout(undoTimer)
+    set({
+      undoToast: {
+        label: `Deleted "${goal.title}"`,
+        onUndo: () => {
+          set(state => ({ goals: [...state.goals, { ...goal, isDeleted: false }], undoToast: null }))
+          db.execute(`UPDATE goals SET is_deleted=0, updated_at=? WHERE id=?`, [new Date().toISOString(), id])
+            .catch(err => console.error('[db] restoreGoal', err))
+          fire('/api/productivity/goals', 'DELETE', { clientId: id, isDeleted: false })
+        },
+      },
+    })
+    undoTimer = setTimeout(() => { set({ undoToast: null }); undoTimer = null }, 5000)
   },
 
   toggleSubGoal: async (subId, done) => {
@@ -483,43 +687,59 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
     const newEntry: JournalEntry = {
       id, orgId, userId, title: entry.title, content: entry.content ?? '',
       date: entry.date, mood: entry.mood ?? '', tags: entry.tags ?? [],
+      pinned: entry.pinned ?? false,
       isPublic: entry.isPublic ?? false, isDeleted: false,
     }
     set(state => ({ journalEntries: [...state.journalEntries, newEntry] }))
     db.execute(
-      `INSERT INTO journal_entries (id, org_id, user_id, title, content, date, mood, tags, is_public, is_deleted, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`,
+      `INSERT INTO journal_entries (id, org_id, user_id, title, content, date, mood, tags, pinned, is_public, is_deleted, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`,
       [id, orgId, userId, entry.title, entry.content ?? '', entry.date,
        entry.mood ?? '', JSON.stringify(entry.tags ?? []),
-       entry.isPublic ? 1 : 0, now, now]
+       entry.pinned ? 1 : 0, entry.isPublic ? 1 : 0, now, now]
     ).catch(err => console.error('[db] addJournalEntry', err))
     fire('/api/productivity/journal', 'POST', {
       clientId: id, title: entry.title, content: entry.content ?? '',
       date: entry.date, mood: entry.mood ?? '', tags: entry.tags ?? [],
-      isPublic: entry.isPublic ?? false,
+      pinned: entry.pinned ?? false, isPublic: entry.isPublic ?? false,
     })
   },
 
   updateJournalEntry: async (entry) => {
     set(state => ({ journalEntries: state.journalEntries.map(e => e.id === entry.id ? { ...e, ...entry } : e) }))
     db.execute(
-      `UPDATE journal_entries SET title=?, content=?, date=?, mood=?, tags=?, is_public=?, updated_at=? WHERE id=?`,
+      `UPDATE journal_entries SET title=?, content=?, date=?, mood=?, tags=?, pinned=?, is_public=?, updated_at=? WHERE id=?`,
       [entry.title, entry.content ?? '', entry.date, entry.mood ?? '',
-       JSON.stringify(entry.tags ?? []), entry.isPublic ? 1 : 0,
-       new Date().toISOString(), entry.id]
+       JSON.stringify(entry.tags ?? []), entry.pinned ? 1 : 0,
+       entry.isPublic ? 1 : 0, new Date().toISOString(), entry.id]
     ).catch(err => console.error('[db] updateJournalEntry', err))
     fire('/api/productivity/journal', 'POST', {
       clientId: entry.id, title: entry.title, content: entry.content ?? '',
       date: entry.date, mood: entry.mood ?? '', tags: entry.tags ?? [],
-      isPublic: entry.isPublic ?? false,
+      pinned: entry.pinned ?? false, isPublic: entry.isPublic ?? false,
     })
   },
 
   deleteJournalEntry: async (id) => {
+    const entry = get().journalEntries.find(e => e.id === id)
+    if (!entry) return
     set(state => ({ journalEntries: state.journalEntries.filter(e => e.id !== id) }))
     db.execute(`UPDATE journal_entries SET is_deleted=1, updated_at=? WHERE id=?`, [new Date().toISOString(), id])
       .catch(err => console.error('[db] deleteJournalEntry', err))
     fire('/api/productivity/journal', 'DELETE', { clientId: id })
+    if (undoTimer) clearTimeout(undoTimer)
+    set({
+      undoToast: {
+        label: `Deleted "${entry.title}"`,
+        onUndo: () => {
+          set(state => ({ journalEntries: [...state.journalEntries, { ...entry, isDeleted: false }], undoToast: null }))
+          db.execute(`UPDATE journal_entries SET is_deleted=0, updated_at=? WHERE id=?`, [new Date().toISOString(), id])
+            .catch(err => console.error('[db] restoreJournalEntry', err))
+          fire('/api/productivity/journal', 'DELETE', { clientId: id, isDeleted: false })
+        },
+      },
+    })
+    undoTimer = setTimeout(() => { set({ undoToast: null }); undoTimer = null }, 5000)
   },
 
   // ── Event actions ──
@@ -565,10 +785,25 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
   },
 
   deleteEvent: async (id) => {
+    const event = get().events.find(e => e.id === id)
+    if (!event) return
     set(state => ({ events: state.events.filter(e => e.id !== id) }))
     db.execute(`UPDATE cal_events SET is_deleted=1, updated_at=? WHERE id=?`, [new Date().toISOString(), id])
       .catch(err => console.error('[db] deleteEvent', err))
     fire('/api/productivity/events', 'DELETE', { clientId: id })
+    if (undoTimer) clearTimeout(undoTimer)
+    set({
+      undoToast: {
+        label: `Deleted "${event.title}"`,
+        onUndo: () => {
+          set(state => ({ events: [...state.events, { ...event, isDeleted: false }], undoToast: null }))
+          db.execute(`UPDATE cal_events SET is_deleted=0, updated_at=? WHERE id=?`, [new Date().toISOString(), id])
+            .catch(err => console.error('[db] restoreEvent', err))
+          fire('/api/productivity/events', 'DELETE', { clientId: id, isDeleted: false })
+        },
+      },
+    })
+    undoTimer = setTimeout(() => { set({ undoToast: null }); undoTimer = null }, 5000)
   },
 
   // ── Focus session actions ──

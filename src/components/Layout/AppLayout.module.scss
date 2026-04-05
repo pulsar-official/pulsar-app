@@ -42,3 +42,12 @@
   from { opacity: 0 }
   to { opacity: 1 }
 }
+
+/* Focus Mode: dim sidebar + topbar behind overlay */
+.focusModeActive {
+  > :not([class*="FocusModeOverlay"]):not([class*="UndoToast"]) {
+    opacity: 0.15;
+    pointer-events: none;
+    transition: opacity 300ms ease;
+  }
+}

@@ -104,6 +104,8 @@ export async function POST(req: Request) {
         .set({
           name: body.name, emoji: body.emoji ?? '✅',
           sortOrder: body.sortOrder ?? 0, isPublic: body.isPublic ?? false,
+          category: body.category ?? 'health', archived: body.archived ?? false,
+          frequency: body.frequency ?? 'daily',
         })
         .where(eq(habits.clientId, body.clientId))
         .returning()
@@ -113,6 +115,8 @@ export async function POST(req: Request) {
       clientId: body.clientId, orgId, userId,
       name: body.name, emoji: body.emoji ?? '✅',
       sortOrder: body.sortOrder ?? 0, isPublic: body.isPublic ?? false,
+      category: body.category ?? 'health', archived: body.archived ?? false,
+      frequency: body.frequency ?? 'daily',
     }).returning()
     return Response.json(row, { status: 201 })
   }
@@ -123,6 +127,8 @@ export async function POST(req: Request) {
     orgId, userId, name: body.name,
     emoji: body.emoji ?? '✅', sortOrder: body.sortOrder ?? 0,
     isPublic: body.isPublic ?? false,
+    category: body.category ?? 'health', archived: body.archived ?? false,
+    frequency: body.frequency ?? 'daily',
   }).returning()
   return Response.json(row, { status: 201 })
 }
@@ -137,6 +143,7 @@ export async function DELETE(req: Request) {
   const where = clientId
     ? and(eq(habits.clientId, clientId), eq(habits.orgId, orgId))
     : and(eq(habits.id, id), eq(habits.orgId, orgId))
-  await db.delete(habits).where(where!)
+  const isDeleted = body.isDeleted !== false
+  await db.update(habits).set({ isDeleted }).where(where!)
   return Response.json({ ok: true })
 }

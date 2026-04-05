@@ -85,6 +85,7 @@ export async function DELETE(req: Request) {
   const where = clientId
     ? and(eq(calEvents.clientId, clientId), eq(calEvents.orgId, orgId))
     : and(eq(calEvents.id, id), eq(calEvents.orgId, orgId))
-  await db.delete(calEvents).where(where!)
+  const isDeleted = body.isDeleted !== false
+  await db.update(calEvents).set({ isDeleted, updatedAt: new Date() }).where(where!)
   return Response.json({ ok: true })
 }

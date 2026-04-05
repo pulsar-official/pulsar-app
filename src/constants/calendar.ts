@@ -2,7 +2,7 @@ import type { CalendarView, EventTag } from '@/types/calendar';
 
 // ─── Views ────────────────────────────────────────────────────────────────────
 
-export const CALENDAR_VIEWS: CalendarView[] = ['year', 'month', 'week', 'day'];
+export const CALENDAR_VIEWS: CalendarView[] = ['year', 'month', 'week', 'day', 'agenda'];
 
 // ─── Date / Time Labels ───────────────────────────────────────────────────────
 

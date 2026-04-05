@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import styles from './FocusSessions.module.scss';
 import {
-  T, TIMER_TYPES, INITIAL_TASKS, PRIORITY_COLORS, QUOTES, QUIT_MESSAGES,
+  T, TIMER_TYPES, INITIAL_TASKS, QUOTES, QUIT_MESSAGES,
   fmt, CIRC, bumpTaskId, getResources,
 } from '@/constants/focusSessions';
 import type {
   Phase, Task, TimerTypeId, TimerConfig,
 } from '@/types/focusSessions';
 import { useProductivityStore } from '@/stores/productivityStore';
+import { rankTasksByROI, type ScoredTask } from '@/lib/roi';
 
 // Allow CSS custom property --c on JSX elements
 declare module 'react' {
@@ -22,13 +23,24 @@ const cx = (...classes: (string | false | null | undefined)[]) =>
 // ─────────────────────────────────────────────
 export default function FocusSessions() {
 
-  // Seed tasks from productivity store, falling back to INITIAL_TASKS
+  // Store subscriptions
   const storeTasks = useProductivityStore(s => s.tasks)
+  const storeGoals = useProductivityStore(s => s.goals)
   const storeToggleTask = useProductivityStore(s => s.toggleTask)
   const storeEvents = useProductivityStore(s => s.events)
   const storeAddEvent = useProductivityStore(s => s.addEvent)
+  const storeFocusSessions = useProductivityStore(s => s.focusSessions)
+  const storeAddFocusSession = useProductivityStore(s => s.addFocusSession)
+
+  // ROI-ranked tasks — auto-queue replaces manual picking
+  const roiRanked = useMemo<ScoredTask[]>(
+    () => rankTasksByROI(storeTasks, storeGoals),
+    [storeTasks, storeGoals],
+  )
+
+  // Seed focus tasks from ROI-ranked store tasks
   const initialTasks = useMemo<Task[]>(() => {
-    const fromStore = storeTasks.filter(t => !t.completed).map(t => ({
+    const fromStore = roiRanked.slice(0, 10).map(t => ({
       id: t.id,
       title: t.title,
       priority: t.priority as Task['priority'],
@@ -47,7 +59,8 @@ export default function FocusSessions() {
   const [customCycles, setCustomCycles]         = useState(4);
 
   const [tasks, setTasks]                       = useState<Task[]>(initialTasks);
-  const [selectedTaskIds, setSelectedTaskIds]   = useState<Set<string>>(new Set());
+  // Auto-select top 5 ROI tasks by default
+  const [selectedTaskIds, setSelectedTaskIds]   = useState<Set<string>>(() => new Set(initialTasks.slice(0, 5).map(t => t.id)));
   const [newTaskText, setNewTaskText]           = useState('');
 
   const [timeLeft, setTimeLeft]                 = useState(0);
@@ -107,13 +120,52 @@ export default function FocusSessions() {
 
   const undoneTasks = tasks.filter((t) => !t.done);
 
+  // Build a map of task id → ROI info for rendering badges
+  const roiMap = useMemo(() => {
+    const map = new Map<string, { roi: number; label: string }>()
+    for (const st of roiRanked) {
+      map.set(st.id, { roi: st.roi, label: st.roiLabel })
+    }
+    return map
+  }, [roiRanked])
+
+  // ── HISTORY ANALYTICS ──
+  const historyData = useMemo(() => {
+    const today = new Date()
+    const days: { label: string; date: string; minutes: number }[] = []
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(today)
+      d.setDate(d.getDate() - i)
+      const ds = d.toISOString().split('T')[0]
+      const dayLabel = d.toLocaleDateString('en', { weekday: 'short' }).slice(0, 2)
+      const dayMins = storeFocusSessions
+        .filter(s => s.date === ds)
+        .reduce((sum, s) => sum + Math.round((s.totalFocusSeconds ?? 0) / 60), 0)
+      days.push({ label: dayLabel, date: ds, minutes: dayMins })
+    }
+    return days
+  }, [storeFocusSessions])
+
+  const historyMax = Math.max(1, ...historyData.map(d => d.minutes))
+
+  const historyStats = useMemo(() => {
+    const allTimeMinutes = storeFocusSessions.reduce((sum, s) => sum + Math.round((s.totalFocusSeconds ?? 0) / 60), 0)
+    const now = new Date()
+    const weekStart = new Date(now)
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay())
+    const weekStartStr = weekStart.toISOString().split('T')[0]
+    const sessionsThisWeek = storeFocusSessions.filter(s => s.date >= weekStartStr).length
+    const tasksThisWeek = storeFocusSessions.filter(s => s.date >= weekStartStr).reduce((sum, s) => sum + (s.completedTasks ?? 0), 0)
+    return {
+      totalHours: Math.round(allTimeMinutes / 60 * 10) / 10,
+      sessionsThisWeek,
+      tasksThisWeek,
+    }
+  }, [storeFocusSessions])
+
   // ── COMPUTE STREAK: consecutive days with ≥1 completed focus session ──
   useEffect(() => {
-    const focusDates = new Set(
-      storeEvents
-        .filter(e => e.title?.toLowerCase().includes('focus') || e.tag?.toLowerCase().includes('focus'))
-        .map(e => e.date)
-    )
+    const focusDates = new Set(storeFocusSessions.map(s => s.date))
     let count = 0
     const d = new Date()
     // eslint-disable-next-line no-constant-condition
@@ -127,9 +179,9 @@ export default function FocusSessions() {
       }
     }
     setStreak(count)
-  }, [storeEvents])
+  }, [storeFocusSessions])
 
-  // ── SAVE FOCUS EVENT when a session completes ──
+  // ── SAVE FOCUS EVENT + FOCUS SESSION when a session completes ──
   const saveFocusEvent = useCallback(() => {
     const today = new Date().toISOString().split('T')[0]
     storeAddEvent({
@@ -140,7 +192,20 @@ export default function FocusSessions() {
       tag: 'focus',
       recur: null,
     } as any)
-  }, [storeAddEvent])
+    // Persist the actual focus session with metrics
+    const elapsed = sessionStartTime ? Math.round((Date.now() - sessionStartTime) / 1000) : 0
+    storeAddFocusSession({
+      date: today,
+      timerType: selectedType,
+      totalCycles,
+      completedCycles: cycle + 1,
+      workMinutes: activeConfig.work,
+      restMinutes: activeConfig.rest,
+      longRestMinutes: activeConfig.longRest,
+      completedTasks: completedInSession,
+      totalFocusSeconds: elapsed,
+    })
+  }, [storeAddEvent, storeAddFocusSession, sessionStartTime, selectedType, totalCycles, cycle, activeConfig, completedInSession])
 
   // ── TIMER TICK ──
   useEffect(() => {
@@ -192,21 +257,24 @@ export default function FocusSessions() {
     if (nextCycle >= totalCycles) {
       saveFocusEvent();
       setPhase('complete');
+      notify('Session Complete!', 'Great work. You finished all cycles.')
     } else {
       const isLong  = nextCycle % activeConfig.cyclesBeforeLong === 0;
       const restDur = isLong ? activeConfig.longRest : activeConfig.rest;
       setTimeLeft(restDur * 60);
       setTotalTime(restDur * 60);
       setPhase('rest');
+      notify('Time for a break', `${restDur} minute ${isLong ? 'long ' : ''}break. Step away.`)
     }
-  }, [cycle, totalCycles, activeConfig]);
+  }, [cycle, totalCycles, activeConfig, notify]);
 
   const handleRestDone = useCallback(() => {
     setTimeLeft(activeConfig.work * 60);
     setTotalTime(activeConfig.work * 60);
     setPhase('session');
     quoteRef.current = QUOTES[Math.floor(Math.random() * QUOTES.length)];
-  }, [activeConfig]);
+    notify('Break over', `${activeConfig.work} minute work block starting now.`)
+  }, [activeConfig, notify]);
 
   // ── TASK ACTIONS ──
   const toggleTaskSelect = (id: string) => {
@@ -247,8 +315,19 @@ export default function FocusSessions() {
     });
   };
 
+  // ── BROWSER NOTIFICATIONS ──
+  const notify = useCallback((title: string, body: string) => {
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted' && document.hidden) {
+      new Notification(title, { body, icon: '/favicon.ico' })
+    }
+  }, [])
+
   // ── SESSION CONTROL ──
   const startSession = () => {
+    // Request notification permission on first session start
+    if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+      Notification.requestPermission()
+    }
     const cycles   = +activeConfig.cyclesBeforeLong;
     const workSecs = activeConfig.work * 60;
     setTotalCycles(cycles);
@@ -318,10 +397,10 @@ export default function FocusSessions() {
                 <div className={styles.tasksSection}>
                   <div className={styles.tasksHeader}>
                     <div className={styles.sectionLabel} style={{ marginBottom: 0 }}>
-                      Tasks
+                      Smart Queue
                       <span className={styles.sectionDivider} />
                     </div>
-                    <span className={styles.taskCount}>{selectedTaskIds.size} queued</span>
+                    <span className={styles.taskCount}>{selectedTaskIds.size} queued · ROI sorted</span>
                   </div>
 
                   <div className={styles.addTaskRow}>
@@ -337,7 +416,7 @@ export default function FocusSessions() {
 
                   {undoneTasks.length === 0 ? (
                     <div className={styles.tasksList}>
-                      <div className={styles.tasksEmpty}>No tasks — optional. Start without any.</div>
+                      <div className={styles.tasksEmpty}>No tasks yet. Add tasks in the Tasks module and they'll auto-queue here by ROI.</div>
                       {Array.from({ length: 7 }).map((_, i) => (
                         <div key={i} className={cx(styles.taskPlaceholder, i % 2 === 1 && styles.even)}>
                           <div className={styles.taskPlaceholderDot} />
@@ -360,16 +439,17 @@ export default function FocusSessions() {
                           <div className={styles.taskCheck}>
                             {selectedTaskIds.has(t.id) && '✓'}
                           </div>
-                          <span className={styles.taskTitle}>{t.title}</span>
-                          <span
-                            className={styles.taskPriority}
-                            style={{
-                              background: `${PRIORITY_COLORS[t.priority]}12`,
-                              color: PRIORITY_COLORS[t.priority],
-                            }}
-                          >
-                            {t.priority}
-                          </span>
+                          <div className={styles.taskInfo}>
+                            <span className={styles.taskTitle}>{t.title}</span>
+                            {roiMap.has(t.id) && (
+                              <span className={styles.taskRoiLabel}>{roiMap.get(t.id)!.label}</span>
+                            )}
+                          </div>
+                          {roiMap.has(t.id) && (
+                            <span className={styles.taskRoiBadge} title={`ROI: ${roiMap.get(t.id)!.roi.toFixed(1)}`}>
+                              {roiMap.get(t.id)!.roi.toFixed(1)}
+                            </span>
+                          )}
                           <button
                             className={styles.taskRemove}
                             onClick={(e) => removeTask(t.id, e)}
@@ -400,6 +480,51 @@ export default function FocusSessions() {
               </div>
 
             </div>
+
+          {/* ── HISTORY: full-width panel below header ── */}
+          {storeFocusSessions.length > 0 && (
+            <div className={cx(styles.panel, styles.historyPanel)}>
+              <div className={styles.sectionLabel}>
+                History
+                <span className={styles.sectionDivider} />
+              </div>
+              <div className={styles.historyStats}>
+                <div className={styles.historyStat}>
+                  <span className={styles.historyStatVal}>{historyStats.totalHours}h</span>
+                  <span className={styles.historyStatLabel}>Total focus</span>
+                </div>
+                <div className={styles.historyStat}>
+                  <span className={styles.historyStatVal}>{historyStats.sessionsThisWeek}</span>
+                  <span className={styles.historyStatLabel}>This week</span>
+                </div>
+                <div className={styles.historyStat}>
+                  <span className={styles.historyStatVal}>{historyStats.tasksThisWeek}</span>
+                  <span className={styles.historyStatLabel}>Tasks done</span>
+                </div>
+                <div className={styles.historyStat}>
+                  <span className={styles.historyStatVal}>{streak}</span>
+                  <span className={styles.historyStatLabel}>Streak</span>
+                </div>
+              </div>
+              <div className={styles.historyChart}>
+                <svg viewBox={`0 0 ${14 * 28} 80`} className={styles.historyChartSvg}>
+                  {historyData.map((d, i) => {
+                    const barH = d.minutes > 0 ? Math.max(4, (d.minutes / historyMax) * 60) : 0
+                    const x = i * 28 + 4
+                    return (
+                      <g key={d.date}>
+                        <rect x={x} y={64 - barH} width={20} height={barH} rx={3}
+                          className={cx(styles.historyBar, i === 13 && styles.today)} />
+                        <text x={x + 10} y={76} textAnchor="middle" className={styles.historyLabel}>
+                          {d.label}
+                        </text>
+                      </g>
+                    )
+                  })}
+                </svg>
+              </div>
+            </div>
+          )}
 
           {/* ── RIGHT: rhythm picker + commit ── */}
           <div className={styles.colRight}>

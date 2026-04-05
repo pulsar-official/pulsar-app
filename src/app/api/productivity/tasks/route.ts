@@ -29,6 +29,8 @@ export async function POST(req: Request) {
           completed: body.completed ?? false, priority: body.priority ?? 'medium',
           tag: body.tag ?? 'work', status: body.status ?? 'todo',
           dueDate: body.dueDate ?? null, isPublic: body.isPublic ?? false,
+          impact: body.impact ?? 3, effort: body.effort ?? 'm', goalId: body.goalId ?? null,
+          parentId: body.parentId ?? null, pinned: body.pinned ?? false, sortOrder: body.sortOrder ?? 0,
           updatedAt: new Date(),
         })
         .where(eq(tasks.clientId, body.clientId))
@@ -41,6 +43,8 @@ export async function POST(req: Request) {
       completed: body.completed ?? false, priority: body.priority ?? 'medium',
       tag: body.tag ?? 'work', status: body.status ?? 'todo',
       dueDate: body.dueDate ?? null, isPublic: body.isPublic ?? false,
+      impact: body.impact ?? 3, effort: body.effort ?? 'm', goalId: body.goalId ?? null,
+      parentId: body.parentId ?? null, pinned: body.pinned ?? false, sortOrder: body.sortOrder ?? 0,
     }).returning()
     return Response.json(row, { status: 201 })
   }
@@ -51,6 +55,8 @@ export async function POST(req: Request) {
     priority: body.priority ?? 'medium', tag: body.tag ?? 'work',
     status: body.status ?? 'todo', dueDate: body.dueDate ?? null,
     isPublic: body.isPublic ?? false,
+    impact: body.impact ?? 3, effort: body.effort ?? 'm', goalId: body.goalId ?? null,
+    parentId: body.parentId ?? null, pinned: body.pinned ?? false, sortOrder: body.sortOrder ?? 0,
   }).returning()
   return Response.json(row, { status: 201 })
 }
@@ -68,7 +74,10 @@ export async function PUT(req: Request) {
       title: body.title, description: body.description,
       completed: body.completed, priority: body.priority,
       tag: body.tag, status: body.status, dueDate: body.dueDate,
-      isPublic: body.isPublic, updatedAt: new Date(),
+      isPublic: body.isPublic,
+      impact: body.impact, effort: body.effort, goalId: body.goalId,
+      parentId: body.parentId, pinned: body.pinned, sortOrder: body.sortOrder,
+      updatedAt: new Date(),
     })
     .where(where!)
     .returning()
@@ -86,6 +95,8 @@ export async function DELETE(req: Request) {
   const where = clientId
     ? and(eq(tasks.clientId, clientId), eq(tasks.orgId, orgId))
     : and(eq(tasks.id, id), eq(tasks.orgId, orgId))
-  await db.delete(tasks).where(where!)
+  // Soft delete (or restore when body.isDeleted === false)
+  const isDeleted = body.isDeleted !== false
+  await db.update(tasks).set({ isDeleted, updatedAt: new Date() }).where(where!)
   return Response.json({ ok: true })
 }

@@ -1,6 +1,6 @@
 // ─── Primitives ───────────────────────────────────────────────────────────────
 
-export type CalendarView = 'year' | 'month' | 'week' | 'day';
+export type CalendarView = 'year' | 'month' | 'week' | 'day' | 'agenda';
 
 export type CalendarAnim =
   | 'zoom-in'

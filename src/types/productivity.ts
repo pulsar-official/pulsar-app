@@ -12,6 +12,8 @@ export interface SyncMeta {
   isDeleted?: boolean | null
 }
 
+export type EffortSize = 'xs' | 's' | 'm' | 'l' | 'xl'
+
 export interface Task extends SyncMeta {
   id: string
   orgId: string
@@ -24,7 +26,16 @@ export interface Task extends SyncMeta {
   status: TaskStatus
   dueDate: string | null
   isPublic?: boolean
+  impact?: number          // 1–5 (ROI field)
+  effort?: EffortSize      // ROI field
+  goalId?: string | null   // linked goal for ROI boost
+  parentId?: string | null // subtask parent
+  pinned?: boolean
+  sortOrder?: number
 }
+
+export type HabitCategory = 'health' | 'work' | 'learning' | 'personal'
+export type HabitFrequency = 'daily' | 'weekly'
 
 export interface Habit extends SyncMeta {
   id: string
@@ -34,6 +45,9 @@ export interface Habit extends SyncMeta {
   emoji: string
   sortOrder: number
   isPublic?: boolean
+  category?: HabitCategory
+  archived?: boolean
+  frequency?: HabitFrequency
 }
 
 export interface HabitCheck extends SyncMeta {
@@ -65,6 +79,7 @@ export interface Goal extends SyncMeta {
   progress: number
   subs: SubGoal[]
   isPublic?: boolean
+  updatedAt?: string | null
 }
 
 export interface JournalEntry extends SyncMeta {
@@ -72,6 +87,7 @@ export interface JournalEntry extends SyncMeta {
   orgId: string
   userId: string
   title: string
+  pinned?: boolean
   content: string
   date: string
   mood: string

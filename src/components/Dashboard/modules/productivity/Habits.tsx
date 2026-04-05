@@ -26,7 +26,7 @@ const PCT_MARKS = [0, 25, 50, 75, 100]
 
 /* ══════════════════════════════════════════════════════════════ */
 export default function Habits({ onNavigate }: { onNavigate?: (page: string) => void }) {
-  const habits = useProductivityStore(s => s.habits)
+  const allHabits = useProductivityStore(s => s.habits)
   const habitChecks = useProductivityStore(s => s.habitChecks)
   const checkMap = useMemo(() => {
     const map: Record<string, Record<string, boolean>> = {}
@@ -38,15 +38,35 @@ export default function Habits({ onNavigate }: { onNavigate?: (page: string) => 
     return map
   }, [habitChecks])
   const storeAddHabit = useProductivityStore(s => s.addHabit)
+  const storeUpdateHabit = useProductivityStore(s => s.updateHabit)
   const storeToggleCheck = useProductivityStore(s => s.toggleHabitCheck)
   const storeDeleteHabit = useProductivityStore(s => s.deleteHabit)
+
+  // ── Category filter + archive toggle ──
+  const CATEGORIES = ['all', 'health', 'work', 'learning', 'personal'] as const
+  const [catFilter, setCatFilter] = useState<string>('all')
+  const [showArchived, setShowArchived] = useState(false)
+
+  // Filtered habits
+  const habits = useMemo(() => {
+    return allHabits.filter(h => {
+      if (!showArchived && h.archived) return false
+      if (catFilter !== 'all' && h.category !== catFilter) return false
+      return true
+    })
+  }, [allHabits, catFilter, showArchived])
+
   const [viewMonth, setViewMonth] = useState(() => new Date())
   const [showAdd, setShowAdd]     = useState(false)
   const [newName, setNewName]     = useState('')
   const [newEmoji, setNewEmoji]   = useState(EMOJI_OPTIONS[0])
   const [newIsPublic, setNewIsPublic] = useState(false)
+  const [newCategory, setNewCategory] = useState<string>('health')
+  const [newFrequency, setNewFrequency] = useState<string>('daily')
   const [confirmDeleteHabitId, setConfirmDeleteHabitId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [showPerHabit, setShowPerHabit] = useState(false)
+  const [showInsights, setShowInsights] = useState(true)
   const [hoveredPt, setHoveredPt] = useState<number | null>(null)
   const [tipPos, setTipPos]       = useState({ x: 0, y: 0 })
   const [svgSize, setSvgSize]     = useState({ w: 360, h: 200 })
@@ -172,10 +192,37 @@ export default function Habits({ onNavigate }: { onNavigate?: (page: string) => 
     return { todayDone, todayTotal, monthPct, currentStreak, bestStreak, perfectDays, daysElapsed: pastDays.length }
   }, [habits, monthDays, isChecked])
 
+  /* ── Adaptive insights (last 14 days per habit) ── */
+  const insights = useMemo(() => {
+    const today14 = Array.from({ length: 14 }, (_, i) => {
+      const d = new Date(); d.setDate(d.getDate() - 13 + i); return dk(d)
+    }).filter(d => d <= TODAY)
+    const last7 = today14.slice(-7)
+
+    return allHabits.filter(h => !h.archived).map(h => {
+      const rate14 = today14.length > 0 ? today14.filter(d => isChecked(h.id, d)).length / today14.length : 0
+      const rate7 = last7.length > 0 ? last7.filter(d => isChecked(h.id, d)).length / last7.length : 0
+      return { habit: h, rate14, rate7 }
+    })
+  }, [allHabits, isChecked])
+
+  const fallingBehind = insights.filter(i => i.rate14 < 0.4 && i.rate14 > 0)
+  const bestPerforming = insights.length > 0
+    ? insights.reduce((best, cur) => cur.rate7 > best.rate7 ? cur : best, insights[0])
+    : null
+  const switchToWeekly = insights.filter(i => i.rate14 < 0.3 && i.habit.frequency !== 'weekly')
+  const hasInsights = fallingBehind.length > 0 || bestPerforming !== null || switchToWeekly.length > 0
+
   const addHabit = () => {
     if (!newName.trim()) return
-    storeAddHabit({ name: newName.trim(), emoji: newEmoji, isPublic: newIsPublic })
-    setNewName(''); setNewEmoji(EMOJI_OPTIONS[0]); setNewIsPublic(false); setShowAdd(false)
+    storeAddHabit({ name: newName.trim(), emoji: newEmoji, isPublic: newIsPublic, category: newCategory, frequency: newFrequency })
+    setNewName(''); setNewEmoji(EMOJI_OPTIONS[0]); setNewIsPublic(false)
+    setNewCategory('health'); setNewFrequency('daily'); setShowAdd(false)
+  }
+
+  const archiveHabit = (id: string) => {
+    const h = allHabits.find(h => h.id === id)
+    if (h) storeUpdateHabit({ ...h, archived: !h.archived })
   }
 
   const deleteHabit = async (id: string) => {
@@ -199,6 +246,35 @@ export default function Habits({ onNavigate }: { onNavigate?: (page: string) => 
           <button className={styles.navBtn} onClick={nextMonth}>&#8250;</button>
         </div>
         <button className={styles.addBtn} onClick={() => setShowAdd(true)}>+ New habit</button>
+      </div>
+
+      {/* ── Category filter + controls ── */}
+      <div className={styles.filterRow}>
+        <div className={styles.catPills}>
+          {CATEGORIES.map(cat => (
+            <button
+              key={cat}
+              className={`${styles.catPill} ${catFilter === cat ? styles.catPillActive : ''}`}
+              onClick={() => setCatFilter(cat)}
+            >
+              {cat === 'all' ? 'All' : cat.charAt(0).toUpperCase() + cat.slice(1)}
+            </button>
+          ))}
+        </div>
+        <div className={styles.filterControls}>
+          <button
+            className={`${styles.filterToggle} ${showPerHabit ? styles.filterToggleActive : ''}`}
+            onClick={() => setShowPerHabit(!showPerHabit)}
+          >
+            Per habit
+          </button>
+          <button
+            className={`${styles.filterToggle} ${showArchived ? styles.filterToggleActive : ''}`}
+            onClick={() => setShowArchived(!showArchived)}
+          >
+            Archived
+          </button>
+        </div>
       </div>
 
       {/* ── Habit Grid: center, big ── */}
@@ -426,6 +502,49 @@ export default function Habits({ onNavigate }: { onNavigate?: (page: string) => 
           </div>
         </div>
 
+        {/* ── Per-habit analytics ── */}
+        {showPerHabit && habits.length > 0 && (
+          <div className={styles.perHabitCard}>
+            <span className={styles.sectionTitle}>Per-habit stats</span>
+            {habits.map(h => {
+              const pastDays = monthDays.filter(d => dk(d) <= TODAY)
+              const doneCount = pastDays.filter(d => isChecked(h.id, dk(d))).length
+              const rate = pastDays.length > 0 ? Math.round((doneCount / pastDays.length) * 100) : 0
+              // Compute per-habit streak
+              let hStreak = 0
+              const sorted = [...pastDays].sort((a, b) => b.getTime() - a.getTime())
+              for (const d of sorted) {
+                if (isChecked(h.id, dk(d))) hStreak++
+                else break
+              }
+              // 7-day mini sparkline
+              const last7 = pastDays.slice(-7)
+              const sparkPts = last7.map((d, i) => {
+                const checked = isChecked(h.id, dk(d))
+                return `${i * 16},${checked ? 0 : 12}`
+              }).join(' ')
+              return (
+                <div key={h.id} className={`${styles.perHabitRow} ${h.archived ? styles.perHabitArchived : ''}`}>
+                  <span className={styles.perHabitEmoji}>{h.emoji}</span>
+                  <span className={styles.perHabitName}>{h.name}</span>
+                  <span className={styles.perHabitRate}>{rate}%</span>
+                  <span className={styles.perHabitStreak}>{hStreak}d</span>
+                  <svg width="96" height="14" className={styles.perHabitSpark}>
+                    <polyline points={sparkPts} fill="none" stroke="oklch(0.55 0.18 290)" strokeWidth="1.5" />
+                  </svg>
+                  <button
+                    className={styles.archiveBtn}
+                    onClick={() => archiveHabit(h.id)}
+                    title={h.archived ? 'Unarchive' : 'Archive'}
+                  >
+                    {h.archived ? '↩' : '📦'}
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
         {/* Smart connections for habits */}
         {habits.length > 0 && (
           <div className={styles.connectionsCard}>
@@ -433,6 +552,48 @@ export default function Habits({ onNavigate }: { onNavigate?: (page: string) => 
             {habits.slice(0, 3).map(h => (
               <RelatedItems key={h.id} itemType="habit" itemId={h.id} onNavigate={onNavigate} maxItems={2} />
             ))}
+          </div>
+        )}
+
+        {/* ── Adaptive Insights ── */}
+        {hasInsights && (
+          <div className={styles.insightCard}>
+            <button className={styles.insightHeader} onClick={() => setShowInsights(s => !s)}>
+              <span className={styles.sectionTitle}>💡 Insights</span>
+              <span className={styles.insightChevron}>{showInsights ? '▲' : '▼'}</span>
+            </button>
+            {showInsights && (
+              <div className={styles.insightBody}>
+                {bestPerforming && bestPerforming.rate7 > 0 && (
+                  <div className={styles.insightRow} data-type="success">
+                    <span className={styles.insightIcon}>🏆</span>
+                    <div className={styles.insightContent}>
+                      <span className={styles.insightTitle}>Best performing</span>
+                      <span className={styles.insightDesc}>{bestPerforming.habit.emoji} {bestPerforming.habit.name} — {Math.round(bestPerforming.rate7 * 100)}% last 7 days</span>
+                    </div>
+                  </div>
+                )}
+                {fallingBehind.map(i => (
+                  <div key={i.habit.id} className={styles.insightRow} data-type="warning">
+                    <span className={styles.insightIcon}>📉</span>
+                    <div className={styles.insightContent}>
+                      <span className={styles.insightTitle}>Falling behind</span>
+                      <span className={styles.insightDesc}>{i.habit.emoji} {i.habit.name} — only {Math.round(i.rate14 * 100)}% completion last 14 days</span>
+                    </div>
+                  </div>
+                ))}
+                {switchToWeekly.map(i => (
+                  <div key={i.habit.id} className={styles.insightRow} data-type="tip">
+                    <span className={styles.insightIcon}>🔄</span>
+                    <div className={styles.insightContent}>
+                      <span className={styles.insightTitle}>Consider weekly</span>
+                      <span className={styles.insightDesc}>{i.habit.emoji} {i.habit.name} — low daily rate, weekly may be more sustainable</span>
+                      <button className={styles.insightAction} onClick={() => storeUpdateHabit({ ...i.habit, frequency: 'weekly' })}>Switch to weekly</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -464,6 +625,34 @@ export default function Habits({ onNavigate }: { onNavigate?: (page: string) => 
                   >
                     {em}
                   </span>
+                ))}
+              </div>
+            </div>
+            <div className={styles.field}>
+              <label className={styles.label}>Category</label>
+              <div className={styles.catPills} style={{ justifyContent: 'flex-start' }}>
+                {['health', 'work', 'learning', 'personal'].map(cat => (
+                  <button
+                    key={cat}
+                    className={`${styles.catPill} ${newCategory === cat ? styles.catPillActive : ''}`}
+                    onClick={() => setNewCategory(cat)}
+                  >
+                    {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className={styles.field}>
+              <label className={styles.label}>Frequency</label>
+              <div className={styles.catPills} style={{ justifyContent: 'flex-start' }}>
+                {['daily', 'weekly'].map(freq => (
+                  <button
+                    key={freq}
+                    className={`${styles.catPill} ${newFrequency === freq ? styles.catPillActive : ''}`}
+                    onClick={() => setNewFrequency(freq)}
+                  >
+                    {freq.charAt(0).toUpperCase() + freq.slice(1)}
+                  </button>
                 ))}
               </div>
             </div>

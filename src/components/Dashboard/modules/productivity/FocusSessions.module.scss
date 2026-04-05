@@ -106,10 +106,11 @@ $amber-glow:    rgba(251, 191, 36, 0.12);
 .dashboard {
   padding: 0;
   height: 100%;
-  // Desktop: 2-column grid — header + tasks on left, rhythm full-height on right
+  overflow-y: auto;
+  // Desktop: 2-column grid — header + history + tasks on left, rhythm full-height on right
   display: grid;
   grid-template-columns: 1fr 340px;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto 1fr;
   gap: 24px;
   align-items: stretch;
 
@@ -121,14 +122,14 @@ $amber-glow:    rgba(251, 191, 36, 0.12);
 
 .colLeft {
   grid-column: 1;
-  grid-row: 2;
+  grid-row: 3;
   display: flex;
   flex-direction: column;
   min-height: 0;
 }
 .colRight {
   grid-column: 2;
-  grid-row: 1 / span 2;  // full height: spans both rows
+  grid-row: 1 / span 3;  // full height: spans all rows
   display: flex;
   flex-direction: column;
   gap: $sp-6;
@@ -292,7 +293,33 @@ $amber-glow:    rgba(251, 191, 36, 0.12);
   font-size: 9px;
   color: $accent;
 }
-.taskTitle  { flex: 1; font-size: 13px; color: $text; }
+.taskInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.taskTitle  { font-size: 13px; color: $text; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.taskRoiLabel {
+  font-size: 10px;
+  color: $text3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.taskRoiBadge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: $accent;
+  background: $accent-glow;
+  border: 1px solid rgba(124, 92, 252, 0.16);
+  padding: 2px 8px;
+  border-radius: 5px;
+  flex-shrink: 0;
+  letter-spacing: 0.3px;
+}
 .taskPriority {
   font-size: 10px;
   padding: 2px 8px;
@@ -313,6 +340,72 @@ $amber-glow:    rgba(251, 191, 36, 0.12);
   transition: opacity 160ms, color 160ms;
   font-family: inherit;
   &:hover { color: $red; }
+}
+
+// ── History panel ──
+.historyPanel {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  @media (max-width: 768px) {
+    grid-column: unset;
+    grid-row: unset;
+  }
+}
+.historyStats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.historyStat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 60px;
+}
+.historyStatVal {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 600;
+  color: $accent;
+}
+.historyStatLabel {
+  font-size: 10px;
+  color: $text3;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.historyChart {
+  width: 100%;
+  overflow-x: auto;
+  &::-webkit-scrollbar { height: 3px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: $border; border-radius: 2px; }
+}
+.historyChartSvg {
+  width: 100%;
+  max-width: 392px;
+  height: 80px;
+  display: block;
+}
+.historyBar {
+  fill: rgba(124, 92, 252, 0.35);
+  transition: fill 200ms;
+  &.today {
+    fill: $accent;
+  }
+  &:hover {
+    fill: $accent;
+  }
+}
+.historyLabel {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px;
+  fill: $text3;
 }
 
 // ── Rhythm panel ──

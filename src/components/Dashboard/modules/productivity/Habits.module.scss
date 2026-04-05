@@ -283,7 +283,9 @@
   background: oklch(0.22 0.10 150);
   border-color: oklch(0.50 0.14 150);
   color: oklch(0.82 0.16 150);
+  cursor: pointer;
   animation: haPop 260ms $ease forwards;
+  &:hover { background: oklch(0.18 0.07 150); }
 }
 
 .checkMark { font-size: 11px; line-height: 1; pointer-events: none; }
@@ -718,5 +720,234 @@
     overflow: auto;
     -webkit-overflow-scrolling: touch;
     max-height: unset;
+  }
+}
+
+/* ══════════════════════════════════════
+   Phase 2: Category filter + Per-habit analytics
+   ══════════════════════════════════════ */
+
+.filterRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.catPills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.catPill {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 11px;
+  color: #8b8fa4;
+  cursor: pointer;
+  transition: all 150ms;
+  font-weight: 500;
+  &:hover { border-color: rgba(255,255,255,0.14); color: #c0c4d0; }
+}
+.catPillActive {
+  background: oklch(0.55 0.18 290 / 0.15);
+  border-color: oklch(0.55 0.18 290 / 0.3);
+  color: oklch(0.7 0.15 290);
+}
+.filterControls {
+  display: flex;
+  gap: 6px;
+}
+.filterToggle {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 10px;
+  color: #5a5f73;
+  cursor: pointer;
+  transition: all 150ms;
+  &:hover { border-color: rgba(255,255,255,0.12); color: #8b8fa4; }
+}
+.filterToggleActive {
+  background: oklch(0.55 0.18 290 / 0.1);
+  border-color: oklch(0.55 0.18 290 / 0.25);
+  color: oklch(0.7 0.15 290);
+}
+
+.perHabitCard {
+  flex: 0 0 auto;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.02);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  animation: haSlideIn 220ms $ease;
+  max-height: 240px;
+  overflow-y: auto;
+}
+.perHabitRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  border-radius: 6px;
+  transition: background 150ms;
+  &:hover { background: rgba(255,255,255,0.03); }
+}
+.perHabitArchived {
+  opacity: 0.4;
+}
+.perHabitEmoji {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.perHabitName {
+  flex: 1;
+  font-size: 12px;
+  color: #c0c4d0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.perHabitRate {
+  font-family: monospace;
+  font-size: 11px;
+  color: oklch(0.65 0.14 150);
+  font-weight: 600;
+  min-width: 32px;
+  text-align: right;
+}
+.perHabitStreak {
+  font-family: monospace;
+  font-size: 11px;
+  color: oklch(0.55 0.18 290);
+  font-weight: 600;
+  min-width: 24px;
+  text-align: right;
+}
+.perHabitSpark {
+  flex-shrink: 0;
+}
+.archiveBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  opacity: 0.4;
+  transition: opacity 150ms;
+  padding: 2px;
+  &:hover { opacity: 1; }
+}
+
+/* ══════════════════════════════════════
+   Phase 5: Adaptive Insights Panel
+   ══════════════════════════════════════ */
+
+.insightCard {
+  flex: 0 0 auto;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.02);
+  overflow: hidden;
+  animation: haSlideIn 220ms $ease;
+}
+
+.insightHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  text-align: left;
+  font-family: inherit;
+  &:hover { background: rgba(255,255,255,0.02); }
+}
+
+.insightChevron {
+  font-size: 9px;
+  color: #5a5a7a;
+}
+
+.insightBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 8px 8px;
+}
+
+.insightRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border-left: 3px solid transparent;
+
+  &[data-type="success"] {
+    background: oklch(0.18 0.05 150 / 0.5);
+    border-left-color: oklch(0.55 0.14 150);
+  }
+  &[data-type="warning"] {
+    background: oklch(0.18 0.06 60 / 0.5);
+    border-left-color: oklch(0.65 0.14 60);
+  }
+  &[data-type="tip"] {
+    background: oklch(0.16 0.05 220 / 0.5);
+    border-left-color: oklch(0.55 0.12 220);
+  }
+}
+
+.insightIcon {
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.insightContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.insightTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: #c0c0d8;
+}
+
+.insightDesc {
+  font-size: 11px;
+  color: #7878a0;
+  line-height: 1.4;
+}
+
+.insightAction {
+  margin-top: 4px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid oklch(0.55 0.12 220 / 0.4);
+  background: oklch(0.55 0.12 220 / 0.1);
+  color: oklch(0.72 0.12 220);
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  align-self: flex-start;
+  transition: all 150ms;
+  &:hover {
+    background: oklch(0.55 0.12 220 / 0.2);
+    border-color: oklch(0.55 0.12 220 / 0.6);
   }
 }

@@ -24,6 +24,7 @@ function fmtFullDate(d: string): string {
 const JournalEntries: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }) => {
   const entries = useProductivityStore(s => s.journalEntries)
   const storeDeleteEntry = useProductivityStore(s => s.deleteJournalEntry)
+  const storeUpdateEntry = useProductivityStore(s => s.updateJournalEntry)
   const setSelectedEntryId = useProductivityStore(s => s.setSelectedJournalEntryId)
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -50,11 +51,15 @@ const JournalEntries: React.FC<{ onNavigate?: (page: string) => void }> = ({ onN
     return list.sort((a, b) => b.date.localeCompare(a.date))
   }, [entries, searchQuery, moodFilter, tagFilter, dateFrom, dateTo])
 
-  // Group by date
+  // Separate pinned entries (shown at top regardless of date grouping)
+  const pinnedEntries = useMemo(() => filtered.filter(e => e.pinned), [filtered])
+  const unpinnedEntries = useMemo(() => filtered.filter(e => !e.pinned), [filtered])
+
+  // Group unpinned by date
   const grouped = useMemo(() => {
     const map: { date: string; label: string; entries: typeof entries }[] = []
     let currentDate = ''
-    for (const e of filtered) {
+    for (const e of unpinnedEntries) {
       if (e.date !== currentDate) {
         currentDate = e.date
         map.push({ date: e.date, label: fmtDate(e.date), entries: [e] })
@@ -63,7 +68,7 @@ const JournalEntries: React.FC<{ onNavigate?: (page: string) => void }> = ({ onN
       }
     }
     return map
-  }, [filtered])
+  }, [unpinnedEntries])
 
   const selected = useMemo(() => entries.find(e => e.id === selectedId) ?? null, [entries, selectedId])
 
@@ -79,6 +84,11 @@ const JournalEntries: React.FC<{ onNavigate?: (page: string) => void }> = ({ onN
     setSelectedId(null)
   }
 
+  const togglePin = () => {
+    if (!selected) return
+    storeUpdateEntry({ ...selected, pinned: !selected.pinned })
+  }
+
   // Stats for visible entries
   const visibleStats = useMemo(() => {
     const moodCounts: Record<string, number> = {}
@@ -89,6 +99,27 @@ const JournalEntries: React.FC<{ onNavigate?: (page: string) => void }> = ({ onN
 
   const wordCount = selected ? selected.content.trim().split(/\s+/).filter(Boolean).length : 0
   const hasActiveFilters = !!searchQuery || !!moodFilter || !!tagFilter || !!dateFrom || !!dateTo
+
+  const renderEntryRow = (e: typeof entries[0]) => {
+    const wc = e.content.trim().split(/\s+/).filter(Boolean).length
+    const isSelected = selectedId === e.id
+    return (
+      <div key={e.id} className={[styles.entryRow, isSelected ? styles.entryRowActive : ''].filter(Boolean).join(' ')} onClick={() => setSelectedId(e.id)}>
+        <span className={styles.entryMoodDot} style={{ background: MOOD_COLORS[e.mood] || 'oklch(0.5 0 0)' }} />
+        <div className={styles.entryRowInfo}>
+          <div className={styles.entryRowTitle}>
+            {e.pinned && <span className={styles.pinIcon}>📌</span>}
+            {e.title || 'Untitled'}
+          </div>
+          <div className={styles.entryRowPreview}>{e.content.slice(0, 60)}{e.content.length > 60 ? '...' : ''}</div>
+        </div>
+        <div className={styles.entryRowRight}>
+          <span className={styles.entryRowMood}>{e.mood}</span>
+          <span className={styles.entryRowWc}>{wc}w</span>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className={styles.wrap}>
@@ -142,27 +173,21 @@ const JournalEntries: React.FC<{ onNavigate?: (page: string) => void }> = ({ onN
       <div className={styles.body}>
         {/* Entry list */}
         <div className={styles.listPanel}>
-          {grouped.length === 0 && <div className={styles.empty}>No entries match your filters</div>}
+          {filtered.length === 0 && <div className={styles.empty}>No entries match your filters</div>}
+
+          {/* Pinned section */}
+          {pinnedEntries.length > 0 && (
+            <div className={styles.pinnedGroup}>
+              <div className={styles.pinnedHeader}>📌 Pinned</div>
+              {pinnedEntries.map(renderEntryRow)}
+            </div>
+          )}
+
+          {/* Date-grouped unpinned entries */}
           {grouped.map(group => (
             <div key={group.date} className={styles.dateGroup}>
               <div className={styles.dateHeader}>{group.label}</div>
-              {group.entries.map(e => {
-                const wc = e.content.trim().split(/\s+/).filter(Boolean).length
-                const isSelected = selectedId === e.id
-                return (
-                  <div key={e.id} className={[styles.entryRow, isSelected ? styles.entryRowActive : ''].filter(Boolean).join(' ')} onClick={() => setSelectedId(e.id)}>
-                    <span className={styles.entryMoodDot} style={{ background: MOOD_COLORS[e.mood] || 'oklch(0.5 0 0)' }} />
-                    <div className={styles.entryRowInfo}>
-                      <div className={styles.entryRowTitle}>{e.title || 'Untitled'}</div>
-                      <div className={styles.entryRowPreview}>{e.content.slice(0, 60)}{e.content.length > 60 ? '...' : ''}</div>
-                    </div>
-                    <div className={styles.entryRowRight}>
-                      <span className={styles.entryRowMood}>{e.mood}</span>
-                      <span className={styles.entryRowWc}>{wc}w</span>
-                    </div>
-                  </div>
-                )
-              })}
+              {group.entries.map(renderEntryRow)}
             </div>
           ))}
         </div>
@@ -175,6 +200,7 @@ const JournalEntries: React.FC<{ onNavigate?: (page: string) => void }> = ({ onN
                 <div className={styles.previewTitleRow}>
                   <span className={styles.previewMood}>{selected.mood}</span>
                   <h2 className={styles.previewTitle}>{selected.title || 'Untitled'}</h2>
+                  {selected.pinned && <span className={styles.previewPinBadge}>📌 Pinned</span>}
                 </div>
                 <div className={styles.previewDate}>{fmtFullDate(selected.date)}</div>
               </div>
@@ -189,6 +215,9 @@ const JournalEntries: React.FC<{ onNavigate?: (page: string) => void }> = ({ onN
               <div className={styles.previewFooter}>
                 <span className={styles.previewWc}>{wordCount} words</span>
                 <div className={styles.previewActions}>
+                  <button className={styles.pinBtn} onClick={togglePin} title={selected.pinned ? 'Unpin' : 'Pin'}>
+                    {selected.pinned ? 'Unpin' : 'Pin'}
+                  </button>
                   <button className={styles.openBtn} onClick={openInEditor}>Open in editor</button>
                   <button className={styles.delBtn} onClick={deleteEntry}>Delete</button>
                 </div>

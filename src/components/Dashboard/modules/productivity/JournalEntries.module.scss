@@ -27,13 +27,19 @@
 
 /* ── Left: entry list ── */
 .listPanel { width: 320px; flex-shrink: 0; overflow-y: auto; border-right: 1px solid $border; padding-right: 16px; }
+
+/* ── Pinned group ── */
+.pinnedGroup { margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid $border-subtle; }
+.pinnedHeader { font-size: 10px; font-weight: 600; color: oklch(0.70 0.12 80); text-transform: uppercase; letter-spacing: 0.05em; padding: 6px 0 4px; position: sticky; top: 0; background: $surface-0; z-index: 1; }
+
 .dateGroup { margin-bottom: 12px; }
 .dateHeader { font-size: 10px; font-weight: 600; color: $text-3; text-transform: uppercase; letter-spacing: 0.05em; padding: 6px 0 4px; position: sticky; top: 0; background: $surface-0; z-index: 1; }
 .entryRow { display: flex; align-items: center; gap: 10px; padding: 10px 10px; border-radius: 8px; cursor: pointer; border: 1px solid transparent; transition: all 80ms ease; &:hover { background: $surface-2; } }
 .entryRowActive { background: $surface-2; border-color: $border; }
 .entryMoodDot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .entryRowInfo { flex: 1; min-width: 0; }
-.entryRowTitle { font-size: 12px; font-weight: 500; color: $text-1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.entryRowTitle { font-size: 12px; font-weight: 500; color: $text-1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 4px; }
+.pinIcon { font-size: 10px; flex-shrink: 0; }
 .entryRowPreview { font-size: 11px; color: $text-3; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .entryRowRight { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
 .entryRowMood { font-size: 14px; }
@@ -45,6 +51,7 @@
 .previewTitleRow { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
 .previewMood { font-size: 22px; }
 .previewTitle { font-size: 18px; font-weight: 700; color: $text-1; letter-spacing: -0.3px; margin: 0; }
+.previewPinBadge { font-size: 10px; color: oklch(0.70 0.12 80); background: oklch(0.18 0.06 80); padding: 2px 8px; border-radius: 99px; font-weight: 500; white-space: nowrap; }
 .previewDate { font-size: 12px; color: $text-3; }
 .previewBody { flex: 1; margin-bottom: 12px; }
 .previewContent { font-size: 14px; color: $text-2; line-height: 1.7; white-space: pre-wrap; }
@@ -53,6 +60,7 @@
 .previewFooter { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid $border-subtle; padding-top: 10px; flex-shrink: 0; }
 .previewWc { font-size: 11px; color: $text-3; }
 .previewActions { display: flex; gap: 6px; }
+.pinBtn { padding: 6px 12px; border-radius: 6px; border: 1px solid $border-subtle; background: none; color: $text-2; font-size: 11px; font-weight: 500; cursor: pointer; font-family: inherit; transition: all 80ms ease; &:hover { color: oklch(0.80 0.14 80); border-color: oklch(0.35 0.10 80); background: oklch(0.15 0.04 80); } }
 .openBtn { padding: 6px 14px; border-radius: 6px; border: none; background: oklch(0.62 0.16 80); color: #fff; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; &:hover { background: oklch(0.67 0.16 80); } }
 .delBtn { padding: 6px 12px; border-radius: 6px; border: 1px solid $border-subtle; background: none; color: $text-3; font-size: 11px; cursor: pointer; font-family: inherit; &:hover { color: oklch(0.65 0.15 20); border-color: oklch(0.35 0.10 20); } }
 

@@ -28,6 +28,7 @@ export async function POST(req: Request) {
         .set({
           title: body.title, content: body.content ?? '',
           mood: body.mood ?? null, tags: body.tags ?? [],
+          pinned: body.pinned ?? false,
           isPublic: body.isPublic ?? false, updatedAt: new Date(),
         })
         .where(eq(journalEntries.clientId, body.clientId))
@@ -38,7 +39,8 @@ export async function POST(req: Request) {
       clientId: body.clientId, orgId, userId,
       title: body.title, content: body.content ?? '',
       date: body.date, mood: body.mood ?? null,
-      tags: body.tags ?? [], isPublic: body.isPublic ?? false,
+      tags: body.tags ?? [], pinned: body.pinned ?? false,
+      isPublic: body.isPublic ?? false,
     }).returning()
     return Response.json(row, { status: 201 })
   }
@@ -47,7 +49,7 @@ export async function POST(req: Request) {
     orgId, userId, title: body.title,
     content: body.content ?? '', date: body.date,
     mood: body.mood ?? null, tags: body.tags ?? [],
-    isPublic: body.isPublic ?? false,
+    pinned: body.pinned ?? false, isPublic: body.isPublic ?? false,
   }).returning()
   return Response.json(row, { status: 201 })
 }
@@ -64,7 +66,8 @@ export async function PUT(req: Request) {
     .set({
       title: body.title, content: body.content,
       mood: body.mood, tags: body.tags,
-      isPublic: body.isPublic, updatedAt: new Date(),
+      pinned: body.pinned, isPublic: body.isPublic,
+      updatedAt: new Date(),
     })
     .where(where!)
     .returning()
@@ -82,6 +85,7 @@ export async function DELETE(req: Request) {
   const where = clientId
     ? and(eq(journalEntries.clientId, clientId), eq(journalEntries.orgId, orgId))
     : and(eq(journalEntries.id, id), eq(journalEntries.orgId, orgId))
-  await db.delete(journalEntries).where(where!)
+  const isDeleted = body.isDeleted !== false
+  await db.update(journalEntries).set({ isDeleted, updatedAt: new Date() }).where(where!)
   return Response.json({ ok: true })
 }

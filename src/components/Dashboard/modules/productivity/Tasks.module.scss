@@ -1,4 +1,6 @@
 @use "@/styles/variables" as *;
+
+/* ── Layout ── */
 .wrap { width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
 .header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 14px; flex-shrink: 0; gap: 12px; flex-wrap: wrap; }
 .headerLeft { display: flex; align-items: center; gap: 12px; }
@@ -6,19 +8,38 @@
 .pageTitle { font-size: 20px; font-weight: 700; color: $text-1; letter-spacing: -0.3px; }
 .tabs { display: flex; gap: 2px; background: $surface-2; padding: 3px; border-radius: 8px; }
 .tab { padding: 5px 12px; border-radius: 5px; font-size: 11px; font-weight: 500; color: $text-2; cursor: pointer; border: none; background: transparent; font-family: inherit; &:hover { color: $text-1; } &.active { color: $text-1; background: $surface-3; } }
-.filterRow { display: flex; align-items: center; gap: 8px; padding: 0 24px 10px; flex-shrink: 0; overflow-x: auto; }
-.filterBtn { padding: 6px 12px; border-radius: 6px; font-size: 12px; color: $text-2; cursor: pointer; border: 1px solid $border; background: transparent; font-family: inherit; white-space: nowrap; flex-shrink: 0; transition: all 120ms ease; &:hover { color: $text-1; border-color: oklch(0.55 0.18 290); } &.active { color: $text-1; background: $surface-3; border-color: oklch(0.55 0.18 290); } }
+
+/* ── Filters ── */
+.filterRow { display: flex; align-items: center; gap: 8px; padding: 0 24px 10px; flex-shrink: 0; overflow-x: auto; flex-wrap: wrap; }
+.filterGroup { display: flex; gap: 4px; }
+.filterDivider { width: 1px; height: 20px; background: $border-subtle; flex-shrink: 0; margin: 0 4px; }
+.filterBtn { padding: 5px 12px; border-radius: 6px; font-size: 11px; color: $text-2; cursor: pointer; border: 1px solid $border-subtle; background: transparent; font-family: inherit; white-space: nowrap; transition: all 100ms ease; &:hover { color: $text-1; border-color: oklch(0.55 0.18 290); } &.active { color: $text-1; background: $surface-3; border-color: oklch(0.55 0.18 290); } }
+.dateFilterBtn { @extend .filterBtn; font-size: 10px; padding: 4px 10px; }
+.roiToggle { padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; color: $text-3; cursor: pointer; border: 1px solid $border-subtle; background: transparent; font-family: inherit; transition: all 100ms ease; &:hover { color: oklch(0.72 0.16 60); border-color: oklch(0.40 0.10 60); } }
+.roiToggleActive { color: oklch(0.80 0.16 60); background: oklch(0.18 0.06 60); border-color: oklch(0.40 0.10 60); }
+
+/* ── Buttons ── */
 .addBtn { height: 32px; padding: 0 13px; border-radius: 6px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: inherit; background: oklch(0.55 0.18 290); color: #fff; box-shadow: 0 2px 12px oklch(0.3 0.15 290 / 0.4); &:hover { background: oklch(0.6 0.18 290); } }
+
 .body { flex: 1; overflow-y: auto; padding: 0 24px 24px; }
-.taskList { display: flex; flex-direction: column; gap: 4px; }
+
+/* ── Quick Add ── */
+.quickAddRow { display: flex; gap: 6px; margin-bottom: 12px; }
+.quickAddInput { flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid $border-subtle; background: $surface-2; color: $text-1; font-size: 13px; font-family: inherit; outline: none; &:focus { border-color: oklch(0.55 0.18 290); } &::placeholder { color: $text-3; } }
+.quickAddBtn { width: 34px; height: 34px; border-radius: 8px; border: none; background: oklch(0.55 0.18 290); color: #fff; font-size: 18px; font-weight: 600; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; &:disabled { opacity: 0.4; cursor: default; } &:hover:not(:disabled) { background: oklch(0.6 0.18 290); } }
+
+/* ── List View ── */
+.listWrap { display: flex; flex-direction: column; gap: 4px; }
+.sectionLabel { font-size: 11px; font-weight: 600; color: $text-3; text-transform: uppercase; letter-spacing: 0.05em; padding: 14px 0 6px; }
 .taskItem { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; background: $surface-2; border: 1px solid $border-subtle; border-radius: 8px; cursor: pointer; transition: background 140ms ease, border-color 140ms ease, transform 120ms ease; &:hover { background: $surface-3; border-color: $border; transform: translateY(-1px); } }
-.taskCheck { width: 22px; height: 22px; border-radius: 4px; border: 1.5px solid $border; flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-top: 1px; cursor: pointer; transition: all 150ms ease; &:hover { border-color: oklch(0.55 0.18 290); background: oklch(0.18 0.04 290); } }
+.taskCheck { width: 20px; height: 20px; border-radius: 4px; border: 1.5px solid $border; flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-top: 1px; cursor: pointer; transition: all 150ms ease; &:hover { border-color: oklch(0.55 0.18 290); background: oklch(0.18 0.04 290); } }
 .taskCheckDone { border-color: oklch(0.65 0.14 150); background: oklch(0.65 0.14 150); color: #fff; font-size: 10px; font-weight: 700; animation: tCheckPop 200ms ease; }
 .taskBody { flex: 1; min-width: 0; }
+.taskTitleRow { display: flex; align-items: center; gap: 6px; }
 .taskTitle { font-size: 13px; font-weight: 500; color: $text-1; line-height: 1.3; }
 .taskTitleDone { text-decoration: line-through; color: $text-3; }
 .taskMeta { display: flex; align-items: center; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
-.taskTag { font-size: 11px; padding: 3px 8px; border-radius: 99px; font-weight: 500; }
+.taskTag { font-size: 10px; padding: 2px 8px; border-radius: 99px; font-weight: 500; }
 .tagWork { background: oklch(0.20 0.06 260); color: oklch(0.80 0.12 260); }
 .tagPersonal { background: oklch(0.20 0.06 150); color: oklch(0.80 0.12 150); }
 .tagUrgent { background: oklch(0.20 0.08 20); color: oklch(0.78 0.15 20); }
@@ -28,66 +49,120 @@
 .priMed { color: oklch(0.72 0.16 60); }
 .priLow { color: $text-3; }
 .taskDue { font-size: 11px; color: $text-3; }
-.taskDueOverdue { color: oklch(0.65 0.15 20); }
-.sectionLabel { font-size: 11px; font-weight: 600; color: $text-3; text-transform: uppercase; letter-spacing: 0.05em; padding: 14px 0 6px; }
+.taskDueOverdue { color: oklch(0.65 0.15 20); font-weight: 600; }
+.pinIcon { font-size: 10px; flex-shrink: 0; }
+.pinBtn { background: none; border: none; color: $text-3; cursor: pointer; padding: 4px; border-radius: 4px; flex-shrink: 0; opacity: 0; transition: opacity 100ms ease; .taskItem:hover & { opacity: 1; } &:hover { color: oklch(0.70 0.14 60); } }
+.subAddBtn { background: none; border: none; color: $text-3; cursor: pointer; padding: 4px 6px; border-radius: 4px; font-size: 14px; font-weight: 600; flex-shrink: 0; opacity: 0; transition: opacity 100ms ease; .taskItem:hover & { opacity: 1; } &:hover { color: oklch(0.55 0.18 290); background: oklch(0.18 0.04 290); } }
+.subtaskCount { font-size: 10px; color: $text-3; background: $surface-3; padding: 1px 6px; border-radius: 99px; }
+
+/* ── ROI Badge ── */
+.roiBadge { font-size: 10px; font-weight: 700; color: oklch(0.80 0.16 60); background: oklch(0.18 0.06 60); padding: 1px 8px; border-radius: 99px; flex-shrink: 0; }
+.roiBadgeSm { font-size: 9px; font-weight: 700; color: oklch(0.75 0.14 60); background: oklch(0.16 0.04 60); padding: 1px 6px; border-radius: 99px; }
+
+/* ── Subtask list ── */
+.subtaskList { margin-left: 40px; display: flex; flex-direction: column; gap: 2px; padding: 4px 0; }
+.subtaskItem { display: flex; align-items: center; gap: 8px; padding: 4px 10px; border-radius: 6px; &:hover { background: $surface-2; } }
+.subtaskTitle { font-size: 12px; color: $text-2; cursor: pointer; &:hover { color: $text-1; } }
+
+/* ── Kanban ── */
 .boardWrap { display: flex; gap: 12px; height: 100%; overflow-x: auto; padding-bottom: 12px; }
 .boardCol { min-width: 260px; flex: 1; background: $surface-2; border-radius: 10px; border: 1px solid $border-subtle; display: flex; flex-direction: column; max-height: 100%; overflow: hidden; }
 .boardColHeader { padding: 12px 14px; font-size: 12px; font-weight: 700; color: $text-1; border-bottom: 1px solid $border-subtle; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
 .boardColCount { font-size: 11px; font-weight: 600; color: $text-3; background: $surface-3; padding: 1px 6px; border-radius: 99px; }
-.boardColBody { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
-.boardCard { background: $surface-3; border: 1px solid $border-subtle; border-radius: 8px; padding: 10px 12px; cursor: pointer; transition: border-color 120ms ease, transform 120ms ease; &:hover { border-color: $border; transform: translateY(-1px); } }
+.boardColBody { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; min-height: 60px; }
+.boardCard { background: $surface-3; border: 1px solid $border-subtle; border-radius: 8px; padding: 10px 12px; cursor: grab; transition: border-color 120ms ease, transform 120ms ease; &:hover { border-color: $border; transform: translateY(-1px); } &:active { cursor: grabbing; } }
 .boardCardTitle { font-size: 12px; font-weight: 500; color: $text-1; margin-bottom: 6px; line-height: 1.35; }
 .boardCardMeta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.boardSubBar { height: 3px; background: $surface-1; border-radius: 2px; margin-top: 8px; overflow: hidden; }
+.boardSubFill { height: 100%; background: oklch(0.65 0.14 150); border-radius: 2px; transition: width 200ms ease; }
+
+/* ── Table ── */
+.tableWrap { overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.table thead { position: sticky; top: 0; z-index: 2; }
+.table th { padding: 8px 10px; text-align: left; font-size: 10px; font-weight: 600; color: $text-3; text-transform: uppercase; letter-spacing: 0.04em; background: $surface-1; border-bottom: 1px solid $border; cursor: pointer; white-space: nowrap; user-select: none; &:hover { color: $text-2; } }
+.thCheck { width: 36px; cursor: default; }
+.thTitle { min-width: 180px; }
+.table td { padding: 8px 10px; border-bottom: 1px solid $border-subtle; color: $text-2; white-space: nowrap; }
+.trow { transition: background 80ms ease; &:hover { background: $surface-2; } }
+.trowDone { opacity: 0.5; }
+.tblCheck { width: 18px; height: 18px; }
+.tdTitle { color: $text-1; font-weight: 500; cursor: pointer; max-width: 240px; overflow: hidden; text-overflow: ellipsis; &:hover { text-decoration: underline; } }
+.statusBadge { font-size: 10px; padding: 2px 8px; border-radius: 99px; font-weight: 500;
+  &[data-status="todo"] { background: oklch(0.18 0.04 260); color: oklch(0.72 0.12 260); }
+  &[data-status="inprogress"] { background: oklch(0.18 0.06 60); color: oklch(0.78 0.14 60); }
+  &[data-status="done"] { background: oklch(0.18 0.06 150); color: oklch(0.72 0.12 150); }
+}
+.effortBadge { font-size: 9px; font-weight: 700; color: $text-3; background: $surface-3; padding: 2px 6px; border-radius: 4px; }
+.pinBtnSm { background: none; border: none; cursor: pointer; font-size: 12px; color: $text-3; &:hover { color: oklch(0.70 0.14 60); } }
+
+/* ── Gantt ── */
+.ganttWrap { overflow-x: auto; overflow-y: auto; height: 100%; }
+.ganttScroll { position: relative; }
+.ganttHeader { display: flex; border-bottom: 1px solid $border; position: sticky; top: 0; z-index: 2; background: $surface-1; }
+.ganttRow { display: flex; border-bottom: 1px solid $border-subtle; cursor: pointer; &:hover { background: $surface-2; } }
+.ganttLabel { width: 160px; flex-shrink: 0; padding: 8px 10px; font-size: 11px; color: $text-1; font-weight: 500; display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-right: 1px solid $border-subtle; }
+.ganttTaskName { overflow: hidden; text-overflow: ellipsis; }
+.ganttTimeline { flex: 1; position: relative; display: flex; min-height: 32px; }
+.ganttDay { font-size: 9px; color: $text-3; text-align: center; padding: 8px 0; border-right: 1px solid oklch(0.2 0 0 / 0.2); flex-shrink: 0; }
+.ganttDayToday { background: oklch(0.55 0.18 290 / 0.08); color: oklch(0.70 0.16 290); font-weight: 700; }
+.ganttBar { position: absolute; top: 4px; height: 24px; border-radius: 4px; display: flex; align-items: center; padding: 0 6px; font-size: 10px; color: #fff; font-weight: 500; overflow: hidden; white-space: nowrap;
+  &[data-priority="high"] { background: oklch(0.50 0.15 20); }
+  &[data-priority="medium"] { background: oklch(0.50 0.14 260); }
+  &[data-priority="low"] { background: oklch(0.45 0.08 150); }
+}
+.ganttBarText { overflow: hidden; text-overflow: ellipsis; }
+.ganttBarNone { font-size: 10px; color: $text-3; padding: 8px 10px; font-style: italic; }
+.ganttDivider { padding: 6px 10px; font-size: 10px; font-weight: 600; color: $text-3; text-transform: uppercase; letter-spacing: 0.04em; background: $surface-2; border-bottom: 1px solid $border-subtle; }
+
+/* ── Modal ── */
 @keyframes tCheckPop { 0% { transform: scale(0.7); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
+@keyframes tFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes tSlideUp { from { opacity: 0; transform: translateY(12px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); z-index: 50; display: flex; align-items: center; justify-content: center; animation: tFadeIn 200ms ease; }
-.modal { width: 460px; max-width: 95vw; background: $surface-1; border: 1px solid $border; border-radius: 12px; display: flex; flex-direction: column; max-height: 85dvh; overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,0.5); animation: tSlideUp 250ms ease; }
+.modal { width: 500px; max-width: 95vw; background: $surface-1; border: 1px solid $border; border-radius: 12px; display: flex; flex-direction: column; max-height: 85dvh; overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,0.5); animation: tSlideUp 250ms ease; }
 .modalTop { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid $border; flex-shrink: 0; }
 .modalTitle { font-size: 14px; font-weight: 700; color: $text-1; }
 .modalClose { background: none; border: none; color: $text-3; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 6px; &:hover { background: $surface-3; color: $text-1; } }
 .modalBody { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; flex: 1; }
-.field { display: flex; flex-direction: column; gap: 5px; }
+.field { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 0; }
+.fieldRow { display: flex; gap: 12px; }
 .label { font-size: 11px; font-weight: 600; color: $text-3; text-transform: uppercase; letter-spacing: 0.05em; }
 .input { background: $surface-2; border: 1px solid $border; border-radius: 6px; padding: 8px 10px; font-size: 13px; color: $text-1; font-family: inherit; outline: none; width: 100%; box-sizing: border-box; &:focus { border-color: oklch(0.55 0.18 290); box-shadow: 0 0 0 2px oklch(0.22 0.06 290); } &::placeholder { color: $text-3; } }
-.textarea { background: $surface-2; border: 1px solid $border; border-radius: 6px; padding: 8px 10px; font-size: 13px; color: $text-1; font-family: inherit; outline: none; width: 100%; box-sizing: border-box; resize: vertical; min-height: 64px; &:focus { border-color: oklch(0.55 0.18 290); box-shadow: 0 0 0 2px oklch(0.22 0.06 290); } &::placeholder { color: $text-3; } }
-.select { background: $surface-2; border: 1px solid $border; border-radius: 6px; padding: 8px 10px; font-size: 13px; color: $text-1; font-family: inherit; outline: none; width: 100%; &:focus { border-color: oklch(0.55 0.18 290); } }
+.textarea { @extend .input; resize: vertical; min-height: 64px; }
+.select { @extend .input; }
+
+/* ── ROI section ── */
+.roiSection { border: 1px solid $border-subtle; border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 10px; background: oklch(0.12 0.02 60 / 0.3); }
+.roiSectionTitle { font-size: 10px; font-weight: 700; color: oklch(0.70 0.14 60); text-transform: uppercase; letter-spacing: 0.06em; }
+.starRow { display: flex; gap: 2px; }
+.star { font-size: 18px; border: none; background: none; cursor: pointer; color: $text-3; transition: color 100ms ease; padding: 0 2px; &:hover { color: oklch(0.70 0.16 60); } }
+.starActive { color: oklch(0.72 0.16 60); }
+.effortPills { display: flex; gap: 4px; }
+.effortPill { padding: 4px 10px; border-radius: 5px; border: 1px solid $border-subtle; background: none; color: $text-3; font-size: 10px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 80ms ease; &:hover { color: $text-2; border-color: $border; } }
+.effortPillActive { background: oklch(0.20 0.06 290); color: oklch(0.80 0.14 290); border-color: oklch(0.35 0.10 290); }
+
+/* ── Modal subtasks ── */
+.modalSubtasks { display: flex; flex-direction: column; gap: 4px; }
+.modalSubItem { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 12px; color: $text-2; }
+.addSubBtn { background: none; border: 1px dashed $border-subtle; color: $text-3; padding: 6px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; font-family: inherit; text-align: left; &:hover { border-color: oklch(0.55 0.18 290); color: oklch(0.70 0.14 290); } }
+
 .modalFooter { display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding: 12px 20px; border-top: 1px solid $border; flex-shrink: 0; }
 .cancelBtn { background: $surface-2; border: 1px solid $border; color: $text-2; border-radius: 6px; padding: 6px 14px; font-size: 12px; cursor: pointer; font-family: inherit; &:hover { color: $text-1; } }
 .saveBtn { background: oklch(0.55 0.18 290); border: none; color: #fff; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; box-shadow: 0 2px 12px oklch(0.3 0.15 290 / 0.4); &:hover { background: oklch(0.6 0.18 290); } }
 .deleteBtn { background: none; border: 1px solid oklch(0.45 0.15 20); color: oklch(0.65 0.15 20); border-radius: 6px; padding: 6px 14px; font-size: 12px; cursor: pointer; font-family: inherit; margin-right: auto; &:hover { background: oklch(0.20 0.08 20); } }
 .empty { text-align: center; padding: 40px 20px; color: $text-3; font-size: 13px; }
 
-@keyframes tFadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes tSlideUp { from { opacity: 0; transform: translateY(12px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
-
 /* ── Responsive ── */
 @media (max-width: $bp-md) {
-  .boardWrap {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .boardCol {
-    min-width: 240px;
-    flex: 0 0 240px;
-  }
-
-  .header {
-    padding: 16px 16px 10px;
-  }
-
-  .filterRow {
-    padding: 0 16px 8px;
-  }
-
-  .body {
-    padding: 0 16px 16px;
-  }
-
-  .tab {
-    padding: 8px 12px;
-  }
-
-  .taskTag {
-    padding: 6px 8px;
-  }
+  .boardWrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .boardCol { min-width: 240px; flex: 0 0 240px; }
+  .header { padding: 16px 16px 10px; }
+  .filterRow { padding: 0 16px 8px; }
+  .body { padding: 0 16px 16px; }
+  .tab { padding: 8px 12px; }
+  .taskTag { padding: 6px 8px; }
+  .fieldRow { flex-direction: column; gap: 8px; }
+  .ganttLabel { width: 120px; }
 }

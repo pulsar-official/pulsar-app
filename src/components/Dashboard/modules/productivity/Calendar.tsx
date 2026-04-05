@@ -233,9 +233,10 @@ const YearView = memo(({ year, events, onMonthClick }: YearViewProps) => (
             {Array.from({ length: days }, (_, d) => {
               const date = new Date(year, m, d + 1);
               const td = isToday(date);
-              const hasEv = eventsFor(events, date).length > 0;
+              const evCount = eventsFor(events, date).length;
+              const heatCls = evCount === 0 ? '' : evCount === 1 ? ` ${styles.heatmap1}` : evCount === 2 ? ` ${styles.heatmap2}` : ` ${styles.heatmap3}`;
               return (
-                <div key={d} className={`${styles.yearDay}${td ? ` ${styles.today}` : hasEv ? ` ${styles.hasEvent}` : ''}`}>
+                <div key={d} className={`${styles.yearDay}${td ? ` ${styles.today}` : heatCls}`}>
                   {d + 1}
                 </div>
               );
@@ -406,9 +407,10 @@ const MonthCellItem = ({
   const showPill = () => { if (hideTimer.current) clearTimeout(hideTimer.current); setPillHovered(true); };
   const hidePill = () => { hideTimer.current = setTimeout(() => setPillHovered(false), PILL_HIDE_DELAY); };
 
+  const heatCls = timed.length === 0 ? '' : timed.length === 1 ? ` ${styles.heatmap1}` : timed.length === 2 ? ` ${styles.heatmap2}` : ` ${styles.heatmap3}`;
   return (
     <div
-      className={`${styles.monthCell}${cell.ot ? ` ${styles.otherMonth}` : ''}`}
+      className={`${styles.monthCell}${cell.ot ? ` ${styles.otherMonth}` : ''}${heatCls}`}
       onClick={() => onDayClick(cell.date)}
       onDoubleClick={() => onDayDbl(fmt(cell.date))}
     >
@@ -980,6 +982,46 @@ const EventModal = ({ open, editing, form, onFormChange, onSave, onDelete, onClo
   );
 };
 
+// ─── AgendaView ───────────────────────────────────────────────────────────────
+
+interface AgendaViewProps { events: CalEvent[]; onEventEdit: (id: string) => void; }
+
+const AgendaView = memo(({ events, onEventEdit }: AgendaViewProps) => {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const days = Array.from({ length: 30 }, (_, i) => {
+    const d = new Date(today); d.setDate(d.getDate() + i); return d;
+  });
+  const groups = days.flatMap(d => { const evs = eventsFor(events, d); return evs.length > 0 ? [{ date: d, evs }] : []; });
+  if (groups.length === 0) return <div className={styles.agendaEmpty}>No upcoming events in the next 30 days</div>;
+  return (
+    <div className={styles.agendaList}>
+      {groups.map(({ date, evs }) => (
+        <div key={fmt(date)} className={styles.agendaGroup}>
+          <div className={styles.agendaDateHeader}>
+            <span className={`${styles.agendaDateNum}${isToday(date) ? ` ${styles.agendaToday}` : ''}`}>{date.getDate()}</span>
+            <span className={styles.agendaDateLabel}>
+              {DAYS_SHORT[date.getDay()]}, {MONTHS_SHORT[date.getMonth()]} {date.getFullYear()}
+              {isToday(date) && <span className={styles.agendaTodayBadge}>Today</span>}
+            </span>
+          </div>
+          <div className={styles.agendaEvents}>
+            {evs.map(ev => (
+              <div key={ev.id} className={styles.agendaEvent} style={{ borderLeftColor: TAG_COLORS[ev.tag] || TAG_COLORS.default }} onClick={() => onEventEdit(ev.id)}>
+                <div className={styles.agendaEventContent}>
+                  <span className={styles.agendaEventTitle}>{ev.title}</span>
+                  {ev.start && <span className={styles.agendaEventTime}>{ev.start}{ev.end ? ' – ' + ev.end : ''}</span>}
+                </div>
+                <span className={styles.agendaEventTag} style={{ color: TAG_COLORS[ev.tag] || TAG_COLORS.default }}>{ev.tag}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+});
+AgendaView.displayName = 'AgendaView';
+
 // ─── PulsarCalendar (main) ────────────────────────────────────────────────────
 
 export default function PulsarCalendar() {
@@ -1031,6 +1073,26 @@ export default function PulsarCalendar() {
   // Merge local events with cross-module overlay events
   const allEvents = useMemo(() => [...events, ...crossModuleEvents], [events, crossModuleEvents])
 
+  const [showWeeklySummary, setShowWeeklySummary] = useState(false);
+
+  // Weekly summary computed data
+  const overdueTasks = useMemo(() => {
+    const todayStr = fmt(new Date());
+    return storeTasks.filter(t => !t.completed && t.dueDate && t.dueDate < todayStr);
+  }, [storeTasks]);
+  const thisWeekTasks = useMemo(() => {
+    const todayStr = fmt(new Date());
+    const in7 = new Date(); in7.setDate(in7.getDate() + 7);
+    const in7Str = fmt(in7);
+    return storeTasks.filter(t => !t.completed && t.dueDate && t.dueDate >= todayStr && t.dueDate <= in7Str);
+  }, [storeTasks]);
+  const upcomingGoals = useMemo(() => {
+    const todayStr = fmt(new Date());
+    const in14 = new Date(); in14.setDate(in14.getDate() + 14);
+    const in14Str = fmt(in14);
+    return storeGoals.filter(g => !g.done && g.deadline && g.deadline >= todayStr && g.deadline <= in14Str);
+  }, [storeGoals]);
+
   const [toastMsg, setToastMsg] = useState('');
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [notes, setNotes] = useState('');
@@ -1068,6 +1130,7 @@ export default function PulsarCalendar() {
   }, []);
 
   const nav = useCallback((dir: number) => {
+    if (view === 'agenda') return;
     doAnim(dir > 0 ? 'slide-left' : 'slide-right');
     if (view === 'year') setYear(y => y + dir);
     else if (view === 'month') {
@@ -1156,6 +1219,7 @@ export default function PulsarCalendar() {
       else if (e.key === '2') switchView('month');
       else if (e.key === '3') switchView('week');
       else if (e.key === '4') switchView('day');
+      else if (e.key === '5') switchView('agenda');
       else if (e.key.toLowerCase() === 't') goToday();
       else if (e.key.toLowerCase() === 'n') { e.preventDefault(); openCreate(); }
     };
@@ -1170,6 +1234,7 @@ export default function PulsarCalendar() {
       const ws = weekStart(new Date(year, month, day));
       return { main: `${MONTHS_SHORT[ws.getMonth()]} ${ws.getDate()}`, sub: String(ws.getFullYear()) };
     }
+    if (view === 'agenda') return { main: 'Agenda', sub: 'next 30 days' };
     return { main: `${MONTHS_FULL[month]} ${day}`, sub: String(year) };
   }, [view, year, month, day]);
 
@@ -1208,6 +1273,9 @@ export default function PulsarCalendar() {
               </button>
             ))}
           </div>
+          <button className={`${styles.weekSummaryBtn}${showWeeklySummary ? ` ${styles.active}` : ''}`} onClick={() => setShowWeeklySummary(v => !v)} title="Weekly summary">
+            <BoltIcon /> Week
+          </button>
           <button className={styles.todayBtn} onClick={goToday}>Today</button>
           <button className={styles.newBtn} onClick={() => openCreate()}>
             <PlusIcon /> New
@@ -1229,9 +1297,52 @@ export default function PulsarCalendar() {
             {view === 'day' && (
               <DayView date={new Date(year, month, day)} events={allEvents} use24h={use24h} onEventEdit={openEdit} onHourDbl={hr => openCreate(fmt(new Date(year, month, day)), `${String(hr).padStart(2, '0')}:00`)} notes={notes} onNotesChange={saveNotes} />
             )}
+            {view === 'agenda' && (
+              <AgendaView events={allEvents} onEventEdit={openEdit} />
+            )}
           </div>
         </main>
+
       </div>
+
+      {/* Weekly summary panel — outside .shell so overflow:hidden doesn't clip it */}
+      {showWeeklySummary && (
+        <div className={styles.weeklySummaryPanel}>
+          <div className={styles.wsPanelHeader}>
+            <span className={styles.wsPanelTitle}>This week</span>
+            <button className={styles.wsPanelClose} onClick={() => setShowWeeklySummary(false)}>✕</button>
+          </div>
+          <div className={styles.wsPanelBody}>
+            {overdueTasks.length === 0 && thisWeekTasks.length === 0 && upcomingGoals.length === 0 && (
+              <div className={styles.wsPanelEmpty}>All clear this week 🎉</div>
+            )}
+            {overdueTasks.length > 0 && (
+              <div className={styles.wsSec}>
+                <div className={styles.wsSecLabel}>⚠️ Overdue tasks</div>
+                {overdueTasks.slice(0, 5).map(t => (
+                  <div key={t.id} className={styles.wsItem}><span className={styles.wsItemDot} style={{ background: 'oklch(0.65 0.15 20)' }} />{t.title}</div>
+                ))}
+              </div>
+            )}
+            {thisWeekTasks.length > 0 && (
+              <div className={styles.wsSec}>
+                <div className={styles.wsSecLabel}>📋 Due this week</div>
+                {thisWeekTasks.slice(0, 5).map(t => (
+                  <div key={t.id} className={styles.wsItem}><span className={styles.wsItemDot} style={{ background: 'var(--pc-blue)' }} />{t.title}</div>
+                ))}
+              </div>
+            )}
+            {upcomingGoals.length > 0 && (
+              <div className={styles.wsSec}>
+                <div className={styles.wsSecLabel}>🎯 Goal deadlines</div>
+                {upcomingGoals.slice(0, 3).map(g => (
+                  <div key={g.id} className={styles.wsItem}><span className={styles.wsItemDot} style={{ background: 'var(--pc-accent)' }} />{g.title}</div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <EventModal open={modalOpen} editing={editingEvent} form={form} onFormChange={p => setForm(f => ({ ...f, ...p }))} onSave={handleSave} onDelete={handleDelete} onClose={() => setModalOpen(false)} />
 

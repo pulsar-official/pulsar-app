@@ -1,12 +1,14 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import styles from './AppLayout.module.scss'
 import { useUIStore } from '@/stores/uiStore'
 import { Sidebar } from '@/components/Dashboard/Sidebar'
 import { Topbar } from '@/components/Dashboard/Topbar'
 import { MainContent } from '@/components/Dashboard/MainContent'
 import { PILLARS } from '@/constants/pillars'
+import { UndoToast } from './UndoToast'
+import { FocusModeOverlay } from './FocusModeOverlay'
 
 // Build flat lookups from pillars
 const PAGE_TITLES: Record<string, string> = { dashboard: 'Dashboard' }
@@ -25,7 +27,21 @@ for (const pillar of PILLARS) {
 }
 
 export const AppLayout: React.FC = () => {
-  const { sidebarCollapsed, currentPage, mobileMenuOpen, closeMobileMenu, subBreadcrumb } = useUIStore()
+  const { sidebarCollapsed, currentPage, mobileMenuOpen, closeMobileMenu, subBreadcrumb, focusModeActive, toggleFocusMode } = useUIStore()
+
+  // Keyboard shortcut: Shift+F toggles Focus Mode
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable) return
+      if (e.shiftKey && e.key === 'F') {
+        e.preventDefault()
+        toggleFocusMode()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [toggleFocusMode])
 
   const pillarLabel = PAGE_TO_PILLAR[currentPage]
   const pageLabel   = PAGE_TITLES[currentPage] ?? currentPage
@@ -46,7 +62,7 @@ export const AppLayout: React.FC = () => {
     : fullCrumbs
 
   return (
-    <div className={`${styles.layout} ${sidebarCollapsed ? styles.collapsed : ''}`}>
+    <div className={`${styles.layout} ${sidebarCollapsed ? styles.collapsed : ''} ${focusModeActive ? styles.focusModeActive : ''}`}>
       {/* Mobile overlay backdrop */}
       {mobileMenuOpen && (
         <div className={styles.mobileOverlay} onClick={closeMobileMenu} />
@@ -54,6 +70,8 @@ export const AppLayout: React.FC = () => {
       <Sidebar />
       <Topbar breadcrumbs={breadcrumbs} />
       <MainContent />
+      <UndoToast />
+      <FocusModeOverlay />
     </div>
   )
 }

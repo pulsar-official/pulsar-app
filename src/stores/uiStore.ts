@@ -17,6 +17,9 @@ interface UIState {
   /** Tracks the last visited page per org for "continue where you left off" */
   lastVisited: Record<string, string>
   setLastVisited: (orgId: string, page: string) => void
+  /** Focus Mode Overlay — dims UI, shows top task + Pomodoro timer */
+  focusModeActive: boolean
+  toggleFocusMode: () => void
 }
 
 export const useUIStore = create<UIState>()(
@@ -38,6 +41,8 @@ export const useUIStore = create<UIState>()(
       setLastVisited: (orgId, page) => set((state) => ({
         lastVisited: { ...state.lastVisited, [orgId]: page },
       })),
+      focusModeActive: false,
+      toggleFocusMode: () => set((state) => ({ focusModeActive: !state.focusModeActive })),
     }),
     {
       name: 'pulsar-ui-state',
@@ -47,6 +52,7 @@ export const useUIStore = create<UIState>()(
         sidebarCollapsed: state.sidebarCollapsed,
         subBreadcrumb: state.subBreadcrumb,
         lastVisited: state.lastVisited,
+        focusModeActive: state.focusModeActive,
         // Explicitly exclude: mobileMenuOpen (should close on reload)
       }),
     }

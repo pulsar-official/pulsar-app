@@ -53,6 +53,8 @@ function PowerSyncBridge({ orgId }: { orgId: string }) {
       completed: toBool(r.completed), priority: r.priority ?? 'medium',
       tag: r.tag ?? 'work', status: r.status ?? 'todo',
       dueDate: r.due_date ?? null, isPublic: toBool(r.is_public),
+      impact: r.impact ?? 3, effort: r.effort ?? 'm', goalId: r.goal_id ?? null,
+      parentId: r.parent_id ?? null, pinned: toBool(r.pinned), sortOrder: r.sort_order ?? 0,
       isDeleted: toBool(r.is_deleted),
     })))
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -63,6 +65,8 @@ function PowerSyncBridge({ orgId }: { orgId: string }) {
       id: r.id, orgId: r.org_id, userId: r.user_id,
       name: r.name, emoji: r.emoji ?? '✅',
       sortOrder: r.sort_order ?? 0, isPublic: toBool(r.is_public),
+      category: r.category ?? 'health', archived: toBool(r.archived),
+      frequency: r.frequency ?? 'daily',
       isDeleted: toBool(r.is_deleted),
     })))
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -93,6 +97,7 @@ function PowerSyncBridge({ orgId }: { orgId: string }) {
       progress: r.progress ?? 0, isPublic: toBool(r.is_public),
       isDeleted: toBool(r.is_deleted),
       subs: subsByGoal.get(r.id) ?? [],
+      updatedAt: r.updated_at ?? null,
     })))
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [goalRows, subRows])
@@ -105,6 +110,7 @@ function PowerSyncBridge({ orgId }: { orgId: string }) {
         id: r.id, orgId: r.org_id, userId: r.user_id,
         title: r.title, content: r.content ?? '',
         date: r.date, mood: r.mood ?? '', tags,
+        pinned: toBool(r.pinned),
         isPublic: toBool(r.is_public), isDeleted: toBool(r.is_deleted),
       }
     }))

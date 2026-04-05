@@ -48,6 +48,7 @@
   height: 100%;
   font-size: 14px;
   -webkit-font-smoothing: antialiased;
+  position: relative;
 
   ::-webkit-scrollbar       { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
@@ -381,9 +382,19 @@
     font-weight: 600;
   }
 
-  &.hasEvent {
-    background: rgba(167, 139, 250, 0.1);
+  &.heatmap1 {
+    background: rgba(167, 139, 250, 0.08);
     color: var(--pc-accent2);
+  }
+  &.heatmap2 {
+    background: rgba(167, 139, 250, 0.18);
+    color: var(--pc-accent2);
+    font-weight: 500;
+  }
+  &.heatmap3 {
+    background: rgba(167, 139, 250, 0.32);
+    color: #fff;
+    font-weight: 600;
   }
 }
 
@@ -452,6 +463,10 @@
   &:first-child { border-left: none; }
   &:hover { background: var(--pc-s2); }
   &.otherMonth { opacity: 0.35; }
+
+  &.heatmap1 { background: rgba(167, 139, 250, 0.04); }
+  &.heatmap2 { background: rgba(167, 139, 250, 0.09); }
+  &.heatmap3 { background: rgba(167, 139, 250, 0.17); }
 }
 
 .monthDateNum {
@@ -1340,6 +1355,251 @@
     transform: translateX(-50%) translateY(0);
     opacity: 1;
   }
+}
+
+// ─── Phase 7: Agenda View ────────────────────────────────────────────────────
+
+.agendaList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.agendaEmpty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pc-text3);
+  font-size: 0.85rem;
+}
+
+.agendaGroup {
+  margin-bottom: 20px;
+}
+
+.agendaDateHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--pc-border);
+  margin-bottom: 8px;
+}
+
+.agendaDateNum {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--pc-text3);
+  font-family: var(--pc-mono);
+  line-height: 1;
+  min-width: 44px;
+  text-align: center;
+
+  &.agendaToday {
+    color: var(--pc-accent);
+  }
+}
+
+.agendaDateLabel {
+  font-size: 0.8rem;
+  color: var(--pc-text3);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.agendaTodayBadge {
+  background: rgba(167, 139, 250, 0.15);
+  color: var(--pc-accent);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.agendaEvents {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 56px;
+}
+
+.agendaEvent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border-left: 3px solid;
+  background: var(--pc-s2);
+  cursor: pointer;
+  transition: background 0.1s ease;
+
+  &:hover { background: var(--pc-s3); }
+}
+
+.agendaEventContent {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.agendaEventTitle {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--pc-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agendaEventTime {
+  font-size: 0.72rem;
+  color: var(--pc-text3);
+  font-family: var(--pc-mono);
+}
+
+.agendaEventTag {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+// ─── Phase 7: Week Summary Button ────────────────────────────────────────────
+
+.weekSummaryBtn {
+  height: 32px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: var(--pc-rs);
+  border: 1px solid var(--pc-border2);
+  background: var(--pc-s2);
+  color: var(--pc-text3);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--pc-font);
+  transition: all 0.15s ease;
+
+  &:hover { color: var(--pc-text); border-color: var(--pc-accent); }
+  &.active { background: rgba(167, 139, 250, 0.12); border-color: rgba(167, 139, 250, 0.4); color: var(--pc-accent); }
+}
+
+// ─── Phase 7: Weekly Summary Panel ───────────────────────────────────────────
+
+.weeklySummaryPanel {
+  position: absolute;
+  top: 60px;
+  right: 12px;
+  width: 280px;
+  background: var(--pc-s2);
+  border: 1px solid var(--pc-border2);
+  border-radius: var(--pc-rl);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  z-index: 50;
+  overflow: hidden;
+  animation: summarySlideIn 200ms var(--pc-ease);
+}
+
+@keyframes summarySlideIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+.wsPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--pc-border);
+}
+
+.wsPanelTitle {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--pc-text);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.wsPanelClose {
+  background: none;
+  border: none;
+  color: var(--pc-text4);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 2px 4px;
+  border-radius: 4px;
+  line-height: 1;
+  transition: color 0.1s ease;
+  &:hover { color: var(--pc-text); }
+}
+
+.wsPanelBody {
+  padding: 10px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.wsPanelEmpty {
+  font-size: 0.8rem;
+  color: var(--pc-text3);
+  text-align: center;
+  padding: 8px 0;
+}
+
+.wsSec {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.wsSecLabel {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--pc-text3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 2px;
+}
+
+.wsItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: var(--pc-text2);
+  padding: 4px 6px;
+  border-radius: 5px;
+  transition: background 0.1s ease;
+  &:hover { background: var(--pc-s3); }
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wsItemDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 // ─── Responsive ──────────────────────────────────────────────────────────────

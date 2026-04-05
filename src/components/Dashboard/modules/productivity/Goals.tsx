@@ -76,6 +76,7 @@ const Goals: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [undo, setUndo] = useState<{ goal: Goal; show: boolean } | null>(null)
   const [newSubText, setNewSubText] = useState("")
+  const [showRecs, setShowRecs] = useState(true)
 
   // Form state
   const [fTitle, setFTitle] = useState("")
@@ -177,6 +178,25 @@ const Goals: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
   const selectedProgress = selected ? autoProgress(selected) : 0
   const selectedDeadline = selected ? deadlineLabel(selected.deadline) : null
   const selectedSubsDone = selected ? selected.subs.filter(s => s.done).length : 0
+
+  // Adaptive recommendations
+  const recs = useMemo(() => {
+    const now = new Date()
+    const sevenDaysAgo = new Date(now); sevenDaysAgo.setDate(now.getDate() - 7)
+    const fourteenDaysAgo = new Date(now); fourteenDaysAgo.setDate(now.getDate() - 14)
+    const atRisk = goals.filter(g => {
+      if (g.done || autoProgress(g) >= 100) return false
+      if (!g.updatedAt) return true
+      return new Date(g.updatedAt) < sevenDaysAgo
+    })
+    const adjustPriority = goals.filter(g => {
+      if (g.done || g.priority !== 'high') return false
+      if (!g.updatedAt) return false
+      return new Date(g.updatedAt) < fourteenDaysAgo
+    })
+    return { atRisk, adjustPriority }
+  }, [goals])
+  const hasRecs = recs.atRisk.length > 0 || recs.adjustPriority.length > 0
 
   // Stats SVG ring
   const statsRingR = 36
@@ -396,6 +416,41 @@ const Goals: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
               )
             })}
           </div>
+
+          {/* Recommendations */}
+          {hasRecs && (
+            <div className={styles.statsSection}>
+              <button className={styles.recsHeader} onClick={() => setShowRecs(r => !r)}>
+                <div className={styles.statsLabel} style={{ margin: 0 }}>💡 Recommendations</div>
+                <span className={styles.recsChevron}>{showRecs ? '▲' : '▼'}</span>
+              </button>
+              {showRecs && (
+                <div className={styles.recsBody}>
+                  {recs.atRisk.slice(0, 3).map(g => (
+                    <div key={g.id} className={styles.recsRow} data-type="warning" onClick={() => setSelectedId(g.id)}>
+                      <span className={styles.recsIcon}>⚠️</span>
+                      <div className={styles.recsContent}>
+                        <span className={styles.recsTitle}>At risk</span>
+                        <span className={styles.recsDesc}>{g.title}</span>
+                      </div>
+                    </div>
+                  ))}
+                  {recs.adjustPriority.slice(0, 2).map(g => (
+                    <div key={g.id} className={styles.recsRow} data-type="tip">
+                      <span className={styles.recsIcon}>🎯</span>
+                      <div className={styles.recsContent}>
+                        <span className={styles.recsTitle}>Adjust priority</span>
+                        <span className={styles.recsDesc}>{g.title}</span>
+                        <button className={styles.recsAction} onClick={e => { e.stopPropagation(); storeUpdateGoal({ ...g, priority: 'medium' }) }}>
+                          Set medium
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

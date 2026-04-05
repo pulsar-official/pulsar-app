@@ -1,0 +1,62 @@
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: oklch(0.22 0.02 250);
+  border: 1px solid oklch(0.32 0.03 250);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px oklch(0 0 0 / 0.45);
+  animation: slideUp 180ms ease forwards;
+  white-space: nowrap;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.label {
+  font-size: 13px;
+  color: oklch(0.75 0.04 250);
+  flex: 1;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.undoBtn {
+  font-size: 12px;
+  font-weight: 600;
+  color: oklch(0.72 0.14 250);
+  background: oklch(0.28 0.06 250 / 0.5);
+  border: 1px solid oklch(0.40 0.10 250 / 0.5);
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: background 120ms ease;
+
+  &:hover {
+    background: oklch(0.34 0.08 250 / 0.6);
+  }
+}
+
+.closeBtn {
+  font-size: 16px;
+  color: oklch(0.50 0.02 250);
+  background: none;
+  border: none;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 2px;
+  transition: color 120ms ease;
+
+  &:hover {
+    color: oklch(0.70 0.02 250);
+  }
+}
