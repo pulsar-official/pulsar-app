@@ -250,6 +250,13 @@ export default function FocusSessions() {
     }
   }, [tasks, phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── BROWSER NOTIFICATIONS ──
+  const notify = useCallback((title: string, body: string) => {
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted' && document.hidden) {
+      new Notification(title, { body, icon: '/favicon.ico' })
+    }
+  }, [])
+
   // ── CALLBACKS ──
   const handleWorkDone = useCallback(() => {
     const nextCycle = cycle + 1;
@@ -314,13 +321,6 @@ export default function FocusSessions() {
       return [...prev.filter((t) => t.id !== id), { ...task, deferred: true }];
     });
   };
-
-  // ── BROWSER NOTIFICATIONS ──
-  const notify = useCallback((title: string, body: string) => {
-    if (typeof Notification !== 'undefined' && Notification.permission === 'granted' && document.hidden) {
-      new Notification(title, { body, icon: '/favicon.ico' })
-    }
-  }, [])
 
   // ── SESSION CONTROL ──
   const startSession = () => {
