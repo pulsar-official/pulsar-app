@@ -107,7 +107,7 @@ const Tasks: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
   }
   const del = async (id: string) => { setIsDeleting(true); await storeDeleteTask(id); setIsDeleting(false); setConfirmDeleteTaskId(null); setOpen(false) }
   const togglePin = (t: Task) => storeUpdateTask({ ...t, pinned: !t.pinned })
-  const quickAddTask = () => { if (!quickAdd.trim()) return; storeAddTask({ title: quickAdd.trim(), status: 'todo' }); setQuickAdd("") }
+  const quickAddTask = () => { if (!quickAdd.trim()) return; storeAddTask({ title: quickAdd.trim(), description: '', priority: 'medium', tag: 'work', dueDate: null, status: 'todo', completed: false }); setQuickAdd("") }
 
   /* ── List View ── */
   const renderSubtasks = (parentId: string) => {

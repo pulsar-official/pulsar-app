@@ -187,11 +187,12 @@ export default function FocusSessions() {
     storeAddEvent({
       title: 'Focus Session',
       date: today,
+      dateEnd: null,
       startTime: null,
       endTime: null,
       tag: 'focus',
       recur: null,
-    } as any)
+    })
     // Persist the actual focus session with metrics
     const elapsed = sessionStartTime ? Math.round((Date.now() - sessionStartTime) / 1000) : 0
     storeAddFocusSession({
