@@ -296,7 +296,8 @@
   display: flex;
   gap: 10px;
   padding: 0 14px 14px;
-  height: 80px;
+  min-height: 120px;
+  height: auto;
 }
 
 /* ── Graph Card (bottom-left) ── */
@@ -308,9 +309,10 @@
   padding: 12px 14px 8px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   animation: haSlideIn 220ms $ease;
   min-width: 0;
+  min-height: 120px;
 }
 
 .sectionTitle {
@@ -325,7 +327,8 @@
 .graphWrap {
   flex: 1;
   position: relative;
-  min-height: 0;
+  min-height: 80px;
+  height: 80px;
   overflow: hidden;
 }
 
