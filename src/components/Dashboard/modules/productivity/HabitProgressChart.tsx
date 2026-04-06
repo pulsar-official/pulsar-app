@@ -59,7 +59,17 @@ export default function HabitProgressChart({
 
   /* Calculate completion % for each day */
   const chartData = useMemo(() => {
-    if (habits.length === 0) return []
+    if (days.length === 0) return []
+    // Even if no habits, show 0% baseline
+    if (habits.length === 0) {
+      return days.map(d => ({
+        date: d.date,
+        day: d.day,
+        pct: 0,
+        completed: 0,
+        total: 0,
+      }))
+    }
     return days.map(d => {
       const completed = habits.filter(h => isChecked(h.id, d.date)).length
       const pct = (completed / habits.length) * 100
@@ -133,16 +143,25 @@ export default function HabitProgressChart({
     }
   }, [chartData, svgSize])
 
-  if (habits.length === 0 || chartData.length === 0) {
+  if (chartData.length === 0 || !svgGeometry) {
     return (
-      <div className={styles.empty}>
-        <span>Add habits to see progress</span>
+      <div className={styles.container} ref={containerRef}>
+        <svg width={svgSize.w} height={svgSize.h} className={styles.svg}>
+          {/* Baseline: show 0% line when no data */}
+          <line
+            x1={28}
+            y1={svgSize.h - 24}
+            x2={svgSize.w - 12}
+            y2={svgSize.h - 24}
+            className={styles.axisLine}
+          />
+        </svg>
+        <div className={styles.summary}>
+          <span className={styles.summaryLabel}>Last 30 days</span>
+          <span className={styles.summaryValue}>0% avg</span>
+        </div>
       </div>
     )
-  }
-
-  if (!svgGeometry) {
-    return <div className={styles.container} ref={containerRef} />
   }
 
   const { W, H, PL, PR, PT, PB, chartW, chartH, pts, pathD, areaD } = svgGeometry
