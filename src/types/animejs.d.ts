@@ -1,5 +1,5 @@
 declare module 'animejs' {
-  interface AnimeParams {
+  export interface AnimeParams {
     targets?: any
     duration?: number
     delay?: number
@@ -12,7 +12,7 @@ declare module 'animejs' {
     [key: string]: any
   }
 
-  interface AnimeInstance {
+  export interface AnimeInstance {
     play(): void
     pause(): void
     restart(): void
@@ -26,6 +26,17 @@ declare module 'animejs' {
   function anime(params: AnimeParams): AnimeInstance
 
   namespace anime {
+    export interface AnimeInstance {
+      play(): void
+      pause(): void
+      restart(): void
+      reverse(): void
+      seek(progress: number): void
+      tick(now: number): void
+      progress(value?: number): number
+      reset(): void
+    }
+
     function set(targets: any, value: any): AnimeInstance
     function timeline(params?: any): AnimeInstance
     function random(min: number, max: number): number
