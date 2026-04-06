@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
-    "@georgedoescode/spline": "^2.0.4",
+    "@georgedoescode/spline": "^1.0.1",
     "@journeyapps/wa-sqlite": "^1.5.0",
     "@powersync/react": "^1.9.1",
     "@powersync/web": "^1.37.0",
