@@ -1,0 +1,117 @@
+@use "@/styles/variables" as *;
+
+.widget {
+  background: oklch(0.2 0.02 60 / 0.55);
+  border: 1px solid oklch(0.62 0.16 80 / 0.3);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 16px oklch(0.62 0.16 80 / 0.08);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.65rem;
+}
+
+.headerIcon {
+  font-size: 0.95rem;
+}
+
+.headerTitle {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: oklch(0.82 0.1 70);
+  flex: 1;
+  letter-spacing: 0.02em;
+}
+
+.dismissAll {
+  background: transparent;
+  border: none;
+  color: oklch(0.5 0.05 70);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0.1rem 0.25rem;
+  border-radius: 4px;
+  transition: color 0.15s;
+
+  &:hover { color: oklch(0.7 0.05 70); }
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: oklch(0.17 0.015 60 / 0.5);
+  border: 1px solid oklch(0.62 0.16 80 / 0.2);
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+}
+
+.cardText {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.dayChip {
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: oklch(0.62 0.16 80 / 0.2);
+  color: oklch(0.78 0.14 75);
+  border-radius: 4px;
+  padding: 0.1em 0.45em;
+  flex-shrink: 0;
+}
+
+.time {
+  font-size: 0.75rem;
+  color: oklch(0.72 0.08 70);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.taskName {
+  font-size: 0.8rem;
+  color: oklch(0.85 0.05 260);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cardActions {
+  flex-shrink: 0;
+}
+
+.acceptBtn {
+  background: oklch(0.62 0.16 80);
+  color: oklch(0.15 0.02 60);
+  border: none;
+  border-radius: 6px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, transform 0.1s;
+
+  &:hover {
+    background: oklch(0.68 0.16 80);
+    transform: translateY(-1px);
+  }
+
+  &:active { transform: translateY(0); }
+}

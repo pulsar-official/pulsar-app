@@ -1,0 +1,230 @@
+@use "@/styles/variables" as *;
+
+.widget {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: oklch(0.09 0.02 270);
+  border-radius: 12px;
+  border: 1px solid oklch(0.18 0.03 270);
+  overflow: hidden;
+  font-family: 'Outfit', system-ui, sans-serif;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid oklch(0.18 0.03 270);
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 12px;
+  font-weight: 600;
+  color: oklch(0.92 0.01 270);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.range {
+  font-size: 11px;
+  color: oklch(0.55 0.04 270);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  flex: 1;
+  overflow: hidden;
+  gap: 0;
+}
+
+.dayCol {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid oklch(0.16 0.02 270);
+  overflow: hidden;
+
+  &:last-child {
+    border-right: none;
+  }
+}
+
+.todayCol {
+  background: oklch(0.12 0.04 290 / 0.3);
+}
+
+.dayLabel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px 6px;
+  border-bottom: 1px solid oklch(0.16 0.02 270);
+  flex-shrink: 0;
+}
+
+.dayName {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: oklch(0.5 0.04 270);
+}
+
+.dayNum {
+  font-size: 13px;
+  font-weight: 500;
+  color: oklch(0.75 0.04 270);
+  line-height: 1;
+}
+
+.todayNum {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: oklch(0.55 0.18 290);
+  border-radius: 50%;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pills {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 5px 4px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.pill {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 3px 5px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: filter 0.15s ease;
+
+  &:hover {
+    filter: brightness(1.2);
+  }
+}
+
+.pillTitle {
+  font-size: 10px;
+  font-weight: 500;
+  color: oklch(0.88 0.02 270);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.pillTime {
+  font-size: 9px;
+  color: oklch(0.6 0.03 270);
+  line-height: 1;
+}
+
+.noEvents {
+  display: block;
+  height: 4px;
+}
+
+.more {
+  font-size: 9px;
+  color: oklch(0.5 0.04 270);
+  padding: 0 2px;
+}
+
+// ─── Popover ──────────────────────────────────────────────────────────────────
+
+.popoverBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: oklch(0 0 0 / 0.4);
+}
+
+.popover {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: oklch(0.13 0.03 270);
+  border: 1px solid oklch(0.22 0.04 270);
+  border-radius: 10px;
+  padding: 14px;
+  min-width: 200px;
+  max-width: 280px;
+  position: relative;
+  box-shadow: 0 8px 32px oklch(0 0 0 / 0.5);
+}
+
+.popoverDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.popoverBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.popoverTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: oklch(0.92 0.01 270);
+  margin: 0;
+}
+
+.popoverMeta {
+  font-size: 11px;
+  color: oklch(0.6 0.04 270);
+  margin: 0;
+}
+
+.popoverTag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 20px;
+  letter-spacing: 0.04em;
+  text-transform: capitalize;
+  width: fit-content;
+}
+
+.popoverClose {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: oklch(0.5 0.04 270);
+  font-size: 16px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 4px;
+
+  &:hover {
+    color: oklch(0.8 0.02 270);
+  }
+}

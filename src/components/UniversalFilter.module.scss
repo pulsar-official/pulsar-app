@@ -1,0 +1,173 @@
+@use "@/styles/variables" as *;
+
+.filterBar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid oklch(0.4 0.06 260);
+  background: oklch(0.18 0.03 260);
+  color: oklch(0.75 0.04 260);
+  font-size: 0.78rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.pillRemove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.6;
+  padding: 0;
+  font-size: 0.7rem;
+  line-height: 1;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.addWrap {
+  position: relative;
+}
+
+.addBtn {
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px dashed oklch(0.4 0.05 260);
+  background: none;
+  color: oklch(0.6 0.06 260);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  font-family: inherit;
+
+  &:hover {
+    border-color: oklch(0.6 0.08 260);
+    color: oklch(0.8 0.06 260);
+  }
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 100;
+  background: oklch(0.16 0.03 260);
+  border: 1px solid oklch(0.28 0.04 260);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px oklch(0.05 0.02 260 / 0.7);
+  padding: 8px 0;
+  min-width: 180px;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.section {
+  padding: 4px 0;
+  border-bottom: 1px solid oklch(0.22 0.03 260);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.sectionLabel {
+  padding: 4px 14px 2px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: oklch(0.5 0.06 260);
+}
+
+.option {
+  display: block;
+  width: 100%;
+  padding: 6px 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: oklch(0.82 0.03 260);
+  font-size: 0.85rem;
+  font-family: inherit;
+  transition: background 0.1s;
+
+  &:hover {
+    background: oklch(0.22 0.04 260);
+  }
+}
+
+.dateInputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  flex-wrap: wrap;
+}
+
+.dateInput {
+  background: oklch(0.2 0.03 260);
+  border: 1px solid oklch(0.32 0.04 260);
+  border-radius: 6px;
+  color: oklch(0.85 0.02 260);
+  font-size: 0.78rem;
+  padding: 4px 8px;
+  font-family: inherit;
+  outline: none;
+  min-width: 0;
+  flex: 1;
+
+  &:focus {
+    border-color: oklch(0.55 0.12 260);
+  }
+}
+
+.dateSep {
+  color: oklch(0.5 0.03 260);
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.applyBtn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: none;
+  background: oklch(0.55 0.18 290);
+  color: #fff;
+  font-size: 0.78rem;
+  font-family: inherit;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+
+  &:hover {
+    background: oklch(0.62 0.18 290);
+  }
+}
+
+.clearAll {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: oklch(0.55 0.06 20);
+  font-size: 0.78rem;
+  font-family: inherit;
+  padding: 4px 2px;
+  transition: color 0.15s;
+
+  &:hover {
+    color: oklch(0.7 0.12 20);
+  }
+}

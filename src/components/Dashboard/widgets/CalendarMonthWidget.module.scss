@@ -1,0 +1,132 @@
+@use "@/styles/variables" as *;
+
+.widget {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: oklch(0.09 0.02 270);
+  border-radius: 12px;
+  border: 1px solid oklch(0.18 0.03 270);
+  overflow: hidden;
+  font-family: 'Outfit', system-ui, sans-serif;
+  padding: 10px 8px;
+  gap: 6px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+
+.monthLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: oklch(0.88 0.02 270);
+}
+
+.navBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: oklch(0.55 0.04 270);
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.12s, color 0.12s;
+
+  &:hover {
+    background: oklch(0.16 0.03 270);
+    color: oklch(0.85 0.02 270);
+  }
+}
+
+.weekRow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  flex-shrink: 0;
+}
+
+.weekHeader {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: oklch(0.45 0.04 270);
+  text-align: center;
+  padding: 2px 0 4px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  flex: 1;
+}
+
+.blankCell {
+  // empty placeholder
+}
+
+.dayCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.12s;
+
+  &:hover {
+    background: oklch(0.15 0.03 270);
+  }
+}
+
+.todayCell {
+  background: oklch(0.13 0.05 290 / 0.4);
+
+  &:hover {
+    background: oklch(0.16 0.06 290 / 0.5);
+  }
+}
+
+.dayNum {
+  font-size: 11px;
+  font-weight: 400;
+  color: oklch(0.7 0.03 270);
+  line-height: 1;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.todayNum {
+  background: oklch(0.55 0.18 290);
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.dots {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  height: 5px;
+}
+
+.dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}

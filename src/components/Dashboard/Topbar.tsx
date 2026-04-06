@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import styles from './Topbar.module.scss'
 import { useUIStore } from '@/stores/uiStore'
+import UniversalSearch from '@/components/UniversalSearch'
 
 interface TopbarProps {
   breadcrumbs: Array<{ label: string; onClick?: () => void }>
@@ -29,6 +30,7 @@ export const Topbar: React.FC<TopbarProps> = ({
 
   return (
     <header className={styles.topbar}>
+      <UniversalSearch />
       {/* Mobile hamburger */}
       <button className={styles.hamburger} onClick={toggleMobileMenu} aria-label="Open menu">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">

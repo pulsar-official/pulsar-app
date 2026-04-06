@@ -1,0 +1,334 @@
+@use "@/styles/variables" as *;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: $sp-6;
+  padding: $sp-6;
+  height: 100%;
+  overflow-y: auto;
+}
+
+// ── Header ────────────────────────────────────────────────────────────────────
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $sp-4;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  color: $text-1;
+  margin: 0;
+}
+
+.toggle {
+  display: flex;
+  gap: 2px;
+  background: $surface-2;
+  border: 1px solid $border;
+  border-radius: 8px;
+  padding: 3px;
+
+  button {
+    padding: 4px 14px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: $text-3;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+
+    &:hover { color: $text-2; }
+  }
+}
+
+.active {
+  background: $surface-4 !important;
+  color: $text-1 !important;
+}
+
+// ── Card Grid ─────────────────────────────────────────────────────────────────
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $sp-4;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 700px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  background: $surface-2;
+  border: 1px solid $border;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.15s;
+
+  &:hover {
+    border-color: $border-subtle;
+  }
+}
+
+.cardTitle {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: $text-3;
+  margin: 0;
+}
+
+.cardRow {
+  display: flex;
+  align-items: center;
+  gap: $sp-3;
+}
+
+.cardSub {
+  font-size: 12px;
+  color: $text-3;
+  margin: 0;
+}
+
+.bigNumber {
+  font-size: 42px;
+  font-weight: 800;
+  line-height: 1;
+  color: $text-1;
+}
+
+.badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 100px;
+}
+
+// ── Progress Bar ──────────────────────────────────────────────────────────────
+
+.progressBar {
+  height: 6px;
+  background: $surface-3;
+  border-radius: 100px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 100px;
+  transition: width 0.4s ease;
+}
+
+// ── Circular Ring ─────────────────────────────────────────────────────────────
+
+.ring {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  transform: rotate(-90deg);
+}
+
+// ── Streak Heatmap Row ────────────────────────────────────────────────────────
+
+.heatRow {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.heatSq {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  background: $surface-3;
+  transition: background 0.15s;
+}
+
+.heatSqOn {
+  background: oklch(0.65 0.14 150);
+}
+
+// ── Goals List ────────────────────────────────────────────────────────────────
+
+.goalsList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.goalRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $sp-2;
+}
+
+.goalTitle {
+  font-size: 13px;
+  color: $text-2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+
+.goalPct {
+  font-size: 12px;
+  font-weight: 600;
+  color: $text-3;
+  flex-shrink: 0;
+}
+
+// ── Mood Row ──────────────────────────────────────────────────────────────────
+
+.moodRow {
+  display: flex;
+  gap: $sp-2;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.moodEmoji {
+  font-size: 26px;
+  line-height: 1;
+}
+
+// ── Tip inside card ───────────────────────────────────────────────────────────
+
+.tip {
+  font-size: 11px;
+  color: oklch(0.72 0.16 60);
+  margin: 0;
+  padding: 6px 10px;
+  background: oklch(0.72 0.16 60 / 0.08);
+  border-radius: 6px;
+}
+
+// ── Sections ──────────────────────────────────────────────────────────────────
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: $sp-3;
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: $text-2;
+  margin: 0;
+}
+
+// ── 30-day Heatmap ────────────────────────────────────────────────────────────
+
+.heatmap {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.heatCell {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  background: $surface-3;
+}
+
+.level0 { background: $surface-3; }
+.level1 { background: oklch(0.35 0.10 150); }
+.level2 { background: oklch(0.48 0.12 150); }
+.level3 { background: oklch(0.58 0.13 150); }
+.level4 { background: oklch(0.65 0.14 150); }
+
+.heatLegend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: $text-3;
+}
+
+// ── Tag Row ───────────────────────────────────────────────────────────────────
+
+.tagRow {
+  display: flex;
+  gap: $sp-2;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.tag {
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 100px;
+  background: $surface-3;
+  color: $text-2;
+  border: 1px solid $border;
+}
+
+.tagRank0 { background: oklch(0.6 0.12 290 / 0.15); color: oklch(0.75 0.12 290); border-color: oklch(0.6 0.12 290 / 0.3); }
+.tagRank1 { background: oklch(0.6 0.15 260 / 0.15); color: oklch(0.75 0.12 260); border-color: oklch(0.6 0.15 260 / 0.3); }
+.tagRank2 { background: $surface-3; color: $text-3; border-color: $border; }
+
+.empty {
+  font-size: 13px;
+  color: $text-3;
+  font-style: italic;
+}
+
+// ── Tips Section ──────────────────────────────────────────────────────────────
+
+.tipsSection {
+  display: flex;
+  flex-direction: column;
+  gap: $sp-3;
+  padding-bottom: $sp-8;
+}
+
+.tipsGrid {
+  display: flex;
+  gap: $sp-4;
+  flex-wrap: wrap;
+}
+
+.tipCard {
+  display: flex;
+  align-items: flex-start;
+  gap: $sp-3;
+  padding: 14px 16px;
+  background: oklch(0.72 0.16 60 / 0.07);
+  border: 1px solid oklch(0.72 0.16 60 / 0.2);
+  border-radius: 10px;
+  flex: 1;
+  min-width: 220px;
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    color: $text-2;
+    line-height: 1.5;
+  }
+}
+
+.tipIcon {
+  font-size: 18px;
+  flex-shrink: 0;
+  line-height: 1.3;
+}

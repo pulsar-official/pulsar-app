@@ -1,1133 +1,628 @@
-// --- FOCUS SESSIONS - STYLES ---
 @use "@/styles/variables" as *;
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
-// ─── TOKENS ───
-$bg:            #0a0c10;
-$bg-card:       #12141a;
-$bg-hover:      #1a1d26;
-$border:        #1e2230;
-$text:          #e8eaed;
-$text2:         #8b8fa4;
-$text3:         #5a5f73;
-$accent:        #7c5cfc;
-$accent-hover:  #6b4de8;
-$accent-glow:   rgba(124, 92, 252, 0.15);
-$accent-subtle: rgba(124, 92, 252, 0.08);
-$green:         #34d399;
-$green-glow:    rgba(52, 211, 153, 0.12);
-$red:           #f87171;
-$red-glow:      rgba(248, 113, 113, 0.12);
-$amber:         #fbbf24;
-$amber-glow:    rgba(251, 191, 36, 0.12);
+// ── Tokens ──────────────────────────────────────────────────────────────────
+$accent:        oklch(0.55 0.18 290);
+$accentLight:   oklch(0.70 0.14 290);
+$accentGlow:    oklch(0.55 0.18 290 / 0.35);
+$accentDim:     oklch(0.30 0.10 290);
+$green:         oklch(0.65 0.14 150);
+$greenDim:      oklch(0.35 0.08 150);
+$blue:          oklch(0.65 0.12 230);
+$blueDim:       oklch(0.35 0.08 230);
+$amber:         oklch(0.75 0.14 80);
+$red:           oklch(0.65 0.15 20);
+$redDim:        oklch(0.30 0.10 20);
+$surface:       oklch(0.14 0.01 270);
+$surfaceHover:  oklch(0.18 0.01 270);
+$border:        oklch(0.25 0.02 270);
+$textMuted:     oklch(0.55 0.02 270);
+$text:          oklch(0.90 0.01 270);
 
-// ─── KEYFRAMES ───
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.4; transform: scale(1.4); }
-}
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-@keyframes modalIn {
-  from { opacity: 0; transform: scale(0.96) translateY(6px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
-}
-@keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.5); }
-  to   { opacity: 1; transform: scale(1); }
-}
+// ── Layout ───────────────────────────────────────────────────────────────────
 
-// ─── ROOT ───
-.app {
-  font-family: 'JetBrains Mono', monospace;
-  background: transparent;
-  color: $text;
+.container {
+  display: flex;
+  flex-direction: column;
   height: 100%;
+  min-height: 0;
   overflow: hidden;
-  *::selection { background: rgba(124, 92, 252, 0.25); }
+  position: relative;
+  font-size: 0.9rem;
+  color: $text;
 }
 
-// ─── SHARED PANEL ───
-.panel {
-  background: $bg-card;
-  border: 1px solid $border;
-  border-radius: 14px;
-}
+// ── Shared screen wrapper ────────────────────────────────────────────────────
 
-// ─── PLACEHOLDER ROWS ───
-.taskPlaceholder {
-  padding: 11px 20px;
+.homeScreen,
+.taskSelectScreen,
+.runningScreen,
+.doneScreen {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  &.even { background: rgba(255, 255, 255, 0.018); }
-}
-.taskPlaceholderDot {
-  width: 16px; height: 16px;
-  border-radius: 50%;
-  border: 1.5px solid $border;
-  flex-shrink: 0;
-  opacity: 0.3;
-}
-.taskPlaceholderLine {
-  height: 10px;
-  border-radius: 4px;
-  background: $border;
-  opacity: 0.4;
-}
-
-// ─── SECTION LABEL ───
-.sectionLabel {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 1.8px;
-  color: $text3;
-  font-weight: 600;
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.sectionDivider {
-  flex: 1;
-  height: 1px;
-  background: $border;
-}
-
-// ══════════════════════════════════════
-// DASHBOARD
-// ══════════════════════════════════════
-.dashboard {
-  padding: 0;
+  flex-direction: column;
   height: 100%;
   overflow-y: auto;
-  // Desktop: 2-column grid — header + history + tasks on left, rhythm full-height on right
-  display: grid;
-  grid-template-columns: 1fr 340px;
-  grid-template-rows: auto auto 1fr;
-  gap: 24px;
-  align-items: stretch;
-
-  @media (max-width: 768px) {
-    display: flex;
-    flex-direction: column;
-  }
+  padding: 1.25rem 1.5rem 1.5rem;
+  gap: 1rem;
 }
 
-.colLeft {
-  grid-column: 1;
-  grid-row: 3;
+// ── HOME SCREEN ──────────────────────────────────────────────────────────────
+
+.homeHeader {
   display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-.colRight {
-  grid-column: 2;
-  grid-row: 1 / span 3;  // full height: spans all rows
-  display: flex;
-  flex-direction: column;
-  gap: $sp-6;
-  min-height: 0;
-
-  @media (max-width: 768px) {
-    grid-column: unset;
-    grid-row: unset;
-    order: -1;
-  }
+  align-items: center;
+  gap: 0.75rem;
 }
 
-// ── Header ──
-.headerPanel {
-  padding: 24px 24px 20px;
-  grid-column: 1;
-  grid-row: 1;
-
-  @media (max-width: 768px) {
-    grid-column: unset;
-    grid-row: unset;
-    order: -2;
-  }
-}
-
-.header {
-  h1 {
-    font-size: 26px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    background: linear-gradient(135deg, $text 40%, $accent);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 4px;
-  }
-  p { color: $text2; font-size: 13px; }
+.homeTitle {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: $text;
+  margin: 0;
 }
 
 .streakBadge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 12px;
-  padding: 4px 12px;
-  border-radius: 20px;
-  background: $accent-glow;
-  border: 1px solid rgba(124, 92, 252, 0.16);
-  font-size: 11px;
-  color: $accent;
+  gap: 0.25rem;
+  background: oklch(0.30 0.10 50);
+  color: $amber;
+  border: 1px solid oklch(0.45 0.12 50);
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  letter-spacing: 0.3px;
-}
-.streakDot {
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: $accent;
 }
 
-// ── Tasks panel ──
-.tasksPanel {
-  padding: 0;
-  overflow: hidden;
+.weeklySummary {
   display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-.tasksSection {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  overflow: hidden;
-}
-.tasksHeader {
-  padding: 16px 20px 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.taskCount {
-  font-size: 11px;
-  background: rgba(124, 92, 252, 0.094);
-  color: $accent;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-weight: 600;
-}
-.addTaskRow {
-  display: flex;
-  gap: 8px;
-  padding: 0 20px 16px;
-}
-.addTaskInput {
-  flex: 1;
-  background: $bg-card;
+  align-items: baseline;
+  gap: 0.5rem;
+  background: $surface;
   border: 1px solid $border;
   border-radius: 8px;
-  padding: 9px 14px;
-  color: $text;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
-  outline: none;
-  transition: border-color 160ms;
-  &::placeholder { color: $text3; }
-  &:focus { border-color: rgba(124, 92, 252, 0.38); }
+  padding: 0.6rem 0.9rem;
 }
-.addTaskBtn {
-  background: $accent-glow;
-  border: 1px solid rgba(124, 92, 252, 0.19);
-  color: $accent;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
+
+.weeklyLabel {
+  color: $textMuted;
+  font-size: 0.8rem;
+}
+
+.weeklyValue {
+  color: $accentLight;
   font-weight: 600;
-  padding: 9px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 160ms;
-  &:hover { background: rgba(124, 92, 252, 0.145); border-color: rgba(124, 92, 252, 0.31); }
+  font-size: 0.95rem;
 }
-.tasksList {
+
+// ── Preset grid ──────────────────────────────────────────────────────────────
+
+.presetGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+}
+
+.presetCard {
   display: flex;
   flex-direction: column;
-  border-top: 1px solid $border;
-  flex: 1;
-  max-height: none;
-  overflow-y: auto;
-  &::-webkit-scrollbar { width: 4px; }
-  &::-webkit-scrollbar-track { background: transparent; }
-  &::-webkit-scrollbar-thumb { background: $border; border-radius: 2px; }
+  align-items: flex-start;
+  gap: 0.2rem;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  text-align: left;
+
+  &:hover {
+    transform: scale(1.03);
+    border-color: $accentDim;
+    background: $surfaceHover;
+  }
 }
-.tasksEmpty {
-  padding: 24px 20px;
+
+.presetCardSelected {
+  border-color: $accent;
+  box-shadow: 0 0 0 2px $accentGlow;
+  background: oklch(0.16 0.04 290);
+}
+
+.presetLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: $text;
+}
+
+.presetTimes {
+  font-size: 0.75rem;
+  color: $accentLight;
+  font-weight: 500;
+}
+
+.presetDesc {
+  font-size: 0.72rem;
+  color: $textMuted;
+}
+
+// ── Custom panel ─────────────────────────────────────────────────────────────
+
+.customPanel {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.customRow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.customLabel {
+  width: 70px;
+  font-size: 0.8rem;
+  color: $textMuted;
+  flex-shrink: 0;
+}
+
+.customInput {
+  width: 64px;
+  background: oklch(0.10 0.01 270);
+  border: 1px solid $border;
+  border-radius: 6px;
+  color: $text;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.85rem;
   text-align: center;
-  color: $text3;
-  font-size: 13px;
+
+  &:focus {
+    outline: none;
+    border-color: $accent;
+  }
 }
+
+.customUnit {
+  font-size: 0.78rem;
+  color: $textMuted;
+}
+
+// ── Heatmap ───────────────────────────────────────────────────────────────────
+
+.heatmapSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.heatmapLabel {
+  font-size: 0.78rem;
+  color: $textMuted;
+}
+
+.heatmap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.heatSquare {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  transition: opacity 0.1s;
+}
+
+.heatLevel0 { background: oklch(0.20 0.02 270); }
+.heatLevel1 { background: oklch(0.40 0.12 290); }
+.heatLevel2 { background: oklch(0.52 0.16 290); }
+.heatLevel3 { background: oklch(0.65 0.18 290); }
+
+// ── CTA button ────────────────────────────────────────────────────────────────
+
+.ctaBtn {
+  margin-top: auto;
+  background: $accent;
+  color: oklch(0.97 0.01 270);
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.1s ease;
+
+  &:hover {
+    filter: brightness(1.15);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.ctaBtnSecondary {
+  background: $surface;
+  color: $textMuted;
+  border: 1px solid $border;
+
+  &:hover {
+    filter: none;
+    background: $surfaceHover;
+    color: $text;
+  }
+}
+
+// ── TASK SELECT SCREEN ────────────────────────────────────────────────────────
+
+.taskSelectHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.backBtn {
+  background: none;
+  border: none;
+  color: $textMuted;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0.25rem 0;
+  transition: color 0.15s;
+
+  &:hover { color: $text; }
+}
+
+.taskSelectTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: $text;
+  margin: 0;
+}
+
+.noTasks {
+  color: $textMuted;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.taskList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1;
+  overflow-y: auto;
+}
+
 .taskItem {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 11px 20px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  transition: background 140ms;
-  user-select: none;
-  flex-shrink: 0;
-  &.even     { background: rgba(255, 255, 255, 0.018); }
-  &:hover    { background: $bg-hover; }
-  &.selected { background: $accent-subtle; }
-  &.selected .taskCheck { border-color: $accent; background: $accent-glow; }
-  &:hover .taskRemove { opacity: 1; }
-}
-.taskCheck {
-  width: 16px; height: 16px;
-  border-radius: 50%;
-  border: 1.5px solid $border;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  transition: all 160ms;
-  font-size: 9px;
-  color: $accent;
-}
-.taskInfo {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.taskTitle  { font-size: 13px; color: $text; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.taskRoiLabel {
-  font-size: 10px;
-  color: $text3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.taskRoiBadge {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  font-weight: 600;
-  color: $accent;
-  background: $accent-glow;
-  border: 1px solid rgba(124, 92, 252, 0.16);
-  padding: 2px 8px;
-  border-radius: 5px;
-  flex-shrink: 0;
-  letter-spacing: 0.3px;
-}
-.taskPriority {
-  font-size: 10px;
-  padding: 2px 8px;
-  border-radius: 5px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-}
-.taskRemove {
-  background: none;
-  border: none;
-  color: $text3;
-  font-size: 14px;
-  cursor: pointer;
-  padding: 0 2px;
-  line-height: 1;
-  opacity: 0;
-  transition: opacity 160ms, color 160ms;
-  font-family: inherit;
-  &:hover { color: $red; }
-}
-
-// ── History panel ──
-.historyPanel {
-  grid-column: 1 / -1;
-  grid-row: 2;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-
-  @media (max-width: 768px) {
-    grid-column: unset;
-    grid-row: unset;
-  }
-}
-.historyStats {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-.historyStat {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 60px;
-}
-.historyStatVal {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 18px;
-  font-weight: 600;
-  color: $accent;
-}
-.historyStatLabel {
-  font-size: 10px;
-  color: $text3;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.historyChart {
-  width: 100%;
-  overflow-x: auto;
-  &::-webkit-scrollbar { height: 3px; }
-  &::-webkit-scrollbar-track { background: transparent; }
-  &::-webkit-scrollbar-thumb { background: $border; border-radius: 2px; }
-}
-.historyChartSvg {
-  width: 100%;
-  max-width: 392px;
-  height: 80px;
-  display: block;
-}
-.historyBar {
-  fill: rgba(124, 92, 252, 0.35);
-  transition: fill 200ms;
-  &.today {
-    fill: $accent;
-  }
-  &:hover {
-    fill: $accent;
-  }
-}
-.historyLabel {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
-  fill: $text3;
-}
-
-// ── Rhythm panel ──
-.rhythmPanel {
-  background: $bg-card;
-  border: 1px solid $border;
-  border-radius: 14px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-}
-.typesGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-.typeCard {
-  background: $bg-card;
-  border: 1.5px solid $border;
-  border-radius: 11px;
-  padding: 16px 14px;
-  cursor: pointer;
-  transition: border-color 150ms ease-out, background 150ms ease-out, box-shadow 150ms ease-out;
-  position: relative;
-  overflow: hidden;
-  &:hover {
-    border-color: var(--c);
-    background: color-mix(in srgb, var(--c) 6%, $bg-card);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  }
-  &.selected {
-    border-color: var(--c);
-    background: color-mix(in srgb, var(--c) 9%, $bg-card);
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--c) 20%, transparent), 0 4px 20px rgba(0, 0, 0, 0.2);
-  }
-  &.customCard {
-    grid-column: 1 / -1;
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 20px;
-  }
-}
-.typeCardBody {
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-}
-.typeIcon {
-  width: 28px; height: 28px;
-  border-radius: 7px;
-  background: color-mix(in srgb, var(--c) 12%, $bg);
-  border: 1px solid color-mix(in srgb, var(--c) 25%, transparent);
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px; font-weight: 700;
-  color: var(--c);
-  margin-bottom: 10px;
-  transition: background 150ms;
-}
-.typeLabel  { font-size: 13px; font-weight: 600; margin-bottom: 2px; color: $text; }
-.typeDesc   { font-size: 11px; color: $text3; line-height: 1.45; margin-bottom: 10px; }
-.typeTiming {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  color: color-mix(in srgb, var(--c) 70%, $text3);
-  padding: 2px 7px;
-  background: color-mix(in srgb, var(--c) 8%, $bg);
-  border-radius: 4px;
-  display: inline-block;
-  border: 1px solid color-mix(in srgb, var(--c) 18%, transparent);
-}
-.customFields {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  flex: 1;
-  align-self: center;
-  animation: slideDown 160ms ease-out;
-}
-.customFieldsHidden {
-  visibility: hidden;
-  pointer-events: none;
-}
-.settingGroup {
-  label {
-    display: block;
-    font-size: 9px;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    color: $text3;
-    margin-bottom: 5px;
-    font-weight: 600;
-  }
-}
-.settingInput {
-  width: 100%;
-  background: $bg;
-  border: 1px solid $border;
-  border-radius: 6px;
-  padding: 6px 8px;
-  color: $text;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
-  outline: none;
-  transition: border-color 150ms;
-  appearance: textfield;
-  text-align: center;
-  &::-webkit-inner-spin-button,
-  &::-webkit-outer-spin-button { -webkit-appearance: none; }
-  &:focus { border-color: var(--c, #{$accent}); }
-}
-
-// ── Commit ──
-.commitSection {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding-top: 4px;
-  border-top: 1px solid $border;
-}
-.commitBtn {
-  width: 100%;
-  background: $accent;
-  border: none;
-  color: white;
-  font-size: 14px; font-weight: 600;
-  padding: 13px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-family: 'JetBrains Mono', monospace;
-  transition: all 200ms ease-out;
-  letter-spacing: 0.3px;
-  &:hover { background: $accent-hover; box-shadow: 0 6px 24px rgba(124, 92, 252, 0.25); }
-}
-.commitNote { font-size: 11px; color: $text3; text-align: center; }
-
-// ══════════════════════════════════════
-// SESSION / REST
-// ══════════════════════════════════════
-.session {
-  display: grid;
-  grid-template-columns: 1fr 300px;
-  height: 100%;
-  overflow: hidden;
-  font-family: 'JetBrains Mono', monospace;
-}
-.sessionLeft {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 32px 40px 40px;
-  position: relative;
-  border-right: 1px solid $border;
-  overflow: hidden;
-}
-.sessionRight {
-  display: flex;
-  flex-direction: column;
-  background: $bg-card;
-  overflow: hidden;
-}
-.sessionRightHeader {
-  padding: 20px 20px 14px;
-  border-bottom: 1px solid $border;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0;
-  h3 {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1.8px;
-    color: $text3;
-    font-weight: 600;
-    font-family: 'JetBrains Mono', monospace;
-  }
-}
-.sessionRightCount {
-  font-size: 10px;
-  font-family: 'JetBrains Mono', monospace;
-  color: $text3;
-}
-.sessionTasksList {
-  flex: 1;
-  overflow-y: auto;
-  &::-webkit-scrollbar { width: 3px; }
-  &::-webkit-scrollbar-track { background: transparent; }
-  &::-webkit-scrollbar-thumb { background: $border; border-radius: 2px; }
-}
-.sessionEmpty {
-  padding: 32px 20px;
-  text-align: center;
-  color: $text3;
-  font-size: 11px;
-  font-family: 'JetBrains Mono', monospace;
-}
-
-// ── Quote ──
-.quote {
-  font-size: 11px;
-  color: $text3;
-  font-style: italic;
-  align-self: stretch;
-  text-align: center;
-  line-height: 1.8;
-  font-family: 'JetBrains Mono', monospace;
-  margin-bottom: 24px;
-  padding: 12px 16px;
+  gap: 0.6rem;
+  background: $surface;
   border: 1px solid $border;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.02);
-  overflow-wrap: break-word;
-  word-break: break-word;
+  padding: 0.55rem 0.75rem;
+  cursor: pointer;
+  transition: background 0.12s;
+
+  &:hover { background: $surfaceHover; }
 }
 
-// ── Status badge ──
-.sessionBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-size: 10px; font-weight: 700;
-  margin-bottom: 36px;
-  text-transform: uppercase;
-  letter-spacing: 1.8px;
-  font-family: 'JetBrains Mono', monospace;
-  &.focus { background: $accent-glow; color: $accent; border: 1px solid rgba(124, 92, 252, 0.145); }
-  &.rest  { background: $green-glow;  color: $green;  border: 1px solid rgba(52, 211, 153, 0.145); }
+.taskCheckbox {
+  accent-color: $accent;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  flex-shrink: 0;
 }
-.pulse {
-  width: 7px; height: 7px;
+
+.priorityDot {
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: currentColor;
-  animation: pulse 2s infinite;
+  flex-shrink: 0;
 }
 
-// ── Timer ring ──
-.timerWrap {
+.taskTitle {
+  font-size: 0.85rem;
+  color: $text;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ── RUNNING SCREEN ────────────────────────────────────────────────────────────
+
+.runningScreen {
+  align-items: center;
+  padding: 1rem 1.5rem 1.25rem;
+  gap: 0.75rem;
+}
+
+.phaseLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+}
+
+.phaseFocus {
+  color: $accentLight;
+  border-color: $accentDim;
+  background: oklch(0.55 0.18 290 / 0.10);
+}
+
+.phaseRest {
+  color: $green;
+  border-color: $greenDim;
+  background: oklch(0.65 0.14 150 / 0.10);
+}
+
+.phaseLongRest {
+  color: $blue;
+  border-color: $blueDim;
+  background: oklch(0.65 0.12 230 / 0.10);
+}
+
+.timerCircle {
   position: relative;
-  width: 260px; height: 260px;
-  margin-bottom: 28px;
-  @media (max-width: 520px) { width: 220px; height: 220px; }
+  width: 220px;
+  height: 220px;
+  flex-shrink: 0;
 }
-.timerSvg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.timerBg  { fill: none; stroke: $border; stroke-width: 5; }
-.timerProgress {
-  fill: none;
+
+.timerTrack {
+  stroke: oklch(0.22 0.03 270);
+}
+
+.timerArc {
   stroke: $accent;
-  stroke-width: 5;
-  stroke-linecap: round;
-  transition: stroke-dashoffset 0.98s linear;
-  &.restPhase { stroke: $green; }
+  transition: stroke-dashoffset 1s linear;
 }
-.timerInner {
+
+.timerArcActive {
+  stroke: $accentLight;
+}
+
+.timerDisplay {
   position: absolute;
   inset: 0;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
 }
+
 .timerTime {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 48px; font-weight: 500;
-  letter-spacing: -1px;
+  font-size: 2.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: $text;
+  font-variant-numeric: tabular-nums;
+}
+
+.cycleInfo {
+  font-size: 0.82rem;
+  color: $textMuted;
+}
+
+// Session tasks in running view
+.sessionTasks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  width: 100%;
+  max-width: 340px;
+}
+
+.sessionTask {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s;
+
+  &:hover { background: $surfaceHover; }
+}
+
+.sessionTaskDone {
+  opacity: 0.5;
+  .sessionTaskTitle { text-decoration: line-through; }
+}
+
+.sessionTaskCheck {
+  font-size: 0.85rem;
+  color: $green;
+  width: 16px;
+  text-align: center;
+}
+
+.sessionTaskTitle {
+  font-size: 0.82rem;
+  color: $text;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ── Controls ──────────────────────────────────────────────────────────────────
+
+.controls {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.controlBtn {
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.1s ease;
+
+  &:hover { filter: brightness(1.15); transform: translateY(-1px); }
+  &:active { transform: translateY(0); }
+}
+
+.controlPause {
+  background: $accentDim;
+  color: $accentLight;
+  border: 1px solid $accent;
+}
+
+.controlResume {
+  background: $accent;
+  color: oklch(0.97 0.01 270);
+}
+
+.controlSkip {
+  background: $surface;
+  color: $textMuted;
+  border: 1px solid $border;
+}
+
+.controlQuit {
+  background: $redDim;
+  color: $red;
+  border: 1px solid $red;
+}
+
+.completedCount {
+  font-size: 0.8rem;
+  color: $green;
+}
+
+.quote {
+  font-size: 0.78rem;
+  color: $textMuted;
+  font-style: italic;
+  text-align: center;
+  max-width: 320px;
+  line-height: 1.5;
+  margin-top: auto;
+}
+
+// ── DONE SCREEN ───────────────────────────────────────────────────────────────
+
+.doneScreen {
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
+}
+
+.doneEmoji {
+  font-size: 3rem;
   line-height: 1;
-  @media (max-width: 520px) { font-size: 40px; }
-}
-.timerLabel {
-  font-size: 11px;
-  color: $text3;
-  margin-top: 6px;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  font-family: 'JetBrains Mono', monospace;
 }
 
-// ── Cycle dots ──
-.cycles { display: flex; gap: 8px; margin-bottom: 28px; }
-.cycleDot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: $border;
-  transition: background 300ms, box-shadow 300ms;
-  &.done   { background: $green; }
-  &.active { background: $accent; box-shadow: 0 0 8px rgba(124, 92, 252, 0.38); animation: pulse 2s infinite; }
+.doneTitle {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: $text;
+  margin: 0;
 }
 
-// ── Session footer ──
-.sessionFooter {
+.doneStats {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.doneStat {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  margin-top: 4px;
-}
-.lockedMsg {
-  font-size: 11px;
-  color: $text3;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  letter-spacing: 0.3px;
-  font-family: 'JetBrains Mono', monospace;
-}
-.lockedIcon {
-  width: 14px; height: 14px;
-  border-radius: 3px;
-  border: 1.5px solid $text3;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 8px;
-}
-.emergencyBtn {
-  background: none;
-  border: 1px solid $border;
-  color: $text3;
-  font-size: 11px;
-  padding: 6px 14px;
-  border-radius: 7px;
-  cursor: pointer;
-  font-family: 'JetBrains Mono', monospace;
-  transition: all 200ms;
-  &:hover { background: $red-glow; color: $red; border-color: rgba(248, 113, 113, 0.25); }
+  gap: 0.2rem;
 }
 
-// ── Current task card ──
-.currentTask {
-  padding: 20px;
-  border-bottom: 1px solid $border;
-  flex-shrink: 0;
+.doneStatValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: $accentLight;
 }
-.currentTaskLabel {
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: $text3;
-  font-family: 'JetBrains Mono', monospace;
-  margin-bottom: 10px;
+
+.doneStatLabel {
+  font-size: 0.75rem;
+  color: $textMuted;
 }
-.currentTaskTitle {
-  font-size: 13px;
-  font-family: 'JetBrains Mono', monospace;
+
+.doneStreak {
+  font-size: 1rem;
+  font-weight: 600;
+  color: $amber;
+}
+
+.doneBtns {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 280px;
+}
+
+// ── QUIT MODAL ────────────────────────────────────────────────────────────────
+
+.modalOverlay {
+  position: absolute;
+  inset: 0;
+  background: oklch(0.05 0.01 270 / 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(4px);
+}
+
+.quitModal {
+  background: oklch(0.16 0.02 270);
+  border: 1px solid $border;
+  border-radius: 14px;
+  padding: 1.5rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  max-width: 300px;
+  width: 90%;
+  box-shadow: 0 8px 32px oklch(0 0 0 / 0.5);
+}
+
+.quitWarning {
+  font-size: 0.95rem;
+  font-weight: 600;
   color: $text;
-  line-height: 1.6;
-  margin-bottom: 14px;
-  word-break: break-word;
-}
-.currentTaskActions { display: flex; gap: 8px; }
-.currentTaskBtn {
-  flex: 1;
-  display: flex; align-items: center; justify-content: center;
-  gap: 6px;
-  padding: 8px 10px;
-  border-radius: 7px;
-  font-size: 11px;
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 500;
-  cursor: pointer;
-  border: 1px solid $border;
-  background: none;
-  color: $text2;
-  transition: all 150ms;
-  &.doneBtn:hover  { border-color: rgba(52, 211, 153, 0.31); color: $green; background: $green-glow; }
-  &.laterBtn:hover { border-color: rgba(251, 191, 36, 0.25); color: $amber; background: $amber-glow; }
-}
-.currentTaskResources {
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid $border;
-}
-.currentTaskResourcesLabel {
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 1.8px;
-  color: $text3;
-  font-family: 'JetBrains Mono', monospace;
-  margin-bottom: 8px;
-}
-.resourceChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 9px;
-  border-radius: 5px;
-  border: 1px solid $border;
-  background: $bg;
-  font-size: 10px;
-  font-family: 'JetBrains Mono', monospace;
-  color: $text2;
-  margin: 0 4px 4px 0;
-  cursor: default;
-}
-
-// ── Queue ──
-.queueList {
-  flex: 1;
-  overflow-y: auto;
-  &::-webkit-scrollbar { width: 3px; }
-  &::-webkit-scrollbar-track { background: transparent; }
-  &::-webkit-scrollbar-thumb { background: $border; border-radius: 2px; }
-}
-.queueLabel {
-  padding: 10px 20px 6px;
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 1.8px;
-  color: $text3;
-  font-family: 'JetBrains Mono', monospace;
-  border-bottom: 1px solid rgba(30, 34, 48, 0.38);
-}
-.queueRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 20px;
-  border-bottom: 1px solid rgba(30, 34, 48, 0.25);
-  opacity: 0.5;
-  &:last-child { border-bottom: none; }
-  &.even { background: rgba(255, 255, 255, 0.014); }
-}
-.queueRowDot {
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: $text3;
-  flex-shrink: 0;
-}
-.queueRowTitle {
-  font-size: 11px;
-  font-family: 'JetBrains Mono', monospace;
-  color: $text3;
-  word-break: break-word;
-  line-height: 1.4;
-}
-.queueRowTag {
-  font-size: 9px;
-  color: rgba(251, 191, 36, 0.38);
-  font-family: 'JetBrains Mono', monospace;
-  margin-left: auto;
-  flex-shrink: 0;
-}
-
-// ── Rest view ──
-.restMsg {
+  margin: 0;
   text-align: center;
-  margin-bottom: 24px;
-  h2 { font-size: 22px; font-weight: 600; margin-bottom: 6px; font-family: 'Space Grotesk', sans-serif; }
-  p  { color: $text2; font-size: 12px; font-family: 'JetBrains Mono', monospace; }
-}
-.skipRest {
-  background: $bg-card;
-  border: 1px solid $border;
-  color: $text2;
-  padding: 10px 24px;
-  border-radius: 9px;
-  cursor: pointer;
-  font-size: 12px;
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 500;
-  transition: all 200ms;
-  &:hover { border-color: rgba(124, 92, 252, 0.31); color: $text; }
-}
-
-// ── Rest task rows ──
-.stask {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 11px 20px;
-  border-bottom: 1px solid rgba(30, 34, 48, 0.31);
-  transition: background 140ms;
-  &:last-child { border-bottom: none; }
-  &.even { background: rgba(255, 255, 255, 0.016); }
-  &.done { opacity: 0.32; }
-  &.done .staskCheck { background: $green; border-color: $green; }
-  &.done .staskTitle { text-decoration: line-through; color: $text3; }
-}
-.staskCheck {
-  width: 16px; height: 16px;
-  border-radius: 50%;
-  border: 1.5px solid $border;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  margin-top: 1px;
-  transition: all 180ms;
-  font-size: 9px;
-  color: #000;
-  &:hover:not(.isDone) { border-color: $green; background: $green-glow; }
-}
-.staskInfo { flex: 1; min-width: 0; }
-.staskTitle {
-  font-size: 12px;
-  font-family: 'JetBrains Mono', monospace;
-  color: $text;
-  word-break: break-word;
   line-height: 1.5;
 }
-.staskTag {
-  font-size: 10px;
-  color: rgba(251, 191, 36, 0.5);
-  font-family: 'JetBrains Mono', monospace;
-  margin-top: 2px;
+
+.quitStreak {
+  font-size: 0.85rem;
+  color: $amber;
+  margin: 0;
+  text-align: center;
 }
 
-// ══════════════════════════════════════
-// COMPLETION
-// ══════════════════════════════════════
-.complete {
+.quitBtns {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  overflow: hidden;
-  padding: 40px 24px;
-  text-align: center;
-  h2 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
-  p  { color: $text2; font-size: 14px; margin-bottom: 28px; }
-}
-.completeIcon {
-  width: 72px; height: 72px;
-  border-radius: 50%;
-  background: $green-glow;
-  border: 1.5px solid rgba(52, 211, 153, 0.208);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 28px; font-weight: 700;
-  color: $green;
-  margin-bottom: 20px;
-  font-family: 'JetBrains Mono', monospace;
-  animation: scaleIn 450ms cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.statsRow {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 32px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-.statBox {
-  background: $bg-card;
-  border: 1px solid $border;
-  border-radius: 10px;
-  padding: 14px 22px;
-  text-align: center;
-  min-width: 90px;
-}
-.statVal   { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 600; color: $accent; }
-.statLabel { font-size: 10px; color: $text3; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
-.newSession {
-  background: $accent-glow;
-  border: 1px solid rgba(124, 92, 252, 0.208);
-  color: $accent;
-  font-size: 14px; font-weight: 600;
-  padding: 13px 36px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-family: 'JetBrains Mono', monospace;
-  transition: all 200ms;
-  &:hover { background: rgba(124, 92, 252, 0.133); border-color: rgba(124, 92, 252, 0.38); }
-}
-
-// ══════════════════════════════════════
-// MODALS
-// ══════════════════════════════════════
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(6px);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 100;
-  animation: fadeIn 180ms ease-out;
-}
-.modal {
-  background: $bg-card;
-  border: 1px solid $border;
-  border-radius: 16px;
-  padding: 32px;
-  max-width: 380px;
-  width: 90%;
-  text-align: center;
-  animation: modalIn 220ms ease-out;
-  h2 { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
-}
-.modalIcon {
-  width: 48px; height: 48px;
-  border-radius: 50%;
-  background: $red-glow;
-  border: 1px solid rgba(248, 113, 113, 0.145);
-  display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 16px;
-  font-size: 18px; font-weight: 700;
-  color: $red;
-  font-family: 'JetBrains Mono', monospace;
-}
-.modalLoss   { color: $red; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
-.modalDetail { color: $text2; font-size: 13px; line-height: 1.6; margin-bottom: 20px; }
-.modalActions { display: flex; flex-direction: column; gap: 8px; }
-.keepGoing {
-  background: $accent;
-  border: none;
-  color: white;
-  font-size: 14px; font-weight: 600;
-  padding: 13px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-family: 'JetBrains Mono', monospace;
-  transition: all 200ms;
-  &:hover { background: $accent-hover; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(124, 92, 252, 0.25); }
-}
-.quitConfirm {
-  background: none;
-  border: 1px solid $border;
-  color: $text3;
-  font-size: 12px;
-  padding: 10px;
-  border-radius: 9px;
-  cursor: pointer;
-  font-family: 'JetBrains Mono', monospace;
-  transition: all 200ms;
-  &:hover { border-color: rgba(248, 113, 113, 0.25); color: $red; }
-}
-
-// ── Responsive ──
-@media (max-width: 768px) {
-  .session {
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr auto;
-  }
-
-  .sessionLeft {
-    padding: 24px 20px 28px;
-    border-right: none;
-    border-bottom: 1px solid $border;
-  }
-
-  .sessionRight {
-    max-height: 40vh;
-  }
-
-  // Dashboard: allow scrolling on mobile so nothing is clipped
-  .dashboard {
-    overflow-y: auto;
-    height: auto;
-    min-height: 100%;
-    padding-bottom: 24px;
-  }
-
-  // dashboardCols: don't stretch to fill remaining height — let content size naturally
-  .dashboardCols {
-    flex: none;
-  }
-
-  .headerPanel {
-    padding: 18px 16px 14px;
-    flex-shrink: 0;
-  }
-
-  .tasksPanel {
-    min-height: 280px;
-  }
-
-  .typesGrid {
-    grid-template-columns: 1fr;
-    // Compact: show ~1 timer card at a time, allow scrolling through the rest
-    max-height: 140px;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    &::-webkit-scrollbar { width: 3px; }
-    &::-webkit-scrollbar-track { background: transparent; }
-    &::-webkit-scrollbar-thumb { background: $border; border-radius: 2px; }
-  }
-
-  // Slightly smaller type cards on mobile so one fits clearly in the scroll area
-  .typeCard {
-    padding: 10px 12px;
-  }
-  .typeIcon {
-    width: 22px;
-    height: 22px;
-    font-size: 10px;
-    margin-bottom: 6px;
-  }
-  .typeLabel { font-size: 12px; }
-  .typeDesc  { font-size: 10px; margin-bottom: 6px; }
-
-  .statsRow {
-    gap: 8px;
-  }
-
-  .statBox {
-    padding: 10px 14px;
-    min-width: 90px;
-  }
-
-  .taskCheck {
-    width: 22px;
-    height: 22px;
-  }
-
-  .staskCheck {
-    width: 22px;
-    height: 22px;
-  }
-
-  .taskPriority {
-    padding: 6px 8px;
-  }
-
-  .taskRemove {
-    padding: 8px 10px;
-    opacity: 1;
-  }
-
-  .resourceChip {
-    padding: 6px 9px;
-  }
+  gap: 0.5rem;
 }
