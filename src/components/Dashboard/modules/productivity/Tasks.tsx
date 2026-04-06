@@ -34,14 +34,15 @@ const weekEnd = (() => { const d = new Date(); d.setDate(d.getDate() + 7); retur
 interface FormState {
   title: string; desc: string; priority: DisplayPriority; tag: TaskTag; due: string;
   status: TaskStatus; isPublic: boolean; impact: number; effort: EffortSize;
-  goalId: string; parentId: string
+  goalId: string; habitId: string; parentId: string
 }
-const DFORM: FormState = { title: "", desc: "", priority: "med", tag: "work", due: "", status: "todo", isPublic: false, impact: 3, effort: "m", goalId: "", parentId: "" }
+const DFORM: FormState = { title: "", desc: "", priority: "med", tag: "work", due: "", status: "todo", isPublic: false, impact: 3, effort: "m", goalId: "", habitId: "", parentId: "" }
 
 /* ── Component ── */
 const Tasks: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }) => {
   const tasks = useProductivityStore(s => s.tasks)
   const goals = useProductivityStore(s => s.goals)
+  const habits = useProductivityStore(s => s.habits)
   const storeAddTask = useProductivityStore(s => s.addTask)
   const storeUpdateTask = useProductivityStore(s => s.updateTask)
   const storeDeleteTask = useProductivityStore(s => s.deleteTask)
@@ -50,7 +51,7 @@ const Tasks: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
   const [view, setView] = useState<ViewMode>("list")
   const [tagFilter, setTagFilter] = useState<"all" | TaskTag>("all")
   const [dateFilter, setDateFilter] = useState<DateFilter>("all")
-  const [roiSort, setRoiSort] = useState(false)
+  const [roiSort, setRoiSort] = useState(true)
   const [open, setOpen] = useState(false)
   const [editTask, setEditTask] = useState<Task | null>(null)
   const [form, setForm] = useState<FormState>(DFORM)
@@ -95,12 +96,12 @@ const Tasks: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
   const openAdd = (parentId?: string) => { setEditTask(null); setForm({ ...DFORM, parentId: parentId ?? "" }); setOpen(true) }
   const openEdit = (t: Task) => {
     setEditTask(t)
-    setForm({ title: t.title, desc: t.description, priority: toDisplayPri(t.priority), tag: t.tag, due: t.dueDate ?? '', status: t.status, isPublic: t.isPublic ?? false, impact: t.impact ?? 3, effort: (t.effort ?? 'm') as EffortSize, goalId: t.goalId ?? '', parentId: t.parentId ?? '' })
+    setForm({ title: t.title, desc: t.description, priority: toDisplayPri(t.priority), tag: t.tag, due: t.dueDate ?? '', status: t.status, isPublic: t.isPublic ?? false, impact: t.impact ?? 3, effort: (t.effort ?? 'm') as EffortSize, goalId: t.goalId ?? '', habitId: t.habitId ?? '', parentId: t.parentId ?? '' })
     setOpen(true)
   }
   const save = () => {
     if (!form.title.trim()) return
-    const base = { title: form.title, description: form.desc, priority: toStorePri(form.priority), tag: form.tag, dueDate: form.due || null, status: form.status, completed: form.status === "done", isPublic: form.isPublic, impact: form.impact, effort: form.effort, goalId: form.goalId || null, parentId: form.parentId || null }
+    const base = { title: form.title, description: form.desc, priority: toStorePri(form.priority), tag: form.tag, dueDate: form.due || null, status: form.status, completed: form.status === "done", isPublic: form.isPublic, impact: form.impact, effort: form.effort, goalId: form.goalId || null, habitId: form.habitId || null, parentId: form.parentId || null }
     if (editTask) storeUpdateTask({ ...editTask, ...base })
     else storeAddTask(base)
     setOpen(false)
@@ -141,7 +142,7 @@ const Tasks: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
               <div className={styles.taskCheck} onClick={() => storeToggleTask(t.id)} />
               <div className={styles.taskBody} onClick={() => openEdit(t)}>
                 <div className={styles.taskTitleRow}>
-                  {t.pinned && <span className={styles.pinIcon}>📌</span>}
+                  {t.pinned && <span className={styles.pinIcon}>pinned</span>}
                   <span className={styles.taskTitle}>{t.title}</span>
                   {roiSort && <span className={styles.roiBadge}>{(roiMap.get(t.id) ?? 0).toFixed(1)}</span>}
                 </div>
@@ -150,6 +151,7 @@ const Tasks: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
                   <span className={`${styles.taskPriority} ${PRI_CLS[toDisplayPri(t.priority)]}`}>● {PRI_LABEL[toDisplayPri(t.priority)]}</span>
                   {t.dueDate && <span className={`${styles.taskDue} ${t.dueDate < today ? styles.taskDueOverdue : ''}`}>{fmtDate(t.dueDate)}</span>}
                   {subtasksOf(t.id).length > 0 && <span className={styles.subtaskCount}>{subtasksOf(t.id).filter(s => s.completed).length}/{subtasksOf(t.id).length}</span>}
+                  {t.habitId && <span className={styles.habitBadge}>{habits.find(h => h.id === t.habitId)?.name ?? 'Habit'}</span>}
                 </div>
               </div>
               <button className={styles.pinBtn} onClick={() => togglePin(t)} title={t.pinned ? 'Unpin' : 'Pin'}>
@@ -196,6 +198,7 @@ const Tasks: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
                     <span className={`${styles.taskPriority} ${PRI_CLS[toDisplayPri(t.priority)]}`}>● {PRI_LABEL[toDisplayPri(t.priority)]}</span>
                     {t.dueDate && <span className={styles.taskDue}>{fmtDate(t.dueDate)}</span>}
                     {roiSort && <span className={styles.roiBadgeSm}>{(roiMap.get(t.id) ?? 0).toFixed(1)}</span>}
+                    {t.habitId && <span className={styles.habitBadge}>{habits.find(h => h.id === t.habitId)?.name ?? 'Habit'}</span>}
                   </div>
                   {subtasksOf(t.id).length > 0 && (
                     <div className={styles.boardSubBar}>
@@ -255,7 +258,7 @@ const Tasks: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
           {tableSorted.map(t => (
             <tr key={t.id} className={`${styles.trow} ${t.completed ? styles.trowDone : ''}`}>
               <td><div className={`${styles.taskCheck} ${styles.tblCheck} ${t.completed ? styles.taskCheckDone : ''}`} onClick={() => storeToggleTask(t.id)}>{t.completed ? '✓' : ''}</div></td>
-              <td className={styles.tdTitle} onClick={() => openEdit(t)}>{t.pinned && <span className={styles.pinIcon}>📌</span>}{t.title}</td>
+              <td className={styles.tdTitle} onClick={() => openEdit(t)}>{t.pinned && <span className={styles.pinIcon}>pinned</span>}{t.title}</td>
               <td><span className={`${styles.taskPriority} ${PRI_CLS[toDisplayPri(t.priority)]}`}>{PRI_LABEL[toDisplayPri(t.priority)]}</span></td>
               <td><span className={`${styles.taskTag} ${TAG_CLS[t.tag]}`}>{t.tag}</span></td>
               <td><span className={styles.statusBadge} data-status={t.status}>{t.status === 'inprogress' ? 'In Progress' : t.status === 'todo' ? 'To Do' : 'Done'}</span></td>
@@ -263,7 +266,7 @@ const Tasks: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
               <td>{t.impact ?? 3}/5</td>
               <td><span className={styles.effortBadge}>{(t.effort ?? 'm').toUpperCase()}</span></td>
               <td><span className={styles.roiBadgeSm}>{(roiMap.get(t.id) ?? 0).toFixed(1)}</span></td>
-              <td><button className={styles.pinBtnSm} onClick={() => togglePin(t)} title={t.pinned ? 'Unpin' : 'Pin'}>{t.pinned ? '📌' : '○'}</button></td>
+              <td><button className={styles.pinBtnSm} onClick={() => togglePin(t)} title={t.pinned ? 'Unpin' : 'Pin'}>{t.pinned ? 'unpin' : 'pin'}</button></td>
             </tr>
           ))}
         </tbody>
@@ -303,7 +306,7 @@ const Tasks: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
             return (
               <div key={t.id} className={styles.ganttRow} onClick={() => openEdit(t)}>
                 <div className={styles.ganttLabel}>
-                  {t.pinned && <span className={styles.pinIcon}>📌</span>}
+                  {t.pinned && <span className={styles.pinIcon}>pinned</span>}
                   <span className={styles.ganttTaskName}>{t.title}</span>
                 </div>
                 <div className={styles.ganttTimeline}>
@@ -407,6 +410,7 @@ const Tasks: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }
                   </div>
                 </div>
                 <div className={styles.field}><label className={styles.label}>Link to Goal</label><select className={styles.select} value={form.goalId} onChange={e => setForm(f => ({ ...f, goalId: e.target.value }))}><option value="">None</option>{activeGoals.map(g => <option key={g.id} value={g.id}>{g.title}</option>)}</select></div>
+                <div className={styles.field}><label className={styles.label}>Link to Habit</label><select className={styles.select} value={form.habitId} onChange={e => setForm(f => ({ ...f, habitId: e.target.value }))}><option value="">None</option>{habits.filter(h => !h.archived).map(h => <option key={h.id} value={h.id}>{h.name}</option>)}</select></div>
               </div>
               {editTask && subtasksOf(editTask.id).length > 0 && (
                 <div className={styles.modalSubtasks}>

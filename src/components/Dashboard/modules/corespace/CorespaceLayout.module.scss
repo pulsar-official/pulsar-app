@@ -151,9 +151,17 @@
   transition: background 0.14s, border-color 0.14s;
   min-width: 180px;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: oklch(0.22 0.06 260);
     border-color: oklch(0.38 0.1 260);
+  }
+
+  &:disabled,
+  &Disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: oklch(0.15 0.02 260);
+    border-color: oklch(0.2 0.02 260);
   }
 }
 

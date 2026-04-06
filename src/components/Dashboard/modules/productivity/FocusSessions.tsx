@@ -45,7 +45,7 @@ function cx(...cls: (string | false | null | undefined)[]) {
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function FocusSessions() {
-  const { focusSessions } = useProductivityStore()
+  const { focusSessions, habits, toggleHabitCheck } = useProductivityStore()
   const { tasks } = useProductivityStore()
 
   const {
@@ -59,6 +59,8 @@ export default function FocusSessions() {
 
   const [screen, setScreen] = useState<Screen>('home')
   const [selectedPreset, setSelectedPreset] = useState<TimerPresetId>('pomodoro')
+  const [selectedHabitId, setSelectedHabitId] = useState<string>('')
+  const [habitAutoChecked, setHabitAutoChecked] = useState(false)
   const [queueTasks, setQueueTasks] = useState<QueueTask[]>([])
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set())
   const [completedTaskIds, setCompletedTaskIds] = useState<Set<string>>(new Set())
@@ -89,6 +91,21 @@ export default function FocusSessions() {
     }
   }, [session?.phase])
 
+  // Auto-check habit when session completes
+  useEffect(() => {
+    if (screen !== 'done' || habitAutoChecked) return
+    if (!selectedHabitId) return
+    const habit = (habits ?? []).find(h => h.id === selectedHabitId)
+    if (!habit) return
+    const sessionMinutes = session ? Math.floor(session.elapsed / 60) : 0
+    const targetMinutes = habit.targetMinutes ?? 25
+    if (sessionMinutes >= targetMinutes) {
+      const today = new Date().toISOString().slice(0, 10)
+      toggleHabitCheck(selectedHabitId, today)
+      setHabitAutoChecked(true)
+    }
+  }, [screen])
+
   // Build task queue from store
   useEffect(() => {
     const incomplete = (tasks ?? [])
@@ -102,6 +119,7 @@ export default function FocusSessions() {
 
   function handleStartSession() {
     setCompletedTaskIds(new Set())
+    setHabitAutoChecked(false)
     start(selectedPreset)
     setScreen('running')
   }
@@ -186,7 +204,7 @@ export default function FocusSessions() {
           <div className={styles.homeHeader}>
             <h2 className={styles.homeTitle}>Focus Sessions</h2>
             {streak > 0 && (
-              <span className={styles.streakBadge}>🔥 {streak} day{streak !== 1 ? 's' : ''}</span>
+              <span className={styles.streakBadge}>{streak} day{streak !== 1 ? 's' : ''} streak</span>
             )}
           </div>
 
@@ -321,6 +339,23 @@ export default function FocusSessions() {
             </ul>
           )}
 
+          {/* Habit link */}
+          {(habits ?? []).filter(h => !h.archived).length > 0 && (
+            <div className={styles.habitSelectRow}>
+              <label className={styles.habitSelectLabel}>Link a habit (auto-check on completion)</label>
+              <select
+                className={styles.habitSelect}
+                value={selectedHabitId}
+                onChange={e => setSelectedHabitId(e.target.value)}
+              >
+                <option value="">None</option>
+                {(habits ?? []).filter(h => !h.archived).map(h => (
+                  <option key={h.id} value={h.id}>{h.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <button className={styles.ctaBtn} onClick={handleStartSession}>
             Start Session →
           </button>
@@ -423,7 +458,7 @@ export default function FocusSessions() {
       {/* ── DONE ─────────────────────────────────────────────────────────── */}
       {screen === 'done' && (
         <div className={styles.doneScreen}>
-          <div className={styles.doneEmoji}>🎉</div>
+          <div className={styles.doneEmoji}>Complete</div>
           <h2 className={styles.doneTitle}>Session Complete!</h2>
 
           <div className={styles.doneStats}>
@@ -444,7 +479,7 @@ export default function FocusSessions() {
           </div>
 
           {streak > 0 && (
-            <div className={styles.doneStreak}>🔥 {streak} day streak!</div>
+            <div className={styles.doneStreak}>{streak} day streak</div>
           )}
 
           <div className={styles.doneBtns}>

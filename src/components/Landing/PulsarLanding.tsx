@@ -73,7 +73,7 @@ const TYPING_WORDS = ['polymaths.', 'students.', 'researchers.', 'founders.', 'b
 const PILLARS = [
   { id: 'corespace',     icon: '⬡', name: 'Corespace',      tag: 'Command Center',       desc: 'Your personalized mission control. Drag-and-drop your entire workflow into one view. Every session starts here.',                     color: '#a78bfa' },
   { id: 'knowledge',    icon: '∞', name: 'Knowledge',      tag: 'Spatial Thinking',     desc: 'Detective-board connections on an infinite canvas. Think in webs, not folders. Every note is a live node with real context.',          color: '#818cf8' },
-  { id: 'productivity', icon: '⚡', name: 'Productivity',   tag: 'Deep Work Engine',     desc: 'Tasks, goals, habits, and psychology-driven focus sessions with commitment mechanics. Flow state is a feature, not a side effect.',    color: '#6ee7b7' },
+  { id: 'productivity', icon: '◎', name: 'Productivity',   tag: 'Deep Work Engine',     desc: 'Tasks, goals, habits, and psychology-driven focus sessions with commitment mechanics. Flow state is a feature, not a side effect.',    color: '#6ee7b7' },
   { id: 'insights',     icon: '◈', name: 'Insights',       tag: 'Pattern Intelligence', desc: 'AI surfaces hidden patterns — focus distribution, streak trajectories, cognitive load scores, and balance forecasts.',               color: '#fbbf24' },
   { id: 'customization',icon: '⬢', name: 'Customization',  tag: 'Your Rules',           desc: 'Build custom note types, views, and automations without writing code. The system bends to you — never the other way around.',          color: '#f472b6' },
   { id: 'collaboration',icon: '◎', name: 'Collaboration',  tag: 'Shared Minds',         desc: 'Real-time shared spaces with live presence, role-based permissions, and team knowledge synthesis that compounds over time.',          color: '#38bdf8' },
@@ -81,17 +81,17 @@ const PILLARS = [
 ]
 
 const PROBLEMS = [
-  { icon: '😴', title: 'Procrastination Loop',     desc: "Saving notes feels like progress. But without a path to action, you're just collecting — not building." },
-  { icon: '🚨', title: 'Lost Context',             desc: 'Notes taken in the moment decay fast. By the time you return, the spark of insight is gone.' },
-  { icon: '🧩', title: 'Tool Fragmentation',       desc: 'Notes in Notion. Tasks in Linear. Goals in a spreadsheet. Your brain bridges the gaps manually, constantly.' },
-  { icon: '🧠', title: 'Cognitive Overload',       desc: 'You manually ask: "What does this mean? What do I do next? Where does this fit?" — every single time.' },
-  { icon: '🤖', title: 'AI That Misses the Point', desc: "Current AI summarizes text. It doesn't connect your knowledge to your goals and move you forward." },
-  { icon: '🕳️', title: 'The Execution Gap',        desc: "You have the insight. You know what to do. But no system converts that clarity into a scheduled, trackable action." },
+  { icon: '○', title: 'Procrastination Loop',     desc: "Saving notes feels like progress. But without a path to action, you're just collecting — not building." },
+  { icon: '!', title: 'Lost Context',             desc: 'Notes taken in the moment decay fast. By the time you return, the spark of insight is gone.' },
+  { icon: '◫', title: 'Tool Fragmentation',       desc: 'Notes in Notion. Tasks in Linear. Goals in a spreadsheet. Your brain bridges the gaps manually, constantly.' },
+  { icon: '△', title: 'Cognitive Overload',       desc: 'You manually ask: "What does this mean? What do I do next? Where does this fit?" — every single time.' },
+  { icon: '◇', title: 'AI That Misses the Point', desc: "Current AI summarizes text. It doesn't connect your knowledge to your goals and move you forward." },
+  { icon: '—', title: 'The Execution Gap',        desc: "You have the insight. You know what to do. But no system converts that clarity into a scheduled, trackable action." },
 ]
 
 const FEATURES = [
   { icon: '◈', label: 'Knowledge Graph',    desc: 'Connect every note to every idea',    color: '#818cf8' },
-  { icon: '⚡', label: 'Deep Work Engine',   desc: 'Psychology-driven focus sessions',    color: '#6ee7b7' },
+  { icon: '◑', label: 'Deep Work Engine',   desc: 'Psychology-driven focus sessions',    color: '#6ee7b7' },
   { icon: '✦', label: 'AI Summaries',       desc: 'Auto-flashcards, auto-connections',   color: '#a78bfa' },
   { icon: '◎', label: 'Team Synthesis',     desc: 'Shared spaces with live presence',    color: '#38bdf8' },
   { icon: '⬢', label: 'Custom Automations', desc: 'No-code. Your rules.',                color: '#f472b6' },
@@ -105,14 +105,14 @@ const QUOTES = [
 ]
 
 const STACK = [
-  { tool: 'Notion',          what: 'Notes & wikis',    icon: '📄', color: '#a0a0b8' },
-  { tool: 'Linear / Jira',   what: 'Task tracking',    icon: '✅', color: '#818cf8' },
-  { tool: 'Obsidian',        what: 'Knowledge graph',  icon: '🕸️', color: '#a78bfa' },
-  { tool: 'Todoist',         what: 'Daily tasks',      icon: '📋', color: '#6ee7b7' },
-  { tool: 'Google Calendar', what: 'Scheduling',       icon: '📅', color: '#38bdf8' },
-  { tool: 'Anki',            what: 'Flashcards',       icon: '🃏', color: '#fbbf24' },
-  { tool: 'Focusmate',       what: 'Focus sessions',   icon: '⏱️', color: '#f472b6' },
-  { tool: 'Miro / FigJam',   what: 'Visual thinking',  icon: '🗺️', color: '#f97316' },
+  { tool: 'Notion',          what: 'Notes & wikis',    icon: '◻', color: '#a0a0b8' },
+  { tool: 'Linear / Jira',   what: 'Task tracking',    icon: '✓', color: '#818cf8' },
+  { tool: 'Obsidian',        what: 'Knowledge graph',  icon: '◎', color: '#a78bfa' },
+  { tool: 'Todoist',         what: 'Daily tasks',      icon: '▷', color: '#6ee7b7' },
+  { tool: 'Google Calendar', what: 'Scheduling',       icon: '◈', color: '#38bdf8' },
+  { tool: 'Anki',            what: 'Flashcards',       icon: '◇', color: '#fbbf24' },
+  { tool: 'Focusmate',       what: 'Focus sessions',   icon: '○', color: '#f472b6' },
+  { tool: 'Miro / FigJam',   what: 'Visual thinking',  icon: '⬡', color: '#f97316' },
 ]
 
 const HOW_STEPS = [
@@ -259,7 +259,7 @@ function LiveCorespace() {
         <div style={{ padding: '10px 12px', borderRadius: 6, background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.15)' }}>
           <div style={{ fontSize: '0.6rem', color: '#45455a', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Streak</div>
           <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#fbbf24', letterSpacing: '-0.04em', lineHeight: 1 }}>21</div>
-          <div style={{ fontSize: '0.58rem', color: '#fbbf24', opacity: 0.6, marginTop: 2 }}>days · 🔥</div>
+          <div style={{ fontSize: '0.58rem', color: '#fbbf24', opacity: 0.6, marginTop: 2 }}>days · streak</div>
           <div style={{ display: 'flex', gap: 2, marginTop: 6 }}>
             {[1,1,1,1,1,1,0].map((d, i) => (
               <div key={i} style={{ width: 8, height: 8, borderRadius: 2, background: d ? '#fbbf24' : 'rgba(255,255,255,0.04)', border: `1px solid ${d ? '#fbbf2440' : 'rgba(255,255,255,0.04)'}` }} />
@@ -626,8 +626,8 @@ export default function PulsarLanding({ onEnter, isAuthed = false }: PulsarLandi
               { label: 'Transformer architecture → attention is O(n²)', color: '#65657a', size: '0.72rem', weight: 400 },
               { label: 'See: [[Systems Design]] · [[Math notes]]', color: '#a78bfa', size: '0.7rem', weight: 400 },
               null,
-              { label: '⚡ Task: rewrite notes in own words', color: '#fbbf24', size: '0.72rem', weight: 400 },
-              { label: '🎯 Goal: submit by Friday · 3 days left', color: '#f472b6', size: '0.72rem', weight: 400 },
+              { label: '→ Task: rewrite notes in own words', color: '#fbbf24', size: '0.72rem', weight: 400 },
+              { label: '◎ Goal: submit by Friday · 3 days left', color: '#f472b6', size: '0.72rem', weight: 400 },
             ] as (null | { label: string; color: string; size: string; weight: number })[]).map((row, i) =>
               row === null
                 ? <div key={i} style={{ height: 10 }} />

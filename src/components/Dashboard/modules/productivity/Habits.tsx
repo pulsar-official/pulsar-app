@@ -6,11 +6,11 @@ import RelatedItems from '../shared/RelatedItems'
 import DeleteConfirmModal from '../shared/DeleteConfirmModal'
 import PrivacyToggle from '../shared/PrivacyToggle'
 
-/* ── Emoji palette for habit picker ── */
+/* ── Symbol palette for habit picker (clean Unicode symbols, no emoji) ── */
 const EMOJI_OPTIONS = [
-  '🏋️','📖','🧘','💧','📵','😴','✍️','🎵','💻','🏃',
-  '🍳','💊','🧹','📝','🎯','🌿','🚿','🐕','💰','🧠',
-  '🎨','📸','🗣️','❤️','☕','🚭','📚','🎸','🧪','🙏',
+  '◎','◈','◇','◆','○','●','◐','◑','△','▲',
+  '◻','◼','▷','▶','◁','◀','⊕','⊗','⊙','⊘',
+  '✦','✧','✶','✷','✸','★','☆','◉','⬡','⬢',
 ]
 
 const MONTH_NAMES = ['January','February','March','April','May','June',
@@ -537,7 +537,7 @@ export default function Habits({ onNavigate }: { onNavigate?: (page: string) => 
                     onClick={() => archiveHabit(h.id)}
                     title={h.archived ? 'Unarchive' : 'Archive'}
                   >
-                    {h.archived ? '↩' : '📦'}
+                    {h.archived ? '↩' : '▣'}
                   </button>
                 </div>
               )
@@ -559,35 +559,35 @@ export default function Habits({ onNavigate }: { onNavigate?: (page: string) => 
         {hasInsights && (
           <div className={styles.insightCard}>
             <button className={styles.insightHeader} onClick={() => setShowInsights(s => !s)}>
-              <span className={styles.sectionTitle}>💡 Insights</span>
+              <span className={styles.sectionTitle}>Insights</span>
               <span className={styles.insightChevron}>{showInsights ? '▲' : '▼'}</span>
             </button>
             {showInsights && (
               <div className={styles.insightBody}>
                 {bestPerforming && bestPerforming.rate7 > 0 && (
                   <div className={styles.insightRow} data-type="success">
-                    <span className={styles.insightIcon}>🏆</span>
+                    <span className={styles.insightIcon}>+</span>
                     <div className={styles.insightContent}>
                       <span className={styles.insightTitle}>Best performing</span>
-                      <span className={styles.insightDesc}>{bestPerforming.habit.emoji} {bestPerforming.habit.name} — {Math.round(bestPerforming.rate7 * 100)}% last 7 days</span>
+                      <span className={styles.insightDesc}>{bestPerforming.habit.name} — {Math.round(bestPerforming.rate7 * 100)}% last 7 days</span>
                     </div>
                   </div>
                 )}
                 {fallingBehind.map(i => (
                   <div key={i.habit.id} className={styles.insightRow} data-type="warning">
-                    <span className={styles.insightIcon}>📉</span>
+                    <span className={styles.insightIcon}>!</span>
                     <div className={styles.insightContent}>
                       <span className={styles.insightTitle}>Falling behind</span>
-                      <span className={styles.insightDesc}>{i.habit.emoji} {i.habit.name} — only {Math.round(i.rate14 * 100)}% completion last 14 days</span>
+                      <span className={styles.insightDesc}>{i.habit.name} — only {Math.round(i.rate14 * 100)}% completion last 14 days</span>
                     </div>
                   </div>
                 ))}
                 {switchToWeekly.map(i => (
                   <div key={i.habit.id} className={styles.insightRow} data-type="tip">
-                    <span className={styles.insightIcon}>🔄</span>
+                    <span className={styles.insightIcon}>~</span>
                     <div className={styles.insightContent}>
                       <span className={styles.insightTitle}>Consider weekly</span>
-                      <span className={styles.insightDesc}>{i.habit.emoji} {i.habit.name} — low daily rate, weekly may be more sustainable</span>
+                      <span className={styles.insightDesc}>{i.habit.name} — low daily rate, weekly may be more sustainable</span>
                       <button className={styles.insightAction} onClick={() => storeUpdateHabit({ ...i.habit, frequency: 'weekly' })}>Switch to weekly</button>
                     </div>
                   </div>
