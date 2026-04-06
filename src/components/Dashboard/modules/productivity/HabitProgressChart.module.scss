@@ -1,0 +1,114 @@
+@use "@/styles/variables" as *;
+
+/* ══════════════════════════════════════════════════════════
+   HABIT PROGRESS CHART MODULE
+   SVG line chart with auto-responsive sizing
+   ══════════════════════════════════════════════════════════ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  gap: 12px;
+  min-height: 200px;
+  position: relative;
+}
+
+/* ── SVG Chart ── */
+.svg {
+  flex: 1;
+  width: 100%;
+  height: auto;
+  min-height: 140px;
+}
+
+/* ── Grid Lines (light) ── */
+.gridLine {
+  stroke: rgba(255, 255, 255, 0.06);
+  stroke-width: 1;
+}
+
+/* ── Axes ── */
+.axisLine {
+  stroke: rgba(255, 255, 255, 0.15);
+  stroke-width: 1.5;
+}
+
+/* ── Chart Line (purple accent) ── */
+.line {
+  fill: none;
+  stroke: oklch(0.55 0.18 290);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ── Area under curve (subtle gradient-like fill) ── */
+.area {
+  fill: oklch(0.55 0.18 290);
+  opacity: 0.12;
+}
+
+/* ── Data Points (circles on line) ── */
+.point {
+  fill: oklch(0.55 0.18 290);
+  opacity: 0.8;
+  transition: opacity $dur-fast $ease;
+
+  &:hover {
+    opacity: 1;
+    r: 4;
+  }
+}
+
+/* ── Y-axis labels (percentages) ── */
+.yLabel {
+  font-size: 10px;
+  fill: rgba(255, 255, 255, 0.4);
+  text-anchor: end;
+  dominant-baseline: middle;
+}
+
+/* ── X-axis labels (day numbers) ── */
+.xLabel {
+  font-size: 9px;
+  fill: rgba(255, 255, 255, 0.35);
+  text-anchor: middle;
+  dominant-baseline: hanging;
+}
+
+/* ── Summary Footer ── */
+.summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+}
+
+.summaryLabel {
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+}
+
+.summaryValue {
+  color: oklch(0.55 0.18 290);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+/* ── Empty State ── */
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 160px;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 13px;
+}

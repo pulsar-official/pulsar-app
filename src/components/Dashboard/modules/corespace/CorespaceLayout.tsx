@@ -16,6 +16,8 @@ import CalendarMonthWidget from '@/components/Dashboard/widgets/CalendarMonthWid
 import TimeBlockingSuggestion from '@/components/Dashboard/widgets/TimeBlockingSuggestion'
 import { InsightCard } from '@/components/Dashboard/widgets/InsightCard'
 import { FocusTimerWidget } from '@/components/Dashboard/widgets/FocusTimerWidget'
+import HabitChecklist from '@/components/Dashboard/widgets/HabitChecklist'
+import HabitChartWidget from '@/components/Dashboard/widgets/HabitChartWidget'
 import DevTierSelector from './DevTierSelector'
 import styles from './CorespaceLayout.module.scss'
 
@@ -24,6 +26,8 @@ const AVAILABLE_WIDGETS = [
   { id: 'quickCapture',      name: 'Quick Capture',        tier: 'atom' },
   { id: 'focusTimer',        name: 'Focus Timer',          tier: 'atom' },
   { id: 'momentum',          name: 'Momentum / Streak',    tier: 'atom' },
+  { id: 'habitChecklist',    name: 'Habits Today',         tier: 'atom' },
+  { id: 'habitChart',        name: 'Habit Trends',         tier: 'atom' },
   { id: 'calendarWeek',      name: 'Calendar — Week',      tier: 'atom' },
   { id: 'calendarAgenda',    name: 'Calendar — Agenda',    tier: 'atom' },
   { id: 'calendarMonth',     name: 'Calendar — Month',     tier: 'atom' },
@@ -107,7 +111,7 @@ export default function CorespaceLayout() {
         {/* Row 1: QuickCapture (1-12) */}
         <QuickCapture />
 
-        {/* Row 2: FocusTimer (1-4) | Momentum (5-8) | --- (9-12) */}
+        {/* Row 2: FocusTimer (1-4) | Momentum (5-8) | HabitChecklist (9-12) */}
         <WidgetContainer
           id="focusTimer"
           title="Focus Timer"
@@ -120,6 +124,17 @@ export default function CorespaceLayout() {
         </WidgetContainer>
 
         <Momentum />
+
+        <WidgetContainer
+          id="habitChecklist"
+          title="Habits Today"
+          tier="atom"
+          userTier={tier}
+          defaultW={4}
+          defaultH={2}
+        >
+          <HabitChecklist />
+        </WidgetContainer>
 
         {/* Row 3: CalendarWeek (1-12) */}
         <WidgetContainer
@@ -145,6 +160,18 @@ export default function CorespaceLayout() {
           <div style={{ padding: '1rem', color: 'oklch(0.7 0 0)', fontSize: '0.875rem' }}>
             TaskListPreview — coming soon
           </div>
+        </WidgetContainer>
+
+        {/* Row 5: HabitChartWidget (1-12) */}
+        <WidgetContainer
+          id="habitChart"
+          title="Habit Trends"
+          tier="atom"
+          userTier={tier}
+          defaultW={12}
+          defaultH={3}
+        >
+          <HabitChartWidget days={7} />
         </WidgetContainer>
 
       </WidgetGrid>

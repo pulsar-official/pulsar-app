@@ -46,7 +46,6 @@ import JournalStreaks from './modules/productivity/JournalStreaks'
 import ProdScore from './modules/insights/ProdScore'
 import FocusHeatmap from './modules/insights/FocusHeatmap'
 import KnowledgeGrowth from './modules/insights/KnowledgeGrowth'
-import HabitTrends from './modules/insights/HabitTrends'
 import GraphBuilder from './modules/insights/GraphBuilder'
 import SessionLog from './modules/insights/SessionLog'
 import WeeklySnapshot from './modules/insights/WeeklySnapshot'
@@ -123,7 +122,6 @@ const MODULES: Record<string, React.ComponentType<any>> = {
   prodscore: ProdScore,
   heatmap: FocusHeatmap,
   knowledgegrowth: KnowledgeGrowth,
-  habittrends: HabitTrends,
   graphbuilder: GraphBuilder,
   sessionlog: SessionLog,
   weeklysnapshot: WeeklySnapshot,

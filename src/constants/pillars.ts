@@ -117,7 +117,6 @@ export const PILLARS: Pillar[] = [
           { icon: 'bar', name: 'Productivity Score', page: 'prodscore' },
           { icon: 'heat', name: 'Focus Heatmap', page: 'heatmap' },
           { icon: 'graph', name: 'Knowledge Growth', page: 'knowledgegrowth' },
-          { icon: 'trend', name: 'Habit & Goal Trends', page: 'habittrends' },
         ]
       },
       {

@@ -20,6 +20,9 @@ interface UIState {
   /** Focus Mode Overlay — dims UI, shows top task + Pomodoro timer */
   focusModeActive: boolean
   toggleFocusMode: () => void
+  /** Blob mode for animated background effects */
+  blobModeEnabled: boolean
+  toggleBlobMode: () => void
 }
 
 export const useUIStore = create<UIState>()(
@@ -43,6 +46,8 @@ export const useUIStore = create<UIState>()(
       })),
       focusModeActive: false,
       toggleFocusMode: () => set((state) => ({ focusModeActive: !state.focusModeActive })),
+      blobModeEnabled: false,
+      toggleBlobMode: () => set((state) => ({ blobModeEnabled: !state.blobModeEnabled })),
     }),
     {
       name: 'pulsar-ui-state',
@@ -53,6 +58,7 @@ export const useUIStore = create<UIState>()(
         subBreadcrumb: state.subBreadcrumb,
         lastVisited: state.lastVisited,
         focusModeActive: state.focusModeActive,
+        blobModeEnabled: state.blobModeEnabled,
         // Explicitly exclude: mobileMenuOpen (should close on reload)
       }),
     }

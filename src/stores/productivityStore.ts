@@ -8,6 +8,9 @@ import type {
 import type { Connection } from '@/types/connections'
 import { computeConnections } from '@/lib/connectionEngine'
 import { db } from '@/lib/powersync/db'
+import {
+  calculateStreak, getCompletionRateForDate, getLast30DaysData, getHabitsForToday,
+} from '@/lib/habitHelpers'
 
 // Fire-and-forget direct API sync — guarantees data reaches Supabase
 // regardless of PowerSync cloud connection status. Idempotent via clientId.
@@ -221,6 +224,13 @@ interface ProductivityState {
   getJournalMoodDistribution: () => Record<string, number>
   getJournalStreak: () => { current: number; longest: number; totalDays: number; dates: Set<string> }
   getSmartConnections: () => Connection[]
+
+  // Habit selectors
+  getTodayIncompleteHabits: () => Habit[]
+  getHabitStreak: (habitId: string) => number
+  get30DayCompletion: () => Array<{ date: Date; completionRate: number }>
+  get7DayCompletion: () => Array<{ date: Date; completionRate: number }>
+  getTodayCompletionRate: () => number
 }
 
 // ── Module-level undo timer ──────────────────────────────────────────────────
@@ -945,5 +955,39 @@ export const useProductivityStore = create<ProductivityState>((set, get) => ({
   getSmartConnections: () => {
     const { tasks, goals, habits, journalEntries, events } = get()
     return computeConnections(tasks, goals, habits, journalEntries, events)
+  },
+
+  // ── Habit selectors ──
+
+  getTodayIncompleteHabits: () => {
+    const habitsForToday = getHabitsForToday(get().habits, get().habitChecks)
+    return habitsForToday.filter(h => !h.isCheckedToday)
+  },
+
+  getHabitStreak: (habitId: string) => {
+    return calculateStreak(habitId, get().habitChecks)
+  },
+
+  get30DayCompletion: () => {
+    return getLast30DaysData(get().habits, get().habitChecks)
+  },
+
+  get7DayCompletion: () => {
+    const today = new Date()
+    const result: Array<{ date: Date; completionRate: number }> = []
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today)
+      date.setDate(date.getDate() - i)
+      const completionRate = getCompletionRateForDate(date, get().habits, get().habitChecks)
+      result.push({ date, completionRate })
+    }
+
+    return result
+  },
+
+  getTodayCompletionRate: () => {
+    const today = new Date()
+    return getCompletionRateForDate(today, get().habits, get().habitChecks)
   },
 }))

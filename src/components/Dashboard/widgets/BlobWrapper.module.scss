@@ -1,0 +1,85 @@
+@use '@/styles/variables' as *;
+
+.wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+
+  &.blobEnabled {
+    background: $surface-2;
+  }
+}
+
+.blobContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+
+  svg {
+    width: 100%;
+    height: 100%;
+    filter: blur(0.5px);
+  }
+}
+
+.contentWrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: auto;
+  padding: $sp-4;
+
+  // Ensure content visibility over blob
+  display: flex;
+  flex-direction: column;
+}
+
+.blobSvg {
+  filter: blur(0px);
+  opacity: 0.85;
+
+  // Smooth morph animation
+  path {
+    will-change: d;
+    transition: d 1.2s $ease;
+  }
+}
+
+// Variants for different blob intensities
+.blobIntensityLow {
+  .blobSvg {
+    opacity: 0.4;
+  }
+}
+
+.blobIntensityMed {
+  .blobSvg {
+    opacity: 0.65;
+  }
+}
+
+.blobIntensityHigh {
+  .blobSvg {
+    opacity: 1;
+  }
+}
+
+// Responsive padding
+@media (max-width: 768px) {
+  .contentWrapper {
+    padding: $sp-3;
+  }
+}
+
+@media (max-width: 480px) {
+  .contentWrapper {
+    padding: $sp-2;
+  }
+}
