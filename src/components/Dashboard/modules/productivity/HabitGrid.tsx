@@ -51,6 +51,10 @@ export default function HabitGrid({
   /* Generate last 30 days from today */
   const days = useMemo(() => {
     const result: { date: string; dateObj: Date; dayNum: number; dayName: string }[] = []
+    // Validate todayDate format (should be YYYY-MM-DD)
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(todayDate)) {
+      return result // Return empty if invalid
+    }
     const today = new Date(todayDate + 'T00:00:00')
     for (let i = 29; i >= 0; i--) {
       const d = new Date(today)

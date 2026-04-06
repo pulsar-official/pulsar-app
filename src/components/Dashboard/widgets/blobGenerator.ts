@@ -20,6 +20,11 @@ export function generateBlobPath(
   complexity: number = 8,
   seed?: number
 ): string {
+  // Validate inputs
+  if (width <= 0 || height <= 0 || !isFinite(width) || !isFinite(height)) {
+    return ''
+  }
+
   // Create noise generator (seed ensures reproducibility)
   const seedValue = seed ?? Math.random() * 10000
   const noise = createNoise2D(() => seedValue)

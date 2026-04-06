@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import styles from './HabitChecklist.module.scss'
 import { useProductivityStore } from '@/stores/productivityStore'
 import type { Habit, HabitCheck } from '@/types/productivity'
@@ -8,8 +8,6 @@ import type { Habit, HabitCheck } from '@/types/productivity'
 function dk(d: Date) {
   return d.toISOString().slice(0, 10)
 }
-
-const TODAY = dk(new Date())
 
 interface HabitChecklistProps {
   // Optional props for testing/override. If not provided, data comes from store.
@@ -26,6 +24,9 @@ export const HabitChecklist: React.FC<HabitChecklistProps> = ({
   const storeHabits = useProductivityStore(s => s.habits)
   const storeHabitChecks = useProductivityStore(s => s.habitChecks)
   const storeToggleCheck = useProductivityStore(s => s.toggleHabitCheck)
+
+  // Get today's date fresh on every render (prevents stale date after midnight)
+  const TODAY = dk(new Date())
 
   // Use provided props or fall back to store
   const habits = propHabits ?? storeHabits
@@ -65,13 +66,24 @@ export const HabitChecklist: React.FC<HabitChecklistProps> = ({
   }, [habits, isChecked])
 
   const [animatingId, setAnimatingId] = useState<string | null>(null)
+  const isMountedRef = useRef(true)
 
-  const handleCheck = (habitId: string) => {
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
+
+  const handleCheck = useCallback((habitId: string) => {
     setAnimatingId(habitId)
     onCheckClick(habitId)
-    // Animation timeout
-    setTimeout(() => setAnimatingId(null), 400)
-  }
+    // Animation timeout - only update state if still mounted
+    setTimeout(() => {
+      if (isMountedRef.current) {
+        setAnimatingId(null)
+      }
+    }, 400)
+  }, [onCheckClick])
 
   const allDone = uncompleted.length === 0
 

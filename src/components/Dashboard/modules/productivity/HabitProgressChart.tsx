@@ -40,6 +40,10 @@ export default function HabitProgressChart({
   /* Generate last 30 days starting from startDate */
   const days = useMemo(() => {
     const result: { date: string; day: number }[] = []
+    // Validate startDate format (should be YYYY-MM-DD)
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
+      return result // Return empty if invalid
+    }
     const start = new Date(startDate + 'T00:00:00')
     for (let i = 29; i >= 0; i--) {
       const d = new Date(start)

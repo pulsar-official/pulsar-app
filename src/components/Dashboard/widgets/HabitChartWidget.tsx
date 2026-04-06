@@ -9,8 +9,6 @@ function dk(d: Date) {
   return d.toISOString().slice(0, 10)
 }
 
-const TODAY = dk(new Date())
-
 interface HabitChartWidgetProps {
   // Optional props for testing/override. If not provided, data comes from store.
   habits?: Habit[]
@@ -25,6 +23,9 @@ export const HabitChartWidget: React.FC<HabitChartWidgetProps> = ({
 }) => {
   const storeHabits = useProductivityStore(s => s.habits)
   const storeHabitChecks = useProductivityStore(s => s.habitChecks)
+
+  // Get today's date fresh on every render (prevents stale date after midnight)
+  const TODAY = dk(new Date())
 
   // Use provided props or fall back to store
   const habits = propHabits ?? storeHabits
