@@ -1,0 +1,65 @@
+@use '@/styles/variables' as *;
+
+.devSelectorContainer {
+  display: flex;
+  align-items: center;
+  gap: $sp-2;
+  padding: $sp-2 $sp-3;
+  background: $surface-3;
+  border: 1px solid $border;
+  border-radius: 6px;
+  font-size: $font-size-sm;
+}
+
+.devLabel {
+  color: $text-2;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tierButtons {
+  display: flex;
+  gap: $sp-2;
+}
+
+.tierBtn {
+  min-width: 32px;
+  height: 28px;
+  padding: 0 $sp-2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid $border;
+  border-radius: 4px;
+  background: $surface-2;
+  color: $text-2;
+  font-family: $font-family-base;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all $dur-fast $ease;
+
+  &:hover {
+    background: $surface-3;
+    border-color: $text-2;
+    color: $text-1;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.tierBtnActive {
+  background: oklch(0.55 0.18 290);
+  border-color: oklch(0.55 0.18 290);
+  color: $text-1;
+  font-weight: 600;
+
+  &:hover {
+    background: oklch(0.6 0.2 290);
+    border-color: oklch(0.6 0.2 290);
+  }
+}

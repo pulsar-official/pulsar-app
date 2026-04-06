@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { WidgetGrid, WidgetContainer } from '@/components/Dashboard/Corespace'
 import { useUserTier } from '@/hooks/useUserTier'
 import { useCorespaceStore } from '@/stores/corespaceStore'
@@ -16,25 +16,26 @@ import CalendarMonthWidget from '@/components/Dashboard/widgets/CalendarMonthWid
 import TimeBlockingSuggestion from '@/components/Dashboard/widgets/TimeBlockingSuggestion'
 import { InsightCard } from '@/components/Dashboard/widgets/InsightCard'
 import { FocusTimerWidget } from '@/components/Dashboard/widgets/FocusTimerWidget'
+import DevTierSelector from './DevTierSelector'
 import styles from './CorespaceLayout.module.scss'
 
 // All available widgets for the picker
 const AVAILABLE_WIDGETS = [
-  { id: 'quickCapture',      name: 'Quick Capture',        tier: 'atom',     emoji: '⚡' },
-  { id: 'focusTimer',        name: 'Focus Timer',          tier: 'atom',     emoji: '⏱' },
-  { id: 'momentum',          name: 'Momentum / Streak',    tier: 'atom',     emoji: '📈' },
-  { id: 'calendarWeek',      name: 'Calendar — Week',      tier: 'atom',     emoji: '📅' },
-  { id: 'calendarAgenda',    name: 'Calendar — Agenda',    tier: 'atom',     emoji: '📋' },
-  { id: 'calendarMonth',     name: 'Calendar — Month',     tier: 'atom',     emoji: '🗓' },
-  { id: 'taskListPreview',   name: 'Task List Preview',    tier: 'atom',     emoji: '✅' },
-  { id: 'inbox',             name: 'Inbox',                tier: 'atom',     emoji: '📥' },
-  { id: 'pinned',            name: 'Pinned',               tier: 'molecule', emoji: '📌' },
-  { id: 'timeBlocking',      name: 'Time Blocking',        tier: 'molecule', emoji: '🧱' },
-  { id: 'insightFocus',      name: 'Insight — Focus',      tier: 'neuron',   emoji: '🔥' },
-  { id: 'insightLoad',       name: 'Insight — Load',       tier: 'neuron',   emoji: '🧠' },
-  { id: 'insightWeekly',     name: 'Insight — Weekly',     tier: 'neuron',   emoji: '⏱' },
-  { id: 'focusLauncher',     name: 'Focus Launcher',       tier: 'neuron',   emoji: '🚀' },
-  { id: 'notifications',     name: 'Notifications',        tier: 'atom',     emoji: '🔔' },
+  { id: 'quickCapture',      name: 'Quick Capture',        tier: 'atom' },
+  { id: 'focusTimer',        name: 'Focus Timer',          tier: 'atom' },
+  { id: 'momentum',          name: 'Momentum / Streak',    tier: 'atom' },
+  { id: 'calendarWeek',      name: 'Calendar — Week',      tier: 'atom' },
+  { id: 'calendarAgenda',    name: 'Calendar — Agenda',    tier: 'atom' },
+  { id: 'calendarMonth',     name: 'Calendar — Month',     tier: 'atom' },
+  { id: 'taskListPreview',   name: 'Task List Preview',    tier: 'atom' },
+  { id: 'inbox',             name: 'Inbox',                tier: 'atom' },
+  { id: 'pinned',            name: 'Pinned',               tier: 'molecule' },
+  { id: 'timeBlocking',      name: 'Time Blocking',        tier: 'molecule' },
+  { id: 'insightFocus',      name: 'Insight — Focus',      tier: 'neuron' },
+  { id: 'insightLoad',       name: 'Insight — Load',       tier: 'neuron' },
+  { id: 'insightWeekly',     name: 'Insight — Weekly',     tier: 'neuron' },
+  { id: 'focusLauncher',     name: 'Focus Launcher',       tier: 'neuron' },
+  { id: 'notifications',     name: 'Notifications',        tier: 'atom' },
 ] as const
 
 const TIER_COLORS: Record<string, string> = {
@@ -43,6 +44,9 @@ const TIER_COLORS: Record<string, string> = {
   neuron:   'oklch(0.55 0.18 290)',
   quantum:  'oklch(0.65 0.20 0)',
 }
+
+// Default visible widgets (5 core widgets shown by default)
+const DEFAULT_VISIBLE_WIDGETS = ['quickCapture', 'focusTimer', 'momentum', 'calendarWeek', 'taskListPreview']
 
 export default function CorespaceLayout() {
   const { tier } = useUserTier()
@@ -58,6 +62,7 @@ export default function CorespaceLayout() {
           <span className={styles.subtitle}>Your personal command center</span>
         </div>
         <div className={styles.headerActions}>
+          <DevTierSelector />
           <button
             className={`${styles.customizeBtn} ${customizeMode ? styles.customizeBtnActive : ''}`}
             onClick={() => setCustomizeMode(v => !v)}
@@ -83,7 +88,6 @@ export default function CorespaceLayout() {
           <div className={styles.pickerGrid}>
             {AVAILABLE_WIDGETS.map(w => (
               <div key={w.id} className={styles.widgetPickerItem} title={`Requires ${w.tier}`}>
-                <span className={styles.pickerEmoji}>{w.emoji}</span>
                 <span className={styles.pickerName}>{w.name}</span>
                 <span
                   className={styles.pickerTierBadge}
@@ -97,12 +101,13 @@ export default function CorespaceLayout() {
         </div>
       )}
 
-      {/* Widget grid */}
+      {/* Widget grid — shows 5 default widgets + any additional */}
       <WidgetGrid cols={12} rowH={80}>
 
-        {/* Row 1: QuickCapture (1-4) | FocusTimer (5-8) | Momentum (9-12) */}
+        {/* Row 1: QuickCapture (1-12) */}
         <QuickCapture />
 
+        {/* Row 2: FocusTimer (1-4) | Momentum (5-8) | --- (9-12) */}
         <WidgetContainer
           id="focusTimer"
           title="Focus Timer"
@@ -116,36 +121,25 @@ export default function CorespaceLayout() {
 
         <Momentum />
 
-        {/* Row 3: CalendarWeek (1-8, h=4) | TimeBlocking (9-12, h=4) */}
+        {/* Row 3: CalendarWeek (1-12) */}
         <WidgetContainer
           id="calendarWeek"
           title="This Week"
           tier="atom"
           userTier={tier}
-          defaultW={8}
-          defaultH={4}
+          defaultW={12}
+          defaultH={3}
         >
           <CalendarWeekWidget />
         </WidgetContainer>
 
-        <WidgetContainer
-          id="timeBlocking"
-          title="Time Blocking"
-          tier="molecule"
-          userTier={tier}
-          defaultW={4}
-          defaultH={4}
-        >
-          <TimeBlockingSuggestion />
-        </WidgetContainer>
-
-        {/* Row 7: TaskListPreview (1-6, h=3) | InsightCards ×3 (7-12, h=3) */}
+        {/* Row 4: TaskListPreview (1-12) */}
         <WidgetContainer
           id="taskListPreview"
           title="Tasks"
           tier="atom"
           userTier={tier}
-          defaultW={6}
+          defaultW={12}
           defaultH={3}
         >
           <div style={{ padding: '1rem', color: 'oklch(0.7 0 0)', fontSize: '0.875rem' }}>
@@ -153,13 +147,56 @@ export default function CorespaceLayout() {
           </div>
         </WidgetContainer>
 
+        {/* Additional widgets (hidden by default, added via widget picker) */}
+
+        {/* CalendarAgenda */}
+        <WidgetContainer
+          id="calendarAgenda"
+          title="Agenda"
+          tier="atom"
+          userTier={tier}
+          defaultW={8}
+          defaultH={3}
+          style={{ display: 'none' }}
+        >
+          <CalendarAgendaWidget />
+        </WidgetContainer>
+
+        {/* CalendarMonth */}
+        <WidgetContainer
+          id="calendarMonth"
+          title="Calendar"
+          tier="atom"
+          userTier={tier}
+          defaultW={8}
+          defaultH={4}
+          style={{ display: 'none' }}
+        >
+          <CalendarMonthWidget />
+        </WidgetContainer>
+
+        {/* TimeBlocking */}
+        <WidgetContainer
+          id="timeBlocking"
+          title="Time Blocking"
+          tier="molecule"
+          userTier={tier}
+          defaultW={4}
+          defaultH={4}
+          style={{ display: 'none' }}
+        >
+          <TimeBlockingSuggestion />
+        </WidgetContainer>
+
+        {/* Insight Cards */}
         <WidgetContainer
           id="insightFocus"
           title="Focus Streak"
-          tier="molecule"
+          tier="neuron"
           userTier={tier}
           defaultW={2}
           defaultH={3}
+          style={{ display: 'none' }}
         >
           <InsightCard
             title="Focus Streak"
@@ -173,10 +210,11 @@ export default function CorespaceLayout() {
         <WidgetContainer
           id="insightLoad"
           title="Cognitive Load"
-          tier="molecule"
+          tier="neuron"
           userTier={tier}
           defaultW={2}
           defaultH={3}
+          style={{ display: 'none' }}
         >
           <InsightCard
             title="Cognitive Load"
@@ -188,23 +226,24 @@ export default function CorespaceLayout() {
         </WidgetContainer>
 
         <WidgetContainer
-          id="insightWeeklyFocus"
+          id="insightWeekly"
           title="Weekly Focus"
-          tier="molecule"
+          tier="neuron"
           userTier={tier}
           defaultW={2}
           defaultH={3}
+          style={{ display: 'none' }}
         >
           <InsightCard
             title="Weekly Focus"
             value="—"
             subtitle="Minutes this week"
             color="green"
-            icon="⏱"
+            icon="⏱️"
           />
         </WidgetContainer>
 
-        {/* Remaining rows: FocusLauncher | CalendarAgenda | Notifications | Inbox */}
+        {/* FocusLauncher */}
         <WidgetContainer
           id="focusLauncher"
           title="Focus Launcher"
@@ -212,21 +251,12 @@ export default function CorespaceLayout() {
           userTier={tier}
           defaultW={4}
           defaultH={3}
+          style={{ display: 'none' }}
         >
           <FocusLauncher />
         </WidgetContainer>
 
-        <WidgetContainer
-          id="calendarAgenda"
-          title="Agenda"
-          tier="atom"
-          userTier={tier}
-          defaultW={8}
-          defaultH={3}
-        >
-          <CalendarAgendaWidget />
-        </WidgetContainer>
-
+        {/* Notifications */}
         <WidgetContainer
           id="notifications"
           title="Notifications"
@@ -234,10 +264,12 @@ export default function CorespaceLayout() {
           userTier={tier}
           defaultW={4}
           defaultH={3}
+          style={{ display: 'none' }}
         >
           <Notifications />
         </WidgetContainer>
 
+        {/* Inbox */}
         <WidgetContainer
           id="inbox"
           title="Inbox"
@@ -245,10 +277,12 @@ export default function CorespaceLayout() {
           userTier={tier}
           defaultW={12}
           defaultH={3}
+          style={{ display: 'none' }}
         >
           <Inbox />
         </WidgetContainer>
 
+        {/* Pinned */}
         <Pinned />
 
       </WidgetGrid>
