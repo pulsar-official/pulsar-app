@@ -90,49 +90,46 @@ export default function HabitGrid({
   }
 
   return (
-    <div className={styles.container}>
-      {/* Sticky sidebar with habit names */}
-      <div className={styles.sidebar}>
-        <div className={styles.sidebarHeader} />
-        <div className={styles.habitNames}>
-          {habits.map(h => (
-            <div key={h.id} className={styles.habitName}>
-              <span className={styles.habitEmoji}>{h.emoji}</span>
-              <span className={styles.habitNameText}>{h.name}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+    <div className={styles.gridWrapper}>
+      <table className={styles.grid}>
+        {/* Header: Day columns */}
+        <thead>
+          <tr>
+            <th className={styles.headerHabit}></th>
+            {days.map(day => {
+              const state = getCellState(day.date)
+              return (
+                <th
+                  key={day.date}
+                  className={`${styles.dayHeader} ${state === 'today' ? styles.dayToday : ''}`}
+                >
+                  <div className={styles.dayNum}>{day.dayNum}</div>
+                  <div className={styles.dayName}>{day.dayName}</div>
+                </th>
+              )
+            })}
+          </tr>
+        </thead>
 
-      {/* Scrollable grid */}
-      <div className={styles.gridScroll}>
-        <div className={styles.gridHeader}>
-          {days.map(day => {
-            const state = getCellState(day.date)
-            return (
-              <div
-                key={day.date}
-                className={`${styles.dayCol} ${styles[`dayCol${state === 'today' ? 'Today' : ''}`]}`}
-              >
-                <div className={styles.dayNum}>{day.dayNum}</div>
-                <div className={styles.dayName}>{day.dayName}</div>
-              </div>
-            )
-          })}
-        </div>
-
-        <div className={styles.gridBody}>
-          {habits.map(habit => (
-            <div key={habit.id} className={styles.habitRow}>
+        {/* Body: Habit rows */}
+        <tbody>
+          {habits.map((habit, idx) => (
+            <tr key={habit.id} className={`${styles.habitRow} ${idx % 2 === 0 ? styles.rowOdd : styles.rowEven}`}>
+              <td className={styles.habitCell}>
+                <div className={styles.habitInfo}>
+                  <span className={styles.habitEmoji}>{habit.emoji}</span>
+                  <span className={styles.habitName}>{habit.name}</span>
+                </div>
+              </td>
               {days.map(day => {
                 const state = getCellState(day.date)
                 const checked = isChecked(habit.id, day.date)
                 const canCheck = canToggle(day.date)
 
                 return (
-                  <div
+                  <td
                     key={`${habit.id}-${day.date}`}
-                    className={`${styles.gridCell} ${styles[`cellState${state}`]}`}
+                    className={`${styles.dayCell} ${state === 'today' ? styles.cellToday : ''}`}
                   >
                     <input
                       type="checkbox"
@@ -142,13 +139,13 @@ export default function HabitGrid({
                       className={`${styles.checkbox} ${checked ? styles.checkboxChecked : ''} ${!canCheck ? styles.checkboxDisabled : ''}`}
                       aria-label={`${habit.name} on ${day.date}`}
                     />
-                  </div>
+                  </td>
                 )
               })}
-            </div>
+            </tr>
           ))}
-        </div>
-      </div>
+        </tbody>
+      </table>
     </div>
   )
 }
