@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState, ReactNode } from 'react'
-import anime from 'anime'
+import anime from 'animejs'
 import { generateBlobPath, morphBlobPath } from './blobGenerator'
 import styles from './BlobWrapper.module.scss'
 
