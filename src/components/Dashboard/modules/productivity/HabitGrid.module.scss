@@ -110,11 +110,11 @@
 /* ── GRID HEADER: Day columns ── */
 .gridHeader {
   display: flex;
-  gap: 2px;
+  gap: 0;
   padding: 0;
   flex-shrink: 0;
   min-width: min-content;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .dayCol {
@@ -122,19 +122,21 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 44px;
-  min-height: 56px;
-  padding: 8px 4px;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 2px;
+  min-width: 48px;
+  min-height: 60px;
+  padding: 8px 0;
+  background: transparent;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
   font-size: 11px;
   color: #7878a0;
-  transition: background $dur-fast $ease, color $dur-fast $ease;
   gap: 2px;
 
+  &:last-child {
+    border-right: none;
+  }
+
   &.dayColToday {
-    background: rgba(120, 81, 169, 0.12);
-    border: 1px solid oklch(0.55 0.18 290 / 0.3);
+    background: rgba(120, 81, 169, 0.15);
     color: oklch(0.55 0.18 290);
   }
 }
@@ -176,37 +178,43 @@
 
 .habitRow {
   display: flex;
-  gap: 2px;
+  gap: 0;
   min-width: min-content;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.02);
+  }
 }
 
 .gridCell {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 44px;
+  min-width: 48px;
   min-height: 36px;
-  padding: 4px;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 2px;
+  padding: 4px 0;
+  background: transparent;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
   transition: background $dur-fast $ease;
+
+  &:last-child {
+    border-right: none;
+  }
 
   /* Past dates */
   &.cellStatePast {
     opacity: 0.6;
-    background: rgba(255, 255, 255, 0.01);
   }
 
   /* Today's column */
   &.cellStateToday {
-    background: rgba(120, 81, 169, 0.08);
-    border: 1px solid oklch(0.55 0.18 290 / 0.2);
+    background: rgba(120, 81, 169, 0.12);
   }
 
   /* Future dates */
   &.cellStateFuture {
     opacity: 0.4;
-    background: rgba(255, 255, 255, 0.01);
     cursor: not-allowed;
   }
 }
@@ -214,10 +222,10 @@
 /* ── CHECKBOXES ── */
 .checkbox {
   appearance: none;
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 3px;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
   background: transparent;
   cursor: pointer;
   transition: all $dur-fast $ease;
@@ -228,19 +236,19 @@
 
   &:hover:not(:disabled) {
     border-color: oklch(0.55 0.18 290);
-    background: rgba(120, 81, 169, 0.1);
+    background: rgba(120, 81, 169, 0.08);
   }
 
   &:checked {
-    background: oklch(0.55 0.18 290);
-    border-color: oklch(0.55 0.18 290);
+    background: oklch(0.65 0.14 150);
+    border-color: oklch(0.65 0.14 150);
     position: relative;
 
     &::after {
       content: '✓';
       color: #fff;
-      font-size: 12px;
-      font-weight: bold;
+      font-size: 10px;
+      font-weight: 900;
       line-height: 1;
       position: absolute;
     }
@@ -248,17 +256,17 @@
 
   &:disabled {
     cursor: not-allowed;
-    opacity: 0.5;
-    border-color: rgba(255, 255, 255, 0.1);
+    opacity: 0.4;
+    border-color: rgba(255, 255, 255, 0.08);
 
     &:checked {
-      background: rgba(120, 81, 169, 0.3);
-      border-color: rgba(120, 81, 169, 0.4);
+      background: rgba(120, 81, 169, 0.25);
+      border-color: rgba(120, 81, 169, 0.35);
     }
   }
 
   &:focus-visible {
-    outline: 2px solid oklch(0.55 0.18 290 / 0.5);
+    outline: 1px solid oklch(0.55 0.18 290);
     outline-offset: 1px;
   }
 }
