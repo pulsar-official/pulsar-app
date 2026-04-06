@@ -11,6 +11,7 @@ import { useServiceWorker } from '@/hooks/useServiceWorker'
 import { PulsarPowerSyncProvider } from '@/providers/PowerSyncProvider'
 
 const BETA_OPEN = process.env.NEXT_PUBLIC_BETA_OPEN === 'true'
+const DEV_BYPASS = process.env.NEXT_PUBLIC_DEV_BYPASS === 'true'
 const DASHBOARD_ALLOWLIST = ['yoshigar304@gmail.com']
 
 // ── Live reactivity bridge ────────────────────────────────────────────────────
@@ -191,6 +192,11 @@ export default function AppShell() {
       hydrateFromPowerSync(orgId, userId)
     }
   }, [orgId, userId, storeOrgId, hydrateFromPowerSync])
+
+  // Dev bypass: skip auth entirely in local development
+  if (DEV_BYPASS) {
+    return <AppLayout />
+  }
 
   if (!isLoaded) return null
 

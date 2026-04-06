@@ -26,8 +26,10 @@ export default function DevTierSelector() {
   const [userEmail, setUserEmail] = useState<string | null>(null)
 
   useEffect(() => {
-    // In a real app, get email from auth context or localStorage
-    // For now, check if yoshigar304@gmail.com is in a dev list or localStorage
+    if (process.env.NODE_ENV === 'development') {
+      setUserEmail('dev@pulsar.zone')
+      return
+    }
     const isDevUser = localStorage.getItem('pulsar-dev-user') === 'true'
     if (isDevUser) {
       setUserEmail('yoshigar304@gmail.com')

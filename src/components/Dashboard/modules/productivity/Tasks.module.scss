@@ -57,6 +57,7 @@
 
 /* ── ROI Badge ── */
 .roiBadge { font-size: 10px; font-weight: 700; color: oklch(0.80 0.16 60); background: oklch(0.18 0.06 60); padding: 1px 8px; border-radius: 99px; flex-shrink: 0; }
+.habitBadge { font-size: 10px; font-weight: 500; color: oklch(0.75 0.14 290); background: oklch(0.55 0.18 290 / 0.15); border: 1px solid oklch(0.55 0.18 290 / 0.35); padding: 1px 7px; border-radius: 99px; white-space: nowrap; flex-shrink: 0; }
 .roiBadgeSm { font-size: 9px; font-weight: 700; color: oklch(0.75 0.14 60); background: oklch(0.16 0.04 60); padding: 1px 6px; border-radius: 99px; }
 
 /* ── Subtask list ── */

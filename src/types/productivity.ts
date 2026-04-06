@@ -29,6 +29,7 @@ export interface Task extends SyncMeta {
   impact?: number          // 1–5 (ROI field)
   effort?: EffortSize      // ROI field
   goalId?: string | null   // linked goal for ROI boost
+  habitId?: string | null  // linked habit
   parentId?: string | null // subtask parent
   pinned?: boolean
   sortOrder?: number
@@ -48,6 +49,7 @@ export interface Habit extends SyncMeta {
   category?: HabitCategory
   archived?: boolean
   frequency?: HabitFrequency
+  targetMinutes?: number
 }
 
 export interface HabitCheck extends SyncMeta {
