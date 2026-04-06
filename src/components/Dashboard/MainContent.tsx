@@ -9,6 +9,7 @@ import { pageToUrl } from '@/lib/routing'
 
 // Dashboard
 import Dashboard from './modules/dashboard/Dashboard'
+import CorespaceLayout from './modules/corespace/CorespaceLayout'
 import PillarHome from './modules/shared/PillarHome'
 
 // Corespace
@@ -82,15 +83,16 @@ import Marketplace from './modules/extensions/Marketplace'
 
 const MODULES: Record<string, React.ComponentType<any>> = {
   // pillar homes
-  'corespace-home': () => <PillarHome pillarId='corespace' />,
+  'corespace-home': CorespaceLayout,
   'knowledge-home': () => <PillarHome pillarId='knowledge' />,
   'productivity-home': () => <PillarHome pillarId='productivity' />,
   'insights-home': () => <PillarHome pillarId='insights' />,
   'customization-home': () => <PillarHome pillarId='customization' />,
   'collaboration-home': () => <PillarHome pillarId='collaboration' />,
   'extensions-home': () => <PillarHome pillarId='extensions' />,
-  // corespace
-  dashboard: Dashboard,
+  // corespace — home page IS the widget dashboard
+  dashboard: CorespaceLayout,
+  overview: Dashboard,
   pinned: Pinned,
   notifications: Notifications,
   quickcapture: QuickCapture,

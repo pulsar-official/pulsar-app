@@ -2,8 +2,10 @@
 
 import React from 'react'
 import { useUserTier } from '@/hooks/useUserTier'
-import { useEffect, useState } from 'react'
+import { useUser } from '@/hooks/useSupabaseAuth'
 import styles from './DevTierSelector.module.scss'
+
+const DEV_EMAILS = ['yoshigar304@gmail.com']
 
 type Tier = 'atom' | 'molecule' | 'neuron' | 'quantum'
 
@@ -23,21 +25,14 @@ const TIER_FULL: Record<Tier, string> = {
 
 export default function DevTierSelector() {
   const { tier, setTier } = useUserTier()
-  const [userEmail, setUserEmail] = useState<string | null>(null)
+  const { user } = useUser()
 
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      setUserEmail('dev@pulsar.zone')
-      return
-    }
-    const isDevUser = localStorage.getItem('pulsar-dev-user') === 'true'
-    if (isDevUser) {
-      setUserEmail('yoshigar304@gmail.com')
-    }
-  }, [])
+  const isDev =
+    process.env.NODE_ENV === 'development' ||
+    DEV_EMAILS.includes(user?.email ?? '')
 
-  // Only show for dev user
-  if (!userEmail) return null
+  // Only show for dev users
+  if (!isDev) return null
 
   const tierOrder: Tier[] = ['atom', 'molecule', 'neuron', 'quantum']
 

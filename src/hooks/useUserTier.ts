@@ -12,6 +12,7 @@ const TIER_ORDER: Record<Tier, number> = {
 }
 
 const STORAGE_KEY = 'pulsar-user-tier'
+const TIER_CHANGE_EVENT = 'pulsar-tier-change'
 
 function readTierFromStorage(): Tier {
   if (typeof window === 'undefined') return 'atom'
@@ -25,11 +26,18 @@ export function useUserTier() {
 
   useEffect(() => {
     setTierState(readTierFromStorage())
+
+    // Sync all instances when any instance calls setTier
+    const handler = () => setTierState(readTierFromStorage())
+    window.addEventListener(TIER_CHANGE_EVENT, handler)
+    return () => window.removeEventListener(TIER_CHANGE_EVENT, handler)
   }, [])
 
   const setTier = useCallback((newTier: Tier) => {
     localStorage.setItem(STORAGE_KEY, newTier)
     setTierState(newTier)
+    // Notify all other useUserTier instances to re-read
+    window.dispatchEvent(new Event(TIER_CHANGE_EVENT))
   }, [])
 
   const canAccess = useCallback(
