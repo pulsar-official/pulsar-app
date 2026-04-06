@@ -173,3 +173,49 @@ export interface Note extends SyncMeta {
   isPublic: boolean
   tags: string[]
 }
+
+// ── Unified ProductivityItem model ───────────────────────────────────────────
+
+export type Tier = 'atom' | 'molecule' | 'neuron' | 'quantum'
+export const TIER_ORDER: Record<Tier, number> = { atom: 0, molecule: 1, neuron: 2, quantum: 3 }
+
+export interface ProductivityItem {
+  id: string
+  type: 'task' | 'goal' | 'habit' | 'note' | 'event' | 'session'
+  title: string
+  status: 'todo' | 'in_progress' | 'done' | 'blocked'
+  priority: 'low' | 'medium' | 'high'
+  tags: string[]
+  linkedItems: { itemId: string; relation: 'depends_on' | 'relates_to' | 'blocks' }[]
+  dueDate?: string
+  estimatedHours?: number
+  lmsSource?: 'canvas' | 'bcourses' | 'gradescope'
+  classContext?: string
+  subtasks?: ProductivityItem[]
+  isPublic?: boolean
+  createdAt?: string
+  updatedAt?: string
+}
+
+// Decomposition helper
+export interface SubtaskSuggestion {
+  title: string
+  estimatedHours: number
+  dueDateOffset: number  // days before parent due date
+}
+
+export function suggestSubtasks(estimatedHours: number): SubtaskSuggestion[] {
+  if (estimatedHours <= 2) return [{ title: 'Complete assignment', estimatedHours, dueDateOffset: 0 }]
+  if (estimatedHours <= 5) return [
+    { title: 'Research and outline', estimatedHours: estimatedHours * 0.3, dueDateOffset: Math.ceil(estimatedHours / 2) },
+    { title: 'Draft and develop', estimatedHours: estimatedHours * 0.5, dueDateOffset: 1 },
+    { title: 'Review and finalize', estimatedHours: estimatedHours * 0.2, dueDateOffset: 0 },
+  ]
+  // 10+ hours: up to 5 subtasks
+  const parts = Math.min(5, Math.ceil(estimatedHours / 2))
+  return Array.from({ length: parts }, (_, i) => ({
+    title: `Part ${i + 1}: ${['Research', 'Outline', 'Draft', 'Develop', 'Review'][i] ?? `Section ${i + 1}`}`,
+    estimatedHours: estimatedHours / parts,
+    dueDateOffset: Math.ceil((parts - i) * (estimatedHours / parts / 8)),
+  }))
+}

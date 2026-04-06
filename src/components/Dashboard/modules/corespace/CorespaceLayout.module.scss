@@ -1,0 +1,180 @@
+@use "@/styles/variables" as *;
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+// ── Header ────────────────────────────────────────────────────────────────────
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: oklch(0.92 0.02 260);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 0.8rem;
+  color: oklch(0.55 0.04 260);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+// ── Buttons ───────────────────────────────────────────────────────────────────
+
+.customizeBtn {
+  padding: 0.35rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid oklch(0.3 0.04 260);
+  background: oklch(0.18 0.04 260 / 0.6);
+  color: oklch(0.72 0.08 260);
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+
+  &:hover {
+    background: oklch(0.22 0.06 260 / 0.8);
+    border-color: oklch(0.4 0.08 260);
+    color: oklch(0.88 0.12 260);
+  }
+}
+
+.customizeBtnActive {
+  background: oklch(0.55 0.18 290 / 0.25);
+  border-color: oklch(0.55 0.18 290);
+  color: oklch(0.85 0.14 290);
+
+  &:hover {
+    background: oklch(0.55 0.18 290 / 0.35);
+  }
+}
+
+.addWidgetBtn {
+  padding: 0.35rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid oklch(0.4 0.1 150);
+  background: oklch(0.65 0.14 150 / 0.15);
+  color: oklch(0.75 0.14 150);
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover {
+    background: oklch(0.65 0.14 150 / 0.28);
+    border-color: oklch(0.55 0.14 150);
+  }
+}
+
+// ── Widget Picker Panel ───────────────────────────────────────────────────────
+
+.addWidgetPanel {
+  background: oklch(0.14 0.04 260 / 0.95);
+  border: 1px solid oklch(0.25 0.06 260);
+  border-radius: 10px;
+  padding: 1rem;
+  backdrop-filter: blur(8px);
+  animation: slideDown 0.18s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.pickerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.pickerTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: oklch(0.85 0.06 260);
+}
+
+.pickerClose {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: oklch(0.55 0.04 260);
+  font-size: 0.9rem;
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+  transition: background 0.12s, color 0.12s;
+
+  &:hover {
+    background: oklch(0.22 0.04 260);
+    color: oklch(0.85 0.06 260);
+  }
+}
+
+.pickerGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.widgetPickerItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid oklch(0.25 0.05 260);
+  background: oklch(0.17 0.04 260 / 0.7);
+  cursor: pointer;
+  transition: background 0.14s, border-color 0.14s;
+  min-width: 180px;
+
+  &:hover {
+    background: oklch(0.22 0.06 260);
+    border-color: oklch(0.38 0.1 260);
+  }
+}
+
+.pickerEmoji {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.pickerName {
+  font-size: 0.8rem;
+  color: oklch(0.82 0.05 260);
+  flex: 1;
+}
+
+.pickerTierBadge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  color: oklch(0.98 0 0);
+  flex-shrink: 0;
+}

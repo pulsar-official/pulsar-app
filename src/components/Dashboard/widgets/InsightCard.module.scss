@@ -1,0 +1,101 @@
+@use "@/styles/variables" as *;
+
+.card {
+  background: $surface-2;
+  border-radius: 12px;
+  padding: $sp-4;
+  border: 1px solid $border-subtle;
+  display: flex;
+  flex-direction: column;
+  gap: $sp-2;
+  position: relative;
+  overflow: hidden;
+  transition: border-color $dur-fast $ease, transform $dur-fast $ease;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.04;
+    pointer-events: none;
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &.purple {
+    border-color: oklch(0.55 0.18 290 / 0.4);
+    &::before { background: oklch(0.55 0.18 290); }
+  }
+  &.green {
+    border-color: oklch(0.65 0.14 150 / 0.4);
+    &::before { background: oklch(0.65 0.14 150); }
+  }
+  &.amber {
+    border-color: oklch(0.72 0.16 60 / 0.4);
+    &::before { background: oklch(0.72 0.16 60); }
+  }
+  &.blue {
+    border-color: oklch(0.6 0.15 260 / 0.4);
+    &::before { background: oklch(0.6 0.15 260); }
+  }
+  &.red {
+    border-color: oklch(0.65 0.15 20 / 0.4);
+    &::before { background: oklch(0.65 0.15 20); }
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: $sp-2;
+}
+
+.icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.title {
+  font-size: $font-size-sm;
+  color: $text-2;
+  font-weight: 500;
+  flex: 1;
+}
+
+.trend {
+  font-size: $font-size-xs;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+
+  &.trend_up {
+    color: oklch(0.65 0.14 150);
+    background: oklch(0.65 0.14 150 / 0.12);
+  }
+  &.trend_down {
+    color: oklch(0.65 0.15 20);
+    background: oklch(0.65 0.15 20 / 0.12);
+  }
+  &.trend_neutral {
+    color: $text-2;
+    background: $surface-3;
+  }
+}
+
+.value {
+  font-size: 28px;
+  font-weight: 700;
+  color: $text-1;
+  line-height: 1.1;
+}
+
+.subtitle {
+  font-size: $font-size-xs;
+  color: $text-3;
+}
+
+.custom {
+  margin-top: $sp-1;
+}
