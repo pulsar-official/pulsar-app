@@ -80,11 +80,12 @@ export function BlobWrapper({
         duration: morphSpeed,
         easing: 'easeInOutQuad',
         update: (anim: anime.AnimeInstance) => {
-          if (svgRef.current && anim.progress !== undefined) {
+          if (svgRef.current) {
+            const progress = anim.progress()
             const morphedPath = morphBlobPath(
               startPath,
               nextPath,
-              anim.progress as number
+              progress
             )
             svgRef.current.setAttribute('d', morphedPath)
           }
