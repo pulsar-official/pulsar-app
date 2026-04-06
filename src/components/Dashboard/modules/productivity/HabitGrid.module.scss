@@ -181,9 +181,19 @@
   gap: 0;
   min-width: min-content;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background $dur-fast $ease;
+
+  /* Zebra striping - alternating row colors */
+  &:nth-child(odd) {
+    background: transparent;
+  }
+
+  &:nth-child(even) {
+    background: rgba(255, 255, 255, 0.03);
+  }
 
   &:hover {
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.06);
   }
 }
 

@@ -1,0 +1,62 @@
+▲ Next.js 16.2.2 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 8.3s
+  Running TypeScript ...
+  Finished TypeScript in 11.4s ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/32) ...
+  Generating static pages using 11 workers (8/32) 
+  Generating static pages using 11 workers (16/32) 
+  Generating static pages using 11 workers (24/32) 
+✓ Generating static pages using 11 workers (32/32) in 572ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /[...slug]
+├ ƒ /api/ai/chat
+├ ƒ /api/auth/set-active-org
+├ ƒ /api/beta-count
+├ ƒ /api/feedback
+├ ƒ /api/health
+├ ƒ /api/notes/[id]
+├ ƒ /api/organizations
+├ ƒ /api/organizations/[id]
+├ ƒ /api/powersync/auth
+├ ƒ /api/powersync/jwks
+├ ƒ /api/productivity/boards
+├ ƒ /api/productivity/events
+├ ƒ /api/productivity/focus-sessions
+├ ƒ /api/productivity/goals
+├ ƒ /api/productivity/habits
+├ ƒ /api/productivity/journal
+├ ƒ /api/productivity/notes
+├ ƒ /api/productivity/preferences
+├ ƒ /api/productivity/tasks
+├ ƒ /api/qstash/process
+├ ƒ /api/stripe/checkout
+├ ƒ /api/stripe/webhook
+├ ƒ /api/tasks/[id]
+├ ƒ /auth/callback
+├ ○ /auth/reset-password
+├ ○ /changelog
+├ ○ /checkout
+├ ○ /features
+├ ○ /pricing
+├ ○ /privacy
+├ ○ /robots.txt
+├ ○ /sign-in
+├ ○ /sign-up
+├ ○ /sitemap.xml
+├ ○ /terms
+└ ○ /waitlist
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

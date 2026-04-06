@@ -7,7 +7,6 @@ import { useUser } from '@/hooks/useSupabaseAuth'
 import { Sidebar } from '@/components/Dashboard/Sidebar'
 import { Topbar } from '@/components/Dashboard/Topbar'
 import { MainContent } from '@/components/Dashboard/MainContent'
-import { DevTierBrowser } from '@/components/Dashboard/DevTierBrowser'
 import { PILLARS } from '@/constants/pillars'
 import { UndoToast } from './UndoToast'
 import { FocusModeOverlay } from './FocusModeOverlay'
@@ -31,8 +30,6 @@ for (const pillar of PILLARS) {
 export const AppLayout: React.FC = () => {
   const { sidebarCollapsed, currentPage, mobileMenuOpen, closeMobileMenu, subBreadcrumb, focusModeActive, toggleFocusMode } = useUIStore()
   const { user } = useUser()
-
-  const isDevUser = user?.email === 'yoshigar304@gmail.com'
 
   // Keyboard shortcut: Shift+F toggles Focus Mode
   useEffect(() => {
@@ -67,7 +64,7 @@ export const AppLayout: React.FC = () => {
     : fullCrumbs
 
   return (
-    <div className={`${styles.layout} ${sidebarCollapsed ? styles.collapsed : ''} ${focusModeActive ? styles.focusModeActive : ''} ${isDevUser ? styles.withDevBrowser : ''}`}>
+    <div className={`${styles.layout} ${sidebarCollapsed ? styles.collapsed : ''} ${focusModeActive ? styles.focusModeActive : ''}`}>
       {/* Mobile overlay backdrop */}
       {mobileMenuOpen && (
         <div className={styles.mobileOverlay} onClick={closeMobileMenu} />
@@ -75,7 +72,6 @@ export const AppLayout: React.FC = () => {
       <Sidebar />
       <Topbar breadcrumbs={breadcrumbs} />
       <MainContent />
-      {isDevUser && <DevTierBrowser />}
       <UndoToast />
       <FocusModeOverlay />
     </div>

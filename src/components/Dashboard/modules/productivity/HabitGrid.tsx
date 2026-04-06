@@ -7,6 +7,7 @@ import type { Habit, HabitCheck } from '@/types/productivity'
 interface HabitGridProps {
   habits: Habit[]
   habitChecks: HabitCheck[]
+  startDate: string
   todayDate: string
   onToggle: (habitId: string, date: string) => void
 }
@@ -16,6 +17,7 @@ const DAY_NAMES = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 export default function HabitGrid({
   habits,
   habitChecks,
+  startDate,
   todayDate,
   onToggle,
 }: HabitGridProps) {
@@ -48,17 +50,17 @@ export default function HabitGrid({
     [todayDate]
   )
 
-  /* Generate last 30 days from today */
+  /* Generate 30 days starting from startDate */
   const days = useMemo(() => {
     const result: { date: string; dateObj: Date; dayNum: number; dayName: string }[] = []
-    // Validate todayDate format (should be YYYY-MM-DD)
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(todayDate)) {
+    // Validate startDate format (should be YYYY-MM-DD)
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
       return result // Return empty if invalid
     }
-    const today = new Date(todayDate + 'T00:00:00')
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date(today)
-      d.setDate(d.getDate() - i)
+    const start = new Date(startDate + 'T00:00:00')
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(start)
+      d.setDate(d.getDate() + i)
       const dateStr = d.toISOString().slice(0, 10)
       result.push({
         date: dateStr,
@@ -68,7 +70,7 @@ export default function HabitGrid({
       })
     }
     return result
-  }, [todayDate])
+  }, [startDate])
 
   const handleCheckboxChange = useCallback(
     (habitId: string, dateStr: string) => {

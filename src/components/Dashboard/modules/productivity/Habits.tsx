@@ -27,6 +27,11 @@ export default function Habits() {
   // Get today's date as string (YYYY-MM-DD)
   const todayDate = useMemo(() => dateToString(new Date()), [])
 
+  // Get first day of selected month as string (YYYY-MM-01)
+  const monthStartDate = useMemo(() => {
+    return dateToString(new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1))
+  }, [selectedMonth])
+
   // Handlers
   const handlePrevMonth = useCallback(() => {
     setSelectedMonth(d => new Date(d.getFullYear(), d.getMonth() - 1, 1))
@@ -70,11 +75,12 @@ export default function Habits() {
         </button>
       </div>
 
-      {/* Main Habit Grid (30-day view) */}
+      {/* Main Habit Grid (30-day view from month start) */}
       <div className={styles.gridCard}>
         <HabitGrid
           habits={habits}
           habitChecks={habitChecks}
+          startDate={monthStartDate}
           todayDate={todayDate}
           onToggle={handleToggleHabit}
         />
@@ -87,7 +93,7 @@ export default function Habits() {
           <HabitProgressChart
             habits={habits}
             habitChecks={habitChecks}
-            startDate={todayDate}
+            startDate={monthStartDate}
           />
         </div>
       </div>
