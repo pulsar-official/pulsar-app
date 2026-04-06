@@ -15,6 +15,14 @@
   grid-template-columns: 60px 1fr;
 }
 
+.layout.withDevBrowser {
+  grid-template-columns: 240px 1fr 280px;
+}
+
+.layout.collapsed.withDevBrowser {
+  grid-template-columns: 60px 1fr 280px;
+}
+
 /* Mobile: single column, sidebar becomes overlay drawer */
 @media (max-width: $bp-md) {
   .layout,
