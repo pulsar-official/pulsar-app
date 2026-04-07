@@ -29,7 +29,7 @@
 .leftHeader {
   width: 200px;
   height: 40px;
-  background: #0f0f19 !important;
+  background: #1F1F1F !important;
   flex-shrink: 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   display: flex;
@@ -83,11 +83,11 @@
 .dayHeader {
   font-size: 11px;
   font-weight: 600;
-  color: #7878a0;
+  color: #888888;
   padding: 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  background: #0f0f19 !important;
+  background: #1F1F1F !important;
   height: 40px;
   width: 48px;
   min-width: 48px;
@@ -142,7 +142,6 @@
   flex-direction: row;
   align-items: center;
   transition: background $dur-fast $ease;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -150,15 +149,15 @@
   min-width: min-content;
 
   &.rowOdd {
-    background: #0f0f19;
+    background: #1F1F1F;
   }
 
   &.rowEven {
-    background: #141420;
+    background: #262626;
   }
 
   &:hover {
-    background: #191928;
+    background: #2E2E2E;
   }
 }
 
@@ -175,15 +174,15 @@
   padding: 0;
 
   &.rowOdd {
-    background: #0f0f19;
+    background: #1F1F1F;
   }
 
   &.rowEven {
-    background: #141420;
+    background: #262626;
   }
 
   &:hover {
-    background: #191928;
+    background: #2E2E2E;
   }
 }
 
@@ -222,7 +221,7 @@
 .habitName {
   font-size: 12px;
   font-weight: 500;
-  color: #b0b0c8;
+  color: #AAAAAA;
   overflow: hidden;
   text-overflow: ellipsis;
   flex: 1;
@@ -354,7 +353,7 @@
   flex: 1;
   flex-direction: column;
   gap: 8px;
-  color: #7878a0;
+  color: #888888;
   font-size: 12px;
   padding: 12px;
   text-align: center;

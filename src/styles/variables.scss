@@ -1,12 +1,12 @@
-// -- COLOR SYSTEM (Dark Theme) --
-$surface-0: oklch(0.12 0.02 290);
-$surface-1: oklch(0.15 0.02 290);
-$surface-2: oklch(0.18 0.02 290);
-$surface-3: oklch(0.22 0.02 290);
-$surface-4: oklch(0.26 0.02 290);
+// -- COLOR SYSTEM (Dark Theme - Monotone) --
+$surface-0: oklch(0.12 0 0);
+$surface-1: oklch(0.15 0 0);
+$surface-2: oklch(0.18 0 0);
+$surface-3: oklch(0.22 0 0);
+$surface-4: oklch(0.26 0 0);
 
-$border: oklch(0.24 0.01 290);
-$border-subtle: oklch(0.20 0.01 290);
+$border: oklch(0.24 0 0);
+$border-subtle: oklch(0.20 0 0);
 
 $text-1: oklch(0.95 0 0);
 $text-2: oklch(0.62 0 0);
