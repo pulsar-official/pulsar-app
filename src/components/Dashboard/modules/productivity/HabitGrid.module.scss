@@ -53,6 +53,7 @@
   position: sticky;
   top: 0;
   z-index: 10;
+  height: 38px;
 }
 
 .headerHabit {
@@ -65,6 +66,7 @@
   z-index: 30;
   background: #0f0f19 !important;
   overflow: hidden;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .dayHeader {
@@ -73,6 +75,7 @@
   width: 48px;
   padding: 8px 0 !important;
   z-index: 1;
+  overflow: hidden;
 
   &.dayToday {
     background: rgba(120, 81, 169, 0.12);
