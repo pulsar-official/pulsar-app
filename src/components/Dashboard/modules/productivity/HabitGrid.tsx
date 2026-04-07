@@ -57,17 +57,21 @@ export default function HabitGrid({
 
     const handleScroll = () => {
       const scrollLeft = wrapper.scrollLeft
-      headerCell.style.position = 'fixed'
-      headerCell.style.left = `${wrapper.getBoundingClientRect().left}px`
-      headerCell.style.zIndex = '1000'
-      headerCell.style.top = `${wrapper.getBoundingClientRect().top}px`
+      // Use transform to move the cell back into view as the table scrolls
+      headerCell.style.transform = `translateX(${scrollLeft}px)`
+      headerCell.style.position = 'relative'
+      headerCell.style.zIndex = '100'
     }
 
     // Initial positioning
     handleScroll()
 
     wrapper.addEventListener('scroll', handleScroll, { passive: true })
-    return () => wrapper.removeEventListener('scroll', handleScroll)
+    window.addEventListener('resize', handleScroll, { passive: true })
+    return () => {
+      wrapper.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', handleScroll)
+    }
   }, [])
 
   /* Build check map for O(1) lookups */
