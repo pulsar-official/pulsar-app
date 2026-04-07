@@ -89,10 +89,10 @@
 }
 
 .todayCell {
-  background: oklch(0.13 0.05 290 / 0.4);
+  background: oklch(0.13 0.05 0 / 0.4);
 
   &:hover {
-    background: oklch(0.16 0.06 290 / 0.5);
+    background: oklch(0.16 0.06 0 / 0.5);
   }
 }
 

@@ -56,7 +56,7 @@
 }
 
 .channelActive {
-  background: oklch(0.6 0.12 290 / 0.18) !important;
+  background: oklch(0.6 0.12 0 / 0.18) !important;
   color: oklch(0.78 0.12 290) !important;
 }
 
@@ -81,7 +81,7 @@
   transition: border-color 0.12s, color 0.12s;
 
   &:hover {
-    border-color: oklch(0.6 0.12 290 / 0.5);
+    border-color: oklch(0.6 0.12 0 / 0.5);
     color: oklch(0.78 0.12 290);
   }
 }
@@ -128,8 +128,8 @@
 .inviteBtn {
   padding: 6px 14px;
   border-radius: 8px;
-  border: 1px solid oklch(0.6 0.12 290 / 0.4);
-  background: oklch(0.6 0.12 290 / 0.12);
+  border: 1px solid oklch(0.6 0.12 0 / 0.4);
+  background: oklch(0.6 0.12 0 / 0.12);
   color: oklch(0.78 0.12 290);
   font-size: 13px;
   font-weight: 500;
@@ -137,8 +137,8 @@
   transition: background 0.15s, border-color 0.15s;
 
   &:hover {
-    background: oklch(0.6 0.12 290 / 0.22);
-    border-color: oklch(0.6 0.12 290 / 0.6);
+    background: oklch(0.6 0.12 0 / 0.22);
+    border-color: oklch(0.6 0.12 0 / 0.6);
   }
 }
 
@@ -230,7 +230,7 @@
 
   &::placeholder { color: $text-3; }
 
-  &:focus { border-color: oklch(0.6 0.12 290 / 0.6); }
+  &:focus { border-color: oklch(0.6 0.12 0 / 0.6); }
 }
 
 .sendBtn {
@@ -244,7 +244,7 @@
   cursor: pointer;
   transition: background 0.15s, opacity 0.15s;
 
-  &:hover { background: oklch(0.60 0.18 290); }
+  &:hover { background: oklch(0.60 0.18 0); }
   &:disabled { opacity: 0.4; cursor: default; }
 }
 
@@ -254,7 +254,7 @@
   position: absolute;
   inset: 0;
   backdrop-filter: blur(8px);
-  background: oklch(0.12 0.02 290 / 0.6);
+  background: oklch(0.12 0.02 0 / 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -305,7 +305,7 @@
   cursor: pointer;
   transition: background 0.15s;
 
-  &:hover { background: oklch(0.60 0.18 290); }
+  &:hover { background: oklch(0.60 0.18 0); }
 }
 
 // ── Toast ─────────────────────────────────────────────────────────────────────

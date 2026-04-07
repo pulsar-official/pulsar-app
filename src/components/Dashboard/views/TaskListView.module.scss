@@ -58,7 +58,7 @@
 .sortBtnActive {
   background: oklch(0.55 0.18 290 / 0.2);
   border-color: oklch(0.55 0.18 290 / 0.5);
-  color: oklch(0.78 0.14 290);
+  color: oklch(0.78 0.14 0);
 }
 
 // ── Bulk bar
@@ -76,7 +76,7 @@
 
 .bulkCount {
   font-size: 0.8rem;
-  color: oklch(0.75 0.08 290);
+  color: oklch(0.75 0.08 0);
   font-weight: 600;
   margin-right: 0.25rem;
 }
@@ -91,7 +91,7 @@
   cursor: pointer;
   font-weight: 500;
 
-  &:hover { background: oklch(0.6 0.18 290); }
+  &:hover { background: oklch(0.6 0.18 0); }
 }
 
 .bulkBtnDanger {

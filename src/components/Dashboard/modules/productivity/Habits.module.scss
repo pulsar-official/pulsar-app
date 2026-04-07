@@ -388,7 +388,7 @@
   font-size: 22px;
   font-weight: 700;
   font-family: monospace;
-  color: oklch(0.75 0.16 290);
+  color: oklch(0.75 0.16 0);
   letter-spacing: -0.04em;
   line-height: 1;
   margin-bottom: 7px;
@@ -760,7 +760,7 @@
 .catPillActive {
   background: oklch(0.55 0.18 290 / 0.15);
   border-color: oklch(0.55 0.18 290 / 0.3);
-  color: oklch(0.7 0.15 290);
+  color: oklch(0.7 0.15 0);
 }
 .filterControls {
   display: flex;
@@ -780,7 +780,7 @@
 .filterToggleActive {
   background: oklch(0.55 0.18 290 / 0.1);
   border-color: oklch(0.55 0.18 290 / 0.25);
-  color: oklch(0.7 0.15 290);
+  color: oklch(0.7 0.15 0);
 }
 
 .perHabitCard {

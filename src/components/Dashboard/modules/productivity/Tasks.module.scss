@@ -19,20 +19,20 @@
 .roiToggleActive { color: oklch(0.80 0.16 60); background: oklch(0.18 0.06 60); border-color: oklch(0.40 0.10 60); }
 
 /* ── Buttons ── */
-.addBtn { height: 32px; padding: 0 13px; border-radius: 6px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: inherit; background: oklch(0.55 0.18 290); color: #fff; box-shadow: 0 2px 12px oklch(0.3 0.15 290 / 0.4); &:hover { background: oklch(0.6 0.18 290); } }
+.addBtn { height: 32px; padding: 0 13px; border-radius: 6px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: inherit; background: oklch(0.55 0.18 290); color: #fff; box-shadow: 0 2px 12px oklch(0.3 0.15 290 / 0.4); &:hover { background: oklch(0.6 0.18 0); } }
 
 .body { flex: 1; overflow-y: auto; padding: 0 24px 24px; }
 
 /* ── Quick Add ── */
 .quickAddRow { display: flex; gap: 6px; margin-bottom: 12px; }
 .quickAddInput { flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid $border-subtle; background: $surface-2; color: $text-1; font-size: 13px; font-family: inherit; outline: none; &:focus { border-color: oklch(0.55 0.18 290); } &::placeholder { color: $text-3; } }
-.quickAddBtn { width: 34px; height: 34px; border-radius: 8px; border: none; background: oklch(0.55 0.18 290); color: #fff; font-size: 18px; font-weight: 600; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; &:disabled { opacity: 0.4; cursor: default; } &:hover:not(:disabled) { background: oklch(0.6 0.18 290); } }
+.quickAddBtn { width: 34px; height: 34px; border-radius: 8px; border: none; background: oklch(0.55 0.18 290); color: #fff; font-size: 18px; font-weight: 600; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; &:disabled { opacity: 0.4; cursor: default; } &:hover:not(:disabled) { background: oklch(0.6 0.18 0); } }
 
 /* ── List View ── */
 .listWrap { display: flex; flex-direction: column; gap: 4px; }
 .sectionLabel { font-size: 11px; font-weight: 600; color: $text-3; text-transform: uppercase; letter-spacing: 0.05em; padding: 14px 0 6px; }
 .taskItem { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; background: $surface-2; border: 1px solid $border-subtle; border-radius: 8px; cursor: pointer; transition: background 140ms ease, border-color 140ms ease, transform 120ms ease; &:hover { background: $surface-3; border-color: $border; transform: translateY(-1px); } }
-.taskCheck { width: 20px; height: 20px; border-radius: 4px; border: 1.5px solid $border; flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-top: 1px; cursor: pointer; transition: all 150ms ease; &:hover { border-color: oklch(0.55 0.18 290); background: oklch(0.18 0.04 290); } }
+.taskCheck { width: 20px; height: 20px; border-radius: 4px; border: 1.5px solid $border; flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-top: 1px; cursor: pointer; transition: all 150ms ease; &:hover { border-color: oklch(0.55 0.18 290); background: oklch(0.18 0.04 0); } }
 .taskCheckDone { border-color: oklch(0.65 0.14 150); background: oklch(0.65 0.14 150); color: #fff; font-size: 10px; font-weight: 700; animation: tCheckPop 200ms ease; }
 .taskBody { flex: 1; min-width: 0; }
 .taskTitleRow { display: flex; align-items: center; gap: 6px; }
@@ -52,7 +52,7 @@
 .taskDueOverdue { color: oklch(0.65 0.15 20); font-weight: 600; }
 .pinIcon { font-size: 10px; flex-shrink: 0; }
 .pinBtn { background: none; border: none; color: $text-3; cursor: pointer; padding: 4px; border-radius: 4px; flex-shrink: 0; opacity: 0; transition: opacity 100ms ease; .taskItem:hover & { opacity: 1; } &:hover { color: oklch(0.70 0.14 60); } }
-.subAddBtn { background: none; border: none; color: $text-3; cursor: pointer; padding: 4px 6px; border-radius: 4px; font-size: 14px; font-weight: 600; flex-shrink: 0; opacity: 0; transition: opacity 100ms ease; .taskItem:hover & { opacity: 1; } &:hover { color: oklch(0.55 0.18 290); background: oklch(0.18 0.04 290); } }
+.subAddBtn { background: none; border: none; color: $text-3; cursor: pointer; padding: 4px 6px; border-radius: 4px; font-size: 14px; font-weight: 600; flex-shrink: 0; opacity: 0; transition: opacity 100ms ease; .taskItem:hover & { opacity: 1; } &:hover { color: oklch(0.55 0.18 290); background: oklch(0.18 0.04 0); } }
 .subtaskCount { font-size: 10px; color: $text-3; background: $surface-3; padding: 1px 6px; border-radius: 99px; }
 
 /* ── ROI Badge ── */
@@ -106,7 +106,7 @@
 .ganttTaskName { overflow: hidden; text-overflow: ellipsis; }
 .ganttTimeline { flex: 1; position: relative; display: flex; min-height: 32px; }
 .ganttDay { font-size: 9px; color: $text-3; text-align: center; padding: 8px 0; border-right: 1px solid oklch(0.2 0 0 / 0.2); flex-shrink: 0; }
-.ganttDayToday { background: oklch(0.55 0.18 290 / 0.08); color: oklch(0.70 0.16 290); font-weight: 700; }
+.ganttDayToday { background: oklch(0.55 0.18 290 / 0.08); color: oklch(0.70 0.16 0); font-weight: 700; }
 .ganttBar { position: absolute; top: 4px; height: 24px; border-radius: 4px; display: flex; align-items: center; padding: 0 6px; font-size: 10px; color: #fff; font-weight: 500; overflow: hidden; white-space: nowrap;
   &[data-priority="high"] { background: oklch(0.50 0.15 20); }
   &[data-priority="medium"] { background: oklch(0.50 0.14 260); }
@@ -130,7 +130,7 @@
 .field { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 0; }
 .fieldRow { display: flex; gap: 12px; }
 .label { font-size: 11px; font-weight: 600; color: $text-3; text-transform: uppercase; letter-spacing: 0.05em; }
-.input { background: $surface-2; border: 1px solid $border; border-radius: 6px; padding: 8px 10px; font-size: 13px; color: $text-1; font-family: inherit; outline: none; width: 100%; box-sizing: border-box; &:focus { border-color: oklch(0.55 0.18 290); box-shadow: 0 0 0 2px oklch(0.22 0.06 290); } &::placeholder { color: $text-3; } }
+.input { background: $surface-2; border: 1px solid $border; border-radius: 6px; padding: 8px 10px; font-size: 13px; color: $text-1; font-family: inherit; outline: none; width: 100%; box-sizing: border-box; &:focus { border-color: oklch(0.55 0.18 290); box-shadow: 0 0 0 2px oklch(0.22 0.06 0); } &::placeholder { color: $text-3; } }
 .textarea { @extend .input; resize: vertical; min-height: 64px; }
 .select { @extend .input; }
 
@@ -142,7 +142,7 @@
 .starActive { color: oklch(0.72 0.16 60); }
 .effortPills { display: flex; gap: 4px; }
 .effortPill { padding: 4px 10px; border-radius: 5px; border: 1px solid $border-subtle; background: none; color: $text-3; font-size: 10px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 80ms ease; &:hover { color: $text-2; border-color: $border; } }
-.effortPillActive { background: oklch(0.20 0.06 290); color: oklch(0.80 0.14 290); border-color: oklch(0.35 0.10 290); }
+.effortPillActive { background: oklch(0.20 0.06 0); color: oklch(0.80 0.14 0); border-color: oklch(0.35 0.10 0); }
 
 /* ── Modal subtasks ── */
 .modalSubtasks { display: flex; flex-direction: column; gap: 4px; }
@@ -151,7 +151,7 @@
 
 .modalFooter { display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding: 12px 20px; border-top: 1px solid $border; flex-shrink: 0; }
 .cancelBtn { background: $surface-2; border: 1px solid $border; color: $text-2; border-radius: 6px; padding: 6px 14px; font-size: 12px; cursor: pointer; font-family: inherit; &:hover { color: $text-1; } }
-.saveBtn { background: oklch(0.55 0.18 290); border: none; color: #fff; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; box-shadow: 0 2px 12px oklch(0.3 0.15 290 / 0.4); &:hover { background: oklch(0.6 0.18 290); } }
+.saveBtn { background: oklch(0.55 0.18 290); border: none; color: #fff; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; box-shadow: 0 2px 12px oklch(0.3 0.15 290 / 0.4); &:hover { background: oklch(0.6 0.18 0); } }
 .deleteBtn { background: none; border: 1px solid oklch(0.45 0.15 20); color: oklch(0.65 0.15 20); border-radius: 6px; padding: 6px 14px; font-size: 12px; cursor: pointer; font-family: inherit; margin-right: auto; &:hover { background: oklch(0.20 0.08 20); } }
 .empty { text-align: center; padding: 40px 20px; color: $text-3; font-size: 13px; }
 

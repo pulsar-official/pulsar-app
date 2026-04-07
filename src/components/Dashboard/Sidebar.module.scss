@@ -119,7 +119,7 @@
 .markAllBtn {
   background: none;
   border: none;
-  color: oklch(0.65 0.18 290);
+  color: oklch(0.65 0.18 0);
   cursor: pointer;
   font-size: 0.72rem;
   font-family: inherit;
@@ -208,7 +208,7 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: oklch(0.65 0.18 290);
+  background: oklch(0.65 0.18 0);
   flex-shrink: 0;
   margin-top: 6px;
 }
@@ -277,7 +277,7 @@
 }
 
 .feedbackCat.feedbackCatActive {
-  border-color: oklch(0.65 0.18 290);
+  border-color: oklch(0.65 0.18 0);
   background: rgba(150,150,150,0.08);
   color: $text-1;
 }
@@ -296,7 +296,7 @@
   box-sizing: border-box;
   transition: border-color 0.15s;
 
-  &:focus { border-color: oklch(0.65 0.18 290); }
+  &:focus { border-color: oklch(0.65 0.18 0); }
   &::placeholder { color: $text-2; opacity: 0.6; }
 }
 

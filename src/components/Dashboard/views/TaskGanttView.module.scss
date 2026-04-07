@@ -139,7 +139,7 @@
 }
 
 .dayCellToday .dayNum {
-  color: oklch(0.75 0.18 290);
+  color: oklch(0.75 0.18 0);
 }
 
 .gridArea {
@@ -292,5 +292,5 @@
   cursor: pointer;
   font-weight: 500;
 
-  &:hover { background: oklch(0.6 0.18 290); }
+  &:hover { background: oklch(0.6 0.18 0); }
 }

@@ -125,7 +125,7 @@ $text:          oklch(0.90 0 0);
 .presetCardSelected {
   border-color: $accent;
   box-shadow: 0 0 0 2px $accentGlow;
-  background: oklch(0.16 0.04 290);
+  background: oklch(0.16 0.04 0);
 }
 
 .presetLabel {
@@ -219,9 +219,9 @@ $text:          oklch(0.90 0 0);
 }
 
 .heatLevel0 { background: oklch(0.20 0.02 270); }
-.heatLevel1 { background: oklch(0.40 0.12 290); }
-.heatLevel2 { background: oklch(0.52 0.16 290); }
-.heatLevel3 { background: oklch(0.65 0.18 290); }
+.heatLevel1 { background: oklch(0.40 0.12 0); }
+.heatLevel2 { background: oklch(0.52 0.16 0); }
+.heatLevel3 { background: oklch(0.65 0.18 0); }
 
 // ── CTA button ────────────────────────────────────────────────────────────────
 
@@ -299,22 +299,22 @@ $text:          oklch(0.90 0 0);
   flex-direction: column;
   gap: 0.35rem;
   padding: 0.75rem 0 0.25rem;
-  border-top: 1px solid oklch(0.25 0.04 290 / 0.4);
+  border-top: 1px solid oklch(0.25 0.04 0 / 0.4);
   margin-top: 0.5rem;
 }
 
 .habitSelectLabel {
   font-size: 0.75rem;
   font-weight: 500;
-  color: oklch(0.65 0.1 290);
+  color: oklch(0.65 0.1 0);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 .habitSelect {
   appearance: none;
-  background: oklch(0.16 0.04 290 / 0.6);
-  border: 1px solid oklch(0.30 0.08 290 / 0.5);
+  background: oklch(0.16 0.04 0 / 0.6);
+  border: 1px solid oklch(0.30 0.08 0 / 0.5);
   border-radius: 6px;
   color: oklch(0.85 0.06 290);
   font-size: 0.85rem;

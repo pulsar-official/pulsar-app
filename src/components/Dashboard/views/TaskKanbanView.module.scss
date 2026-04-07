@@ -113,7 +113,7 @@
   padding: 0.1em 0.45em;
   border-radius: 4px;
   background: oklch(0.55 0.18 290 / 0.2);
-  color: oklch(0.75 0.12 290);
+  color: oklch(0.75 0.12 0);
   font-weight: 500;
 }
 
@@ -136,7 +136,7 @@
 
   &:hover {
     background: oklch(0.55 0.18 290 / 0.1);
-    color: oklch(0.8 0.08 290);
+    color: oklch(0.8 0.08 0);
     border-color: oklch(0.55 0.18 290 / 0.4);
   }
 }
@@ -194,7 +194,7 @@
   cursor: pointer;
   font-weight: 500;
 
-  &:hover { background: oklch(0.6 0.18 290); }
+  &:hover { background: oklch(0.6 0.18 0); }
 }
 
 .btnCancel {
