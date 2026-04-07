@@ -97,15 +97,15 @@
   transition: background $dur-fast $ease;
 
   &.rowOdd {
-    background: transparent;
+    background: #0f0f19;
   }
 
   &.rowEven {
-    background: rgba(255, 255, 255, 0.03);
+    background: #141420;
   }
 
   &:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: #191928;
   }
 }
 
@@ -115,25 +115,12 @@
   padding: 0 12px;
   height: 40px;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   position: sticky;
   left: 0;
   z-index: 5;
   min-width: 200px;
   width: 200px;
   transition: background 150ms ease;
-
-  .grid tbody tr.rowOdd & {
-    background: #0f0f19 !important;
-  }
-
-  .grid tbody tr.rowEven & {
-    background: #141420 !important;
-  }
-
-  .grid tbody tr:hover & {
-    background: #191928 !important;
-  }
 }
 
 .habitInfo {
@@ -169,7 +156,6 @@
   height: 40px;
   padding: 0;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   min-width: 48px;
   width: 48px;
   display: table-cell;
