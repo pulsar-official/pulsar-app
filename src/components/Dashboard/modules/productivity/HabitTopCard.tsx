@@ -8,12 +8,14 @@ interface HabitTopCardProps {
   habits: Habit[]
   habitChecks: HabitCheck[]
   todayDate: string
+  startDate: string
 }
 
 export default function HabitTopCard({
   habits,
   habitChecks,
   todayDate,
+  startDate,
 }: HabitTopCardProps) {
   /* Build check map for O(1) lookups */
   const checkMap = useMemo(() => {
@@ -32,49 +34,59 @@ export default function HabitTopCard({
     [checkMap]
   )
 
-  /* Find first uncompleted habit for today */
-  const nextHabit = useMemo(() => {
-    return habits.find(h => !isChecked(h.id, todayDate))
-  }, [habits, isChecked, todayDate])
+  /* Calculate 30 days starting from startDate for monthly view */
+  const days = useMemo(() => {
+    const result: string[] = []
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
+      return result
+    }
+    const start = new Date(startDate + 'T00:00:00')
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(start)
+      d.setDate(d.getDate() + i)
+      result.push(d.toISOString().split('T')[0])
+    }
+    return result
+  }, [startDate])
 
-  /* Calculate streak for a habit */
-  const getStreak = useCallback((habitId: string): number => {
-    let streak = 0
-    let currentDate = new Date(todayDate + 'T00:00:00')
+  /* Find top habit by completion rate this month */
+  const topHabitData = useMemo(() => {
+    if (habits.length === 0 || days.length === 0) return null
 
-    while (true) {
-      const dateStr = currentDate.toISOString().split('T')[0]
-      if (isChecked(habitId, dateStr)) {
-        streak++
-        currentDate.setDate(currentDate.getDate() - 1)
-      } else {
-        break
+    let topHabit = null
+    let topRate = -1
+
+    for (const habit of habits) {
+      const completed = days.filter(d => isChecked(habit.id, d)).length
+      const rate = (completed / days.length) * 100
+      if (rate > topRate) {
+        topRate = rate
+        topHabit = habit
       }
     }
-    return streak
-  }, [isChecked, todayDate])
 
-  if (!nextHabit) {
+    return topHabit ? { habit: topHabit, rate: Math.round(topRate) } : null
+  }, [habits, days, isChecked])
+
+  if (!topHabitData) {
     return (
       <div className={styles.card}>
-        <div className={styles.allDone}>
-          <span className={styles.emoji}>🎉</span>
-          <span className={styles.text}>All done!</span>
-        </div>
+        <div className={styles.placeholder}>—</div>
       </div>
     )
   }
 
-  const streak = getStreak(nextHabit.id)
+  const { habit, rate } = topHabitData
 
   return (
     <div className={styles.card}>
       <div className={styles.content}>
-        <div className={styles.emoji}>{nextHabit.emoji}</div>
-        <div className={styles.name} title={nextHabit.name}>
-          {nextHabit.name}
+        <div className={styles.label}>Top This Month</div>
+        <div className={styles.emoji}>{habit.emoji}</div>
+        <div className={styles.name} title={habit.name}>
+          {habit.name}
         </div>
-        {streak > 0 && <div className={styles.streak}>{streak}🔥</div>}
+        <div className={styles.rate}>{rate}%</div>
       </div>
     </div>
   )

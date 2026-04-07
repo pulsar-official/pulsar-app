@@ -1,7 +1,7 @@
 @use "@/styles/variables" as *;
 
 .card {
-  width: 100px;
+  width: 140px;
   flex-shrink: 0;
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 12px;
@@ -13,7 +13,8 @@
   justify-content: center;
   text-align: center;
   overflow: hidden;
-  min-height: 110px;
+  min-height: 150px;
+  height: 150px;
 }
 
 .content {
@@ -24,8 +25,17 @@
   width: 100%;
 }
 
+.label {
+  font-size: 8px;
+  font-weight: 600;
+  color: #7878a0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
 .emoji {
-  font-size: 24px;
+  font-size: 28px;
   line-height: 1;
   flex-shrink: 0;
 }
@@ -42,16 +52,17 @@
   line-height: 1.2;
 }
 
-.streak {
-  font-size: 10px;
-  font-weight: 600;
-  color: oklch(0.65 0.14 150);
-  margin-top: 4px;
+.rate {
+  font-size: 18px;
+  font-weight: 700;
+  color: oklch(0.55 0.18 290);
+  margin-top: 6px;
+  font-family: monospace;
+  letter-spacing: -0.5px;
 }
 
-.allDone {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
+.placeholder {
+  font-size: 32px;
+  color: #4a4a68;
+  opacity: 0.5;
 }

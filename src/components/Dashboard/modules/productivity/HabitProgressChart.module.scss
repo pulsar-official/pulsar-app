@@ -9,21 +9,23 @@
   display: flex;
   flex-direction: column;
   flex: 1;
-  padding: 16px;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  gap: 12px;
-  min-height: 200px;
+  padding: 12px;
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  gap: 0;
+  min-height: 100%;
   position: relative;
+  overflow: hidden;
 }
 
 /* ── SVG Chart ── */
 .svg {
   flex: 1;
   width: 100%;
-  height: auto;
-  min-height: 140px;
+  height: 100%;
+  display: block;
+  cursor: crosshair;
 }
 
 /* ── Grid Lines (light) ── */
@@ -53,15 +55,19 @@
   opacity: 0.12;
 }
 
-/* ── Data Points (circles on line) ── */
+/* ── Data Points (circles on line) - NOW VISIBLE ── */
 .point {
   fill: oklch(0.55 0.18 290);
-  opacity: 0.8;
-  transition: opacity $dur-fast $ease;
+  opacity: 1;
+  stroke: rgba(255, 255, 255, 0.1);
+  stroke-width: 1.5;
+  transition: all 150ms ease;
+  cursor: pointer;
 
   &:hover {
+    r: 5 !important;
     opacity: 1;
-    r: 4;
+    filter: drop-shadow(0 0 6px oklch(0.55 0.18 290));
   }
 }
 
@@ -86,47 +92,53 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
+  padding: 8px 0 0;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 12px;
+  font-size: 11px;
+  margin-top: auto;
 }
 
 .summaryLabel {
   color: rgba(255, 255, 255, 0.5);
   font-weight: 500;
+  font-size: 9px;
 }
 
 .summaryValue {
   color: oklch(0.55 0.18 290);
-  font-weight: 600;
-  font-size: 13px;
+  font-weight: 700;
+  font-size: 12px;
+  font-family: monospace;
 }
 
 /* ── Tooltip (hover on data points) ── */
 .tooltip {
-  position: absolute;
-  background: rgba(20, 20, 30, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 6px;
-  padding: 8px 10px;
+  position: fixed;
+  background: rgba(20, 20, 32, 0.98);
+  border: 1px solid rgba(129, 140, 248, 0.3);
+  border-radius: 8px;
+  padding: 10px 12px;
   pointer-events: none;
-  z-index: 10;
-  min-width: 80px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 50;
+  min-width: 90px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  transform: translateY(-120%);
 }
 
 .tooltipPct {
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 800;
   color: oklch(0.55 0.18 290);
-  line-height: 1.2;
+  line-height: 1;
   font-family: monospace;
+  letter-spacing: -0.5px;
 }
 
 .tooltipCount {
-  font-size: 9px;
-  color: rgba(255, 255, 255, 0.6);
-  margin-top: 3px;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 4px;
   font-family: monospace;
   letter-spacing: 0.3px;
 }
@@ -137,7 +149,7 @@
   align-items: center;
   justify-content: center;
   flex: 1;
-  min-height: 160px;
+  min-height: 100px;
   color: rgba(255, 255, 255, 0.35);
-  font-size: 13px;
+  font-size: 12px;
 }

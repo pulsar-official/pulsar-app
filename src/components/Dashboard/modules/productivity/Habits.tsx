@@ -103,6 +103,7 @@ export default function Habits() {
           habits={habits}
           habitChecks={habitChecks}
           todayDate={todayDate}
+          startDate={monthStartDate}
         />
       </div>
 

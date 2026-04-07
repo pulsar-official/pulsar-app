@@ -270,13 +270,13 @@ export default function HabitProgressChart({
         <div
           className={styles.tooltip}
           style={{
-            left: `${tooltip.x}px`,
-            top: `${tooltip.y - 50}px`,
+            left: `${tooltip.x - 45}px`,
+            top: `${tooltip.y - 100}px`,
           }}
         >
           <div className={styles.tooltipPct}>{tooltip.pct}%</div>
           <div className={styles.tooltipCount}>
-            {tooltip.total === 0 ? '—' : `${tooltip.completed} of ${tooltip.total}`}
+            {tooltip.total === 0 ? '—' : `${tooltip.completed}/${tooltip.total}`}
           </div>
         </div>
       )}
