@@ -109,8 +109,8 @@
   }
 
   &.dayToday {
-    background: rgba(120, 81, 169, 0.12) !important;
-    color: oklch(0.55 0.18 290);
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #9a9a9a;
   }
 }
 
@@ -145,6 +145,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  width: 100%;
 
   &.rowOdd {
     background: #0f0f19;
@@ -236,7 +237,7 @@
   justify-content: center;
   padding: 0;
   margin: 0;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: 1px solid rgba(255, 255, 255, 0.15);
   box-sizing: border-box;
 
   &:last-child {
