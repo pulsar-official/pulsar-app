@@ -41,6 +41,7 @@
   table-layout: fixed;
   min-width: min-content;
   position: relative;
+  overflow: visible;
 }
 
 /* ── HEADER CELLS ── */
@@ -64,8 +65,7 @@
   padding-left: 12px;
   min-width: 200px;
   width: 200px;
-  position: sticky;
-  left: 0;
+  position: relative;
   z-index: 100;
   background: #0f0f19 !important;
   overflow: visible;
