@@ -134,26 +134,21 @@ export default function HabitGrid({
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseLeave}
         >
-          <table className={styles.grid}>
-            {/* Header: Day columns */}
-            <thead>
-              <tr>
-                {days.map(day => {
-                  const state = getCellState(day.date)
-                  return (
-                    <th
-                      key={day.date}
-                      className={`${styles.dayHeader} ${state === 'today' ? styles.dayToday : ''}`}
-                    >
-                      <div className={styles.dayNum}>{day.dayNum}</div>
-                      <div className={styles.dayName}>{day.dayName}</div>
-                    </th>
-                  )
-                })}
-              </tr>
-            </thead>
-            <tbody />
-          </table>
+          {/* Header Row */}
+          <div className={styles.headerRow}>
+            {days.map(day => {
+              const state = getCellState(day.date)
+              return (
+                <div
+                  key={day.date}
+                  className={`${styles.dayHeader} ${state === 'today' ? styles.dayToday : ''}`}
+                >
+                  <div className={styles.dayNum}>{day.dayNum}</div>
+                  <div className={styles.dayName}>{day.dayName}</div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
     )
@@ -188,54 +183,48 @@ export default function HabitGrid({
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
       >
-        <table className={styles.grid}>
-          {/* Header: Day columns */}
-          <thead>
-            <tr>
-              {days.map(day => {
-                const state = getCellState(day.date)
-                return (
-                  <th
-                    key={day.date}
-                    className={`${styles.dayHeader} ${state === 'today' ? styles.dayToday : ''}`}
-                  >
-                    <div className={styles.dayNum}>{day.dayNum}</div>
-                    <div className={styles.dayName}>{day.dayName}</div>
-                  </th>
-                )
-              })}
-            </tr>
-          </thead>
+        {/* Header Row */}
+        <div className={styles.headerRow}>
+          {days.map(day => {
+            const state = getCellState(day.date)
+            return (
+              <div
+                key={day.date}
+                className={`${styles.dayHeader} ${state === 'today' ? styles.dayToday : ''}`}
+              >
+                <div className={styles.dayNum}>{day.dayNum}</div>
+                <div className={styles.dayName}>{day.dayName}</div>
+              </div>
+            )
+          })}
+        </div>
 
-          {/* Body: Habit rows with day cells */}
-          <tbody>
-            {habits.map((habit, idx) => (
-              <tr key={habit.id} className={`${styles.habitRow} ${idx % 2 === 0 ? styles.rowOdd : styles.rowEven}`}>
-                {days.map(day => {
-                  const state = getCellState(day.date)
-                  const checked = isChecked(habit.id, day.date)
-                  const canCheck = canToggle(day.date)
+        {/* Habit Rows with Checkboxes */}
+        {habits.map((habit, idx) => (
+          <div key={habit.id} className={`${styles.habitRow} ${idx % 2 === 0 ? styles.rowOdd : styles.rowEven}`}>
+            {days.map(day => {
+              const state = getCellState(day.date)
+              const checked = isChecked(habit.id, day.date)
+              const canCheck = canToggle(day.date)
 
-                  return (
-                    <td
-                      key={`${habit.id}-${day.date}`}
-                      className={`${styles.dayCell} ${state === 'today' ? styles.cellToday : ''}`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => handleCheckboxChange(habit.id, day.date)}
-                        disabled={!canCheck}
-                        className={`${styles.checkbox} ${checked ? styles.checkboxChecked : ''} ${!canCheck ? styles.checkboxDisabled : ''}`}
-                        aria-label={`${habit.name} on ${day.date}`}
-                      />
-                    </td>
-                  )
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+              return (
+                <div
+                  key={`${habit.id}-${day.date}`}
+                  className={`${styles.checkboxCell} ${state === 'today' ? styles.cellToday : ''}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => handleCheckboxChange(habit.id, day.date)}
+                    disabled={!canCheck}
+                    className={`${styles.checkbox} ${checked ? styles.checkboxChecked : ''} ${!canCheck ? styles.checkboxDisabled : ''}`}
+                    aria-label={`${habit.name} on ${day.date}`}
+                  />
+                </div>
+              )
+            })}
+          </div>
+        ))}
       </div>
     </div>
   )
