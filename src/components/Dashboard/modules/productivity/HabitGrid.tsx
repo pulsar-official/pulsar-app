@@ -49,28 +49,35 @@ export default function HabitGrid({
     setIsDragging(false)
   }, [])
 
-  /* Sync sticky header cell visibility during scroll */
+  /* Keep header cell fixed while table scrolls */
   useLayoutEffect(() => {
     const wrapper = wrapperRef.current
     const headerCell = headerCellRef.current
     if (!wrapper || !headerCell) return
 
-    const handleScroll = () => {
-      const scrollLeft = wrapper.scrollLeft
-      // Use transform to move the cell back into view as the table scrolls
-      headerCell.style.transform = `translateX(${scrollLeft}px)`
-      headerCell.style.position = 'relative'
+    const syncHeaderPosition = () => {
+      const wrapperRect = wrapper.getBoundingClientRect()
+      // Keep header cell fixed at wrapper's position, not scrolling with content
+      headerCell.style.position = 'fixed'
+      headerCell.style.left = `${wrapperRect.left}px`
+      headerCell.style.top = `${wrapperRect.top}px`
       headerCell.style.zIndex = '100'
+      headerCell.style.width = '200px'
+      headerCell.style.height = '38px'
     }
 
     // Initial positioning
-    handleScroll()
+    syncHeaderPosition()
 
-    wrapper.addEventListener('scroll', handleScroll, { passive: true })
-    window.addEventListener('resize', handleScroll, { passive: true })
+    // Sync on scroll and window resize
+    wrapper.addEventListener('scroll', syncHeaderPosition, { passive: true })
+    window.addEventListener('resize', syncHeaderPosition, { passive: true })
+    window.addEventListener('scroll', syncHeaderPosition, { passive: true })
+
     return () => {
-      wrapper.removeEventListener('scroll', handleScroll)
-      window.removeEventListener('resize', handleScroll)
+      wrapper.removeEventListener('scroll', syncHeaderPosition)
+      window.removeEventListener('resize', syncHeaderPosition)
+      window.removeEventListener('scroll', syncHeaderPosition)
     }
   }, [])
 
