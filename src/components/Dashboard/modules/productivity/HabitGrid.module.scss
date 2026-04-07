@@ -7,11 +7,13 @@
 
 .gridWrapper {
   overflow-x: auto;
+  overflow-y: visible;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.02);
   user-select: none;
   animation: gridSwipeIn 300ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  position: relative;
 
   &.dragging {
     cursor: grabbing !important;
@@ -38,6 +40,7 @@
   border-collapse: collapse;
   table-layout: fixed;
   min-width: min-content;
+  position: relative;
 }
 
 /* ── HEADER CELLS ── */

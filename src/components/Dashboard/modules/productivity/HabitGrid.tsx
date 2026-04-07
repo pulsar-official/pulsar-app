@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useCallback, useRef, useState } from 'react'
+import { useMemo, useCallback, useRef, useState, useEffect, useLayoutEffect } from 'react'
 import styles from './HabitGrid.module.scss'
 import type { Habit, HabitCheck } from '@/types/productivity'
 
@@ -22,6 +22,7 @@ export default function HabitGrid({
   onToggle,
 }: HabitGridProps) {
   const wrapperRef = useRef<HTMLDivElement>(null)
+  const headerCellRef = useRef<HTMLTableCellElement>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, scrollLeft: 0 })
 
@@ -46,6 +47,27 @@ export default function HabitGrid({
 
   const handleMouseLeave = useCallback(() => {
     setIsDragging(false)
+  }, [])
+
+  /* Sync sticky header cell visibility during scroll */
+  useLayoutEffect(() => {
+    const wrapper = wrapperRef.current
+    const headerCell = headerCellRef.current
+    if (!wrapper || !headerCell) return
+
+    const handleScroll = () => {
+      const scrollLeft = wrapper.scrollLeft
+      headerCell.style.position = 'fixed'
+      headerCell.style.left = `${wrapper.getBoundingClientRect().left}px`
+      headerCell.style.zIndex = '1000'
+      headerCell.style.top = `${wrapper.getBoundingClientRect().top}px`
+    }
+
+    // Initial positioning
+    handleScroll()
+
+    wrapper.addEventListener('scroll', handleScroll, { passive: true })
+    return () => wrapper.removeEventListener('scroll', handleScroll)
   }, [])
 
   /* Build check map for O(1) lookups */
@@ -164,7 +186,7 @@ export default function HabitGrid({
         {/* Header: Day columns */}
         <thead>
           <tr>
-            <th className={styles.headerHabit}></th>
+            <th ref={headerCellRef} className={styles.headerHabit}></th>
             {days.map(day => {
               const state = getCellState(day.date)
               return (
