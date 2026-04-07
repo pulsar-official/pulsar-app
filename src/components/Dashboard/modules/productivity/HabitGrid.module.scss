@@ -10,6 +10,15 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.02);
+  user-select: none;
+
+  &.dragging {
+    cursor: grabbing !important;
+  }
+
+  &:not(.dragging) {
+    cursor: grab;
+  }
 }
 
 .grid {
@@ -98,20 +107,20 @@
   position: sticky;
   left: 0;
   z-index: 5;
-  background: rgba(15, 15, 25, 0.8);
   min-width: 140px;
   width: 140px;
+  transition: background 150ms ease;
 
   .grid tbody tr.rowOdd & {
-    background: rgba(15, 15, 25, 0.8);
+    background: #0f0f19;
   }
 
   .grid tbody tr.rowEven & {
-    background: rgba(20, 20, 32, 0.9);
+    background: #141420;
   }
 
   .grid tbody tr:hover & {
-    background: rgba(25, 25, 40, 1);
+    background: #191928;
   }
 }
 
@@ -187,6 +196,7 @@
     background: oklch(0.65 0.14 150);
     border-color: oklch(0.65 0.14 150);
     position: relative;
+    animation: checkPop 300ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 
     &::after {
       content: '✓';
@@ -196,12 +206,39 @@
       line-height: 1;
       position: absolute;
       letter-spacing: -0.5px;
+      animation: checkmark 300ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
   }
 
   &:checked:hover:not(:disabled) {
     background: oklch(0.68 0.15 150);
     border-color: oklch(0.68 0.15 150);
+  }
+
+  @keyframes checkPop {
+    0% {
+      transform: scale(0.85);
+    }
+    50% {
+      transform: scale(1.15);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes checkmark {
+    0% {
+      opacity: 0;
+      transform: scale(0);
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 
   &:disabled {

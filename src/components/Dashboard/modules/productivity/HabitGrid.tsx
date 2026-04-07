@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useCallback } from 'react'
+import { useMemo, useCallback, useRef, useState } from 'react'
 import styles from './HabitGrid.module.scss'
 import type { Habit, HabitCheck } from '@/types/productivity'
 
@@ -21,6 +21,33 @@ export default function HabitGrid({
   todayDate,
   onToggle,
 }: HabitGridProps) {
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStart, setDragStart] = useState({ x: 0, scrollLeft: 0 })
+
+  /* Drag to scroll handlers */
+  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    setIsDragging(true)
+    setDragStart({
+      x: e.clientX,
+      scrollLeft: wrapperRef.current?.scrollLeft ?? 0,
+    })
+  }, [])
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging || !wrapperRef.current) return
+    const walk = (e.clientX - dragStart.x) * 1.5
+    wrapperRef.current.scrollLeft = dragStart.scrollLeft - walk
+  }, [isDragging, dragStart])
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false)
+  }, [])
+
+  const handleMouseLeave = useCallback(() => {
+    setIsDragging(false)
+  }, [])
+
   /* Build check map for O(1) lookups */
   const checkMap = useMemo(() => {
     const map: Record<string, Record<string, boolean>> = {}
@@ -90,7 +117,14 @@ export default function HabitGrid({
   }
 
   return (
-    <div className={styles.gridWrapper}>
+    <div
+      ref={wrapperRef}
+      className={`${styles.gridWrapper} ${isDragging ? styles.dragging : ''}`}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseLeave}
+    >
       <table className={styles.grid}>
         {/* Header: Day columns */}
         <thead>
