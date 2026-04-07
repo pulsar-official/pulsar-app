@@ -52,7 +52,7 @@
   background: #0f0f19 !important;
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 11;
   height: 38px;
 }
 
@@ -63,7 +63,7 @@
   width: 200px;
   position: sticky;
   left: 0;
-  z-index: 30;
+  z-index: 12;
   background: #0f0f19 !important;
   overflow: hidden;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
@@ -74,7 +74,6 @@
   min-width: 48px;
   width: 48px;
   padding: 8px 0 !important;
-  z-index: 1;
   overflow: hidden;
 
   &.dayToday {
