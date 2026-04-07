@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import styles from './Topbar.module.scss'
 import { useUIStore } from '@/stores/uiStore'
 import UniversalSearch from '@/components/UniversalSearch'
@@ -27,8 +27,11 @@ export const Topbar: React.FC<TopbarProps> = ({
   quickActions = [],
 }) => {
   const router = useRouter()
+  const pathname = usePathname()
   const [showNotifications, setShowNotifications] = useState(false)
   const { toggleMobileMenu } = useUIStore()
+
+  const isHabitsPage = pathname === '/dashboard/productivity/habits'
 
   return (
     <header className={styles.topbar}>
@@ -72,7 +75,14 @@ export const Topbar: React.FC<TopbarProps> = ({
         {/* Habits quick link */}
         <button
           className={styles.habitsBtn}
-          onClick={() => router.push('/dashboard/productivity/habits?modal=create')}
+          style={{ zIndex: isHabitsPage ? 'auto' : -1, pointerEvents: isHabitsPage ? 'auto' : 'none' }}
+          onClick={() => {
+            if (isHabitsPage) {
+              router.push('/dashboard/productivity/habits?modal=create')
+            } else {
+              router.push('/dashboard/productivity/habits?modal=create')
+            }
+          }}
           title="Create New Habit"
         >
           + New Habit

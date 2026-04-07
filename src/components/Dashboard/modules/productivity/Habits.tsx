@@ -1,6 +1,6 @@
 'use client'
 import { useState, useMemo, useCallback, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import styles from './Habits.module.scss'
 import { useProductivityStore } from '@/stores/productivityStore'
 import HabitGrid from './HabitGrid'
@@ -20,6 +20,7 @@ function dateToString(d: Date): string {
 
 export default function Habits() {
   const searchParams = useSearchParams()
+  const router = useRouter()
 
   // Store selectors
   const habits = useProductivityStore(s => s.habits)
@@ -37,6 +38,12 @@ export default function Habits() {
       setShowCreateModal(true)
     }
   }, [searchParams])
+
+  // Handler to close modal and clear query param
+  const handleCloseModal = useCallback(() => {
+    setShowCreateModal(false)
+    router.push('/dashboard/productivity/habits')
+  }, [router])
 
   // Get today's date as string (YYYY-MM-DD)
   const todayDate = useMemo(() => dateToString(new Date()), [])
@@ -117,7 +124,7 @@ export default function Habits() {
       {/* Create Habit Modal */}
       <HabitCreateModal
         isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
+        onClose={handleCloseModal}
         onCreate={handleCreateHabit}
       />
     </div>
