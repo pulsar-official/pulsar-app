@@ -22,7 +22,6 @@ export default function HabitGrid({
   onToggle,
 }: HabitGridProps) {
   const wrapperRef = useRef<HTMLDivElement>(null)
-  const headerCellRef = useRef<HTMLTableCellElement>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, scrollLeft: 0 })
 
@@ -49,37 +48,6 @@ export default function HabitGrid({
     setIsDragging(false)
   }, [])
 
-  /* Keep header cell fixed while table scrolls */
-  useLayoutEffect(() => {
-    const wrapper = wrapperRef.current
-    const headerCell = headerCellRef.current
-    if (!wrapper || !headerCell) return
-
-    const syncHeaderPosition = () => {
-      const wrapperRect = wrapper.getBoundingClientRect()
-      // Keep header cell fixed at wrapper's position, not scrolling with content
-      headerCell.style.position = 'fixed'
-      headerCell.style.left = `${wrapperRect.left}px`
-      headerCell.style.top = `${wrapperRect.top}px`
-      headerCell.style.zIndex = '100'
-      headerCell.style.width = '200px'
-      headerCell.style.height = '38px'
-    }
-
-    // Initial positioning
-    syncHeaderPosition()
-
-    // Sync on scroll and window resize
-    wrapper.addEventListener('scroll', syncHeaderPosition, { passive: true })
-    window.addEventListener('resize', syncHeaderPosition, { passive: true })
-    window.addEventListener('scroll', syncHeaderPosition, { passive: true })
-
-    return () => {
-      wrapper.removeEventListener('scroll', syncHeaderPosition)
-      window.removeEventListener('resize', syncHeaderPosition)
-      window.removeEventListener('scroll', syncHeaderPosition)
-    }
-  }, [])
 
   /* Build check map for O(1) lookups */
   const checkMap = useMemo(() => {
@@ -197,7 +165,7 @@ export default function HabitGrid({
         {/* Header: Day columns */}
         <thead>
           <tr>
-            <th ref={headerCellRef} className={styles.headerHabit}></th>
+            <th className={styles.headerHabit}></th>
             {days.map(day => {
               const state = getCellState(day.date)
               return (
