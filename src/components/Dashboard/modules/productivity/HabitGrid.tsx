@@ -123,9 +123,6 @@ export default function HabitGrid({
         {/* LEFT SECTION: Empty header */}
         <div className={styles.leftSection}>
           <div className={styles.leftHeader} />
-          <div className={styles.empty}>
-            <div>+ Add Habit</div>
-          </div>
         </div>
 
         {/* RIGHT SECTION: Day headers with empty body */}

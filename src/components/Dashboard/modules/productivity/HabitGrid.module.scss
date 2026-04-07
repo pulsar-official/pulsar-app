@@ -21,7 +21,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .leftHeader {
@@ -29,7 +29,7 @@
   height: 38px;
   background: #0f0f19 !important;
   flex-shrink: 0;
-  border-right: 2px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 /* Scrollable right section - days and checkboxes */
@@ -71,7 +71,7 @@
   font-weight: 600;
   color: #7878a0;
   padding: 12px 0 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   background: #0f0f19 !important;
