@@ -55,13 +55,13 @@
   opacity: 0.12;
 }
 
-/* ── Data Points (circles on line) - NOW VISIBLE ── */
+/* ── Data Points (circles on line) - INSTANT UPDATE ── */
 .point {
   fill: oklch(0.55 0.18 290);
   opacity: 1;
   stroke: rgba(255, 255, 255, 0.1);
   stroke-width: 1.5;
-  transition: all 150ms ease;
+  transition: none;
   cursor: pointer;
 
   &:hover {
