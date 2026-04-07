@@ -283,7 +283,8 @@ export default function HabitProgressChart({
           className={styles.tooltip}
           style={{
             left: `${tooltip.x - 45}px`,
-            top: `${tooltip.y - 100}px`,
+            top: `${tooltip.y - 8}px`,
+            transform: 'translateY(-100%)',
           }}
         >
           <div className={styles.tooltipDate}>{tooltip.dateStr}</div>

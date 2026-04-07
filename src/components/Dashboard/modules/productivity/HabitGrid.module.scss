@@ -65,6 +65,8 @@
   width: 100%;
   border-collapse: collapse;
   min-width: min-content;
+  margin: 0;
+  padding: 0;
 }
 
 /* ── HEADER CELLS ── */
@@ -72,7 +74,7 @@
   font-size: 11px;
   font-weight: 600;
   color: #7878a0;
-  padding: 10px 0 6px;
+  padding: 12px 0 8px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -82,8 +84,6 @@
   z-index: 11;
   height: 38px;
   box-sizing: border-box;
-  display: table-cell;
-  vertical-align: middle;
 }
 
 
@@ -142,9 +142,16 @@
 }
 
 /* ── BODY ROWS (RIGHT SECTION) ── */
+.grid tbody {
+  margin: 0;
+  padding: 0;
+}
+
 .grid tbody tr {
   transition: background $dur-fast $ease;
   height: 40px;
+  margin: 0;
+  padding: 0;
 
   &.rowOdd {
     background: #0f0f19;
