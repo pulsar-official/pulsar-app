@@ -22,6 +22,8 @@
   display: flex;
   flex-direction: column;
   border-right: 1px solid rgba(255, 255, 255, 0.15);
+  margin: 0;
+  padding: 0;
 }
 
 .leftHeader {
@@ -127,6 +129,9 @@
   align-items: center;
   transition: background $dur-fast $ease;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 
   &.rowOdd {
     background: #0f0f19;
@@ -170,14 +175,15 @@
 .habitCell {
   text-align: left;
   padding: 0 12px;
-  height: 40px;
+  height: 100%;
+  display: flex;
+  align-items: center;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
-  position: sticky;
-  left: 0;
-  z-index: 5;
   min-width: 200px;
   width: 200px;
   transition: background 150ms ease;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 .habitInfo {
@@ -212,10 +218,12 @@
   vertical-align: middle;
   height: 40px;
   padding: 0;
+  margin: 0;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   min-width: 48px;
   width: 48px;
   display: table-cell;
+  box-sizing: border-box;
 
   &:last-child {
     border-right: none;
