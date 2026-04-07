@@ -39,11 +39,15 @@ export default function Habits() {
     }
   }, [searchParams])
 
-  // Handler to close modal and clear query param
+  // Handler to close modal (clears modal param but keeps time param for re-opening)
   const handleCloseModal = useCallback(() => {
     setShowCreateModal(false)
-    router.push('/dashboard/productivity/habits')
-  }, [router])
+    // Remove the modal param but keep the page
+    const params = new URLSearchParams(searchParams)
+    params.delete('modal')
+    const query = params.toString()
+    router.push(query ? `/dashboard/productivity/habits?${query}` : '/dashboard/productivity/habits')
+  }, [router, searchParams])
 
   // Get today's date as string (YYYY-MM-DD)
   const todayDate = useMemo(() => dateToString(new Date()), [])

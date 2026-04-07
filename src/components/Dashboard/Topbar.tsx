@@ -77,11 +77,7 @@ export const Topbar: React.FC<TopbarProps> = ({
           className={styles.habitsBtn}
           style={{ zIndex: isHabitsPage ? 'auto' : -1, pointerEvents: isHabitsPage ? 'auto' : 'none' }}
           onClick={() => {
-            if (isHabitsPage) {
-              router.push('/dashboard/productivity/habits?modal=create')
-            } else {
-              router.push('/dashboard/productivity/habits?modal=create')
-            }
+            router.push(`/dashboard/productivity/habits?modal=create&t=${Date.now()}`)
           }}
           title="Create New Habit"
         >
