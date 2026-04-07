@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef, useLayoutEffect, useState, useCallback } from 'react'
+import { useMemo, useRef, useLayoutEffect, useState, useCallback, useEffect } from 'react'
 import styles from './HabitProgressChart.module.scss'
 import type { Habit, HabitCheck } from '@/types/productivity'
 
@@ -20,6 +20,7 @@ export default function HabitProgressChart({
   const containerRef = useRef<HTMLDivElement>(null)
   const svgRef = useRef<SVGSVGElement>(null)
   const [svgSize, setSvgSize] = useState({ w: 360, h: 200 })
+  const [tooltip, setTooltip] = useState<{ pct: number; completed: number; total: number; x: number; y: number } | null>(null)
 
   /* Build check map for O(1) lookups */
   const checkMap = useMemo(() => {
@@ -175,6 +176,38 @@ export default function HabitProgressChart({
         viewBox={`0 0 ${W} ${H}`}
         className={styles.svg}
         preserveAspectRatio="xMidYMid slice"
+        onMouseMove={(e) => {
+          const svg = svgRef.current
+          if (!svg) return
+          const rect = svg.getBoundingClientRect()
+          const x = e.clientX - rect.left
+          const y = e.clientY - rect.top
+
+          // Find closest data point
+          let closest: { idx: number; dist: number } | null = null
+          for (let i = 0; i < pts.length; i++) {
+            const dx = pts[i][0] - x
+            const dy = pts[i][1] - y
+            const dist = Math.sqrt(dx * dx + dy * dy)
+            if (dist < 12 && (!closest || dist < closest.dist)) {
+              closest = { idx: i, dist }
+            }
+          }
+
+          if (closest !== null) {
+            const data = chartData[closest.idx]
+            setTooltip({
+              pct: Math.round(data.pct),
+              completed: data.completed,
+              total: data.total,
+              x: pts[closest.idx][0],
+              y: pts[closest.idx][1],
+            })
+          } else {
+            setTooltip(null)
+          }
+        }}
+        onMouseLeave={() => setTooltip(null)}
       >
         {/* Y-axis grid lines and labels (0, 25, 50, 75, 100) */}
         {PCT_MARKS.map(pct => {
@@ -231,6 +264,22 @@ export default function HabitProgressChart({
           ) : null
         })}
       </svg>
+
+      {/* Tooltip */}
+      {tooltip && (
+        <div
+          className={styles.tooltip}
+          style={{
+            left: `${tooltip.x}px`,
+            top: `${tooltip.y - 50}px`,
+          }}
+        >
+          <div className={styles.tooltipPct}>{tooltip.pct}%</div>
+          <div className={styles.tooltipCount}>
+            {tooltip.total === 0 ? '—' : `${tooltip.completed} of ${tooltip.total}`}
+          </div>
+        </div>
+      )}
 
       {/* Legend / Summary */}
       <div className={styles.summary}>

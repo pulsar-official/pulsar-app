@@ -4,6 +4,7 @@ import styles from './Habits.module.scss'
 import { useProductivityStore } from '@/stores/productivityStore'
 import HabitGrid from './HabitGrid'
 import HabitProgressChart from './HabitProgressChart'
+import HabitTopCard from './HabitTopCard'
 import HabitCreateModal from './HabitCreateModal'
 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June',
@@ -89,16 +90,20 @@ export default function Habits() {
         />
       </div>
 
-      {/* Bottom section: Progress chart */}
-      <div className={styles.bottomRow}>
-        <div className={styles.graphCard}>
-          <span className={styles.sectionTitle}>Completion Rate</span>
+      {/* Bottom Panel: Chart (left) + Top Habit (right) */}
+      <div className={styles.bottomPanel}>
+        <div className={styles.chartCard}>
           <HabitProgressChart
             habits={habits}
             habitChecks={habitChecks}
             startDate={monthStartDate}
           />
         </div>
+        <HabitTopCard
+          habits={habits}
+          habitChecks={habitChecks}
+          todayDate={todayDate}
+        />
       </div>
 
       {/* Create Habit Modal */}

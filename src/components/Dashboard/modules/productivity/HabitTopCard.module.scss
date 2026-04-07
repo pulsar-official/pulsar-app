@@ -1,0 +1,57 @@
+@use "@/styles/variables" as *;
+
+.card {
+  width: 100px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow: hidden;
+  min-height: 110px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.emoji {
+  font-size: 24px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.name {
+  font-size: 10px;
+  font-weight: 500;
+  color: #b0b0c8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-word;
+  max-width: 100%;
+  line-height: 1.2;
+}
+
+.streak {
+  font-size: 10px;
+  font-weight: 600;
+  color: oklch(0.65 0.14 150);
+  margin-top: 4px;
+}
+
+.allDone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}

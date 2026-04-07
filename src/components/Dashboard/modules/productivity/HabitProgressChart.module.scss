@@ -102,6 +102,35 @@
   font-size: 13px;
 }
 
+/* ── Tooltip (hover on data points) ── */
+.tooltip {
+  position: absolute;
+  background: rgba(20, 20, 30, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  padding: 8px 10px;
+  pointer-events: none;
+  z-index: 10;
+  min-width: 80px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.tooltipPct {
+  font-size: 14px;
+  font-weight: 700;
+  color: oklch(0.55 0.18 290);
+  line-height: 1.2;
+  font-family: monospace;
+}
+
+.tooltipCount {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 3px;
+  font-family: monospace;
+  letter-spacing: 0.3px;
+}
+
 /* ── Empty State ── */
 .empty {
   display: flex;
