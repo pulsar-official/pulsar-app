@@ -20,7 +20,7 @@ export default function HabitProgressChart({
   const containerRef = useRef<HTMLDivElement>(null)
   const svgRef = useRef<SVGSVGElement>(null)
   const [svgSize, setSvgSize] = useState({ w: 360, h: 200 })
-  const [tooltip, setTooltip] = useState<{ pct: number; completed: number; total: number; x: number; y: number } | null>(null)
+  const [tooltip, setTooltip] = useState<{ pct: number; completed: number; total: number; x: number; y: number; dateStr?: string } | null>(null)
 
   /* Build check map for O(1) lookups */
   const checkMap = useMemo(() => {
@@ -38,7 +38,7 @@ export default function HabitProgressChart({
     [checkMap]
   )
 
-  /* Generate 30 days starting from startDate (same as HabitGrid) */
+  /* Generate all days in the month starting from startDate, accounting for leap years */
   const days = useMemo(() => {
     const result: { date: string; day: number }[] = []
     // Validate startDate format (should be YYYY-MM-DD)
@@ -46,7 +46,15 @@ export default function HabitProgressChart({
       return result // Return empty if invalid
     }
     const start = new Date(startDate + 'T00:00:00')
-    for (let i = 0; i < 30; i++) {
+    const year = start.getFullYear()
+    const month = start.getMonth()
+
+    // Calculate days in month (accounting for leap years)
+    const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0)
+    const daysInMonth = [31, isLeapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month]
+
+    // Generate all days in the month
+    for (let i = 0; i < daysInMonth; i++) {
       const d = new Date(start)
       d.setDate(d.getDate() + i)
       const dateStr = d.toISOString().slice(0, 10)
@@ -98,8 +106,8 @@ export default function HabitProgressChart({
 
     const W = svgSize.w
     const H = svgSize.h
-    const PL = 28 // Left padding (for Y-axis labels)
-    const PR = 12 // Right padding
+    const PL = 40 // Left padding (for Y-axis labels)
+    const PR = 24 // Right padding (for X-axis labels)
     const PT = 8 // Top padding
     const PB = 24 // Bottom padding
 
@@ -156,9 +164,17 @@ export default function HabitProgressChart({
             y2={svgSize.h - 24}
             className={styles.axisLine}
           />
+          {/* Add habit prompt on left */}
+          <text
+            x="40"
+            y="25"
+            style={{ fontSize: '11px', fill: 'rgba(255,255,255,0.4)', fontWeight: 500, fontFamily: 'system-ui, sans-serif' }}
+          >
+            + Add Habit
+          </text>
         </svg>
         <div className={styles.summary}>
-          <span className={styles.summaryLabel}>Last 30 days</span>
+          <span className={styles.summaryLabel}>This month</span>
           <span className={styles.summaryValue}>0% avg</span>
         </div>
       </div>
@@ -196,12 +212,18 @@ export default function HabitProgressChart({
 
           if (closest !== null) {
             const data = chartData[closest.idx]
+            const dateObj = new Date(data.date + 'T00:00:00')
+            const dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][dateObj.getDay()]
+            const monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][dateObj.getMonth()]
+            const dayNum = dateObj.getDate()
+
             setTooltip({
               pct: Math.round(data.pct),
               completed: data.completed,
               total: data.total,
               x: pts[closest.idx][0],
               y: pts[closest.idx][1],
+              dateStr: `${dayName}, ${monthName} ${dayNum}`,
             })
           } else {
             setTooltip(null)
@@ -252,17 +274,7 @@ export default function HabitProgressChart({
           <circle key={`pt-${i}`} cx={pt[0]} cy={pt[1]} r={2.5} className={styles.point} />
         ))}
 
-        {/* X-axis labels (day numbers) */}
-        {chartData.map((d, i) => {
-          const x = PL + (i / Math.max(chartData.length - 1, 1)) * chartW
-          /* Show every 5th day label to avoid crowding */
-          const showLabel = i % 5 === 0 || i === chartData.length - 1
-          return showLabel ? (
-            <text key={`day-${i}`} x={x} y={H - 4} className={styles.xLabel}>
-              {d.day}
-            </text>
-          ) : null
-        })}
+        {/* X-axis labels removed */}
       </svg>
 
       {/* Tooltip */}
@@ -274,7 +286,7 @@ export default function HabitProgressChart({
             top: `${tooltip.y - 100}px`,
           }}
         >
-          <div className={styles.tooltipPct}>{tooltip.pct}%</div>
+          <div className={styles.tooltipDate}>{tooltip.dateStr}</div>
           <div className={styles.tooltipCount}>
             {tooltip.total === 0 ? '—' : `${tooltip.completed}/${tooltip.total}`}
           </div>

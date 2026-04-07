@@ -1,5 +1,6 @@
 'use client'
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import styles from './Habits.module.scss'
 import { useProductivityStore } from '@/stores/productivityStore'
 import HabitGrid from './HabitGrid'
@@ -18,6 +19,8 @@ function dateToString(d: Date): string {
 }
 
 export default function Habits() {
+  const searchParams = useSearchParams()
+
   // Store selectors
   const habits = useProductivityStore(s => s.habits)
   const habitChecks = useProductivityStore(s => s.habitChecks)
@@ -27,6 +30,13 @@ export default function Habits() {
   // Local state
   const [selectedMonth, setSelectedMonth] = useState(new Date())
   const [showCreateModal, setShowCreateModal] = useState(false)
+
+  // Open modal if query param is set
+  useEffect(() => {
+    if (searchParams.get('modal') === 'create') {
+      setShowCreateModal(true)
+    }
+  }, [searchParams])
 
   // Get today's date as string (YYYY-MM-DD)
   const todayDate = useMemo(() => dateToString(new Date()), [])
@@ -61,7 +71,7 @@ export default function Habits() {
 
   return (
     <div className={styles.wrap}>
-      {/* Header: month navigation + new habit button */}
+      {/* Header: month navigation (new habit button now in topbar) */}
       <div className={styles.header}>
         <div className={styles.monthNav}>
           <button className={styles.navBtn} onClick={handlePrevMonth}>
@@ -74,9 +84,6 @@ export default function Habits() {
             &#8250;
           </button>
         </div>
-        <button className={styles.addBtn} onClick={() => setShowCreateModal(true)}>
-          + New habit
-        </button>
       </div>
 
       {/* Main Habit Grid (30-day view from month start) */}

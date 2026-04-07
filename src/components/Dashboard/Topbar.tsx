@@ -42,15 +42,6 @@ export const Topbar: React.FC<TopbarProps> = ({
         </svg>
       </button>
 
-      {/* Habits quick link */}
-      <button
-        className={styles.habitsBtn}
-        onClick={() => router.push('/dashboard/productivity/habits')}
-        title="Go to Habits"
-      >
-        + New Habit
-      </button>
-
       {/* Left: Breadcrumb */}
       <nav className={styles.breadcrumb}>
         {breadcrumbs.map((crumb, idx) => {
@@ -78,6 +69,15 @@ export const Topbar: React.FC<TopbarProps> = ({
 
       {/* Right: Quick Actions + Notifications */}
       <div className={styles.rightSection}>
+        {/* Habits quick link */}
+        <button
+          className={styles.habitsBtn}
+          onClick={() => router.push('/dashboard/productivity/habits?modal=create')}
+          title="Create New Habit"
+        >
+          + New Habit
+        </button>
+
         {/* Module Quick Actions */}
         {quickActions.length > 0 && (
           <div className={styles.quickActions}>

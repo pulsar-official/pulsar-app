@@ -77,7 +77,7 @@ export default function HabitGrid({
     [todayDate]
   )
 
-  /* Generate 30 days starting from startDate */
+  /* Generate all days in the month starting from startDate, accounting for leap years */
   const days = useMemo(() => {
     const result: { date: string; dateObj: Date; dayNum: number; dayName: string }[] = []
     // Validate startDate format (should be YYYY-MM-DD)
@@ -85,7 +85,15 @@ export default function HabitGrid({
       return result // Return empty if invalid
     }
     const start = new Date(startDate + 'T00:00:00')
-    for (let i = 0; i < 30; i++) {
+    const year = start.getFullYear()
+    const month = start.getMonth()
+
+    // Calculate days in month (accounting for leap years)
+    const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0)
+    const daysInMonth = [31, isLeapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month]
+
+    // Generate all days in the month
+    for (let i = 0; i < daysInMonth; i++) {
       const d = new Date(start)
       d.setDate(d.getDate() + i)
       const dateStr = d.toISOString().slice(0, 10)
@@ -110,8 +118,35 @@ export default function HabitGrid({
 
   if (habits.length === 0) {
     return (
-      <div className={styles.empty}>
-        <span style={{ fontSize: 18, opacity: 0.3 }}>No habits</span>
+      <div
+        ref={wrapperRef}
+        className={`${styles.gridWrapper} ${isDragging ? styles.dragging : ''}`}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+      >
+        <table className={styles.grid}>
+          {/* Header: Day columns */}
+          <thead>
+            <tr>
+              <th className={styles.headerHabit}></th>
+              {days.map(day => {
+                const state = getCellState(day.date)
+                return (
+                  <th
+                    key={day.date}
+                    className={`${styles.dayHeader} ${state === 'today' ? styles.dayToday : ''}`}
+                  >
+                    <div className={styles.dayNum}>{day.dayNum}</div>
+                    <div className={styles.dayName}>{day.dayName}</div>
+                  </th>
+                )
+              })}
+            </tr>
+          </thead>
+          <tbody />
+        </table>
       </div>
     )
   }
