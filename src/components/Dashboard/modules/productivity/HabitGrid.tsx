@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useCallback, useRef, useState, useEffect, useLayoutEffect } from 'react'
+import { useMemo, useCallback, useRef, useState } from 'react'
 import styles from './HabitGrid.module.scss'
 import type { Habit, HabitCheck } from '@/types/productivity'
 
@@ -119,9 +119,73 @@ export default function HabitGrid({
 
   if (habits.length === 0) {
     return (
+      <div className={styles.habitsWrapper}>
+        {/* LEFT SECTION: Empty header */}
+        <div className={styles.leftSection}>
+          <div className={styles.leftHeader} />
+          <div className={styles.empty}>
+            <div>+ Add Habit</div>
+          </div>
+        </div>
+
+        {/* RIGHT SECTION: Day headers with empty body */}
+        <div
+          ref={wrapperRef}
+          className={`${styles.rightSection} ${isDragging ? styles.dragging : ''}`}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
+        >
+          <table className={styles.grid}>
+            {/* Header: Day columns */}
+            <thead>
+              <tr>
+                {days.map(day => {
+                  const state = getCellState(day.date)
+                  return (
+                    <th
+                      key={day.date}
+                      className={`${styles.dayHeader} ${state === 'today' ? styles.dayToday : ''}`}
+                    >
+                      <div className={styles.dayNum}>{day.dayNum}</div>
+                      <div className={styles.dayName}>{day.dayName}</div>
+                    </th>
+                  )
+                })}
+              </tr>
+            </thead>
+            <tbody />
+          </table>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className={styles.habitsWrapper}>
+      {/* LEFT SECTION: Fixed habit names column */}
+      <div className={styles.leftSection}>
+        <div className={styles.leftHeader} />
+        {habits.map((habit, idx) => (
+          <div
+            key={habit.id}
+            className={`${styles.habitRow} ${idx % 2 === 0 ? styles.rowOdd : styles.rowEven}`}
+          >
+            <div className={styles.habitCell}>
+              <div className={styles.habitInfo}>
+                <span className={styles.habitEmoji}>{habit.emoji}</span>
+                <span className={styles.habitName}>{habit.name}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* RIGHT SECTION: Scrollable days and checkboxes */}
       <div
         ref={wrapperRef}
-        className={`${styles.gridWrapper} ${isDragging ? styles.dragging : ''}`}
+        className={`${styles.rightSection} ${isDragging ? styles.dragging : ''}`}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -131,7 +195,6 @@ export default function HabitGrid({
           {/* Header: Day columns */}
           <thead>
             <tr>
-              <th className={styles.headerHabit}></th>
               {days.map(day => {
                 const state = getCellState(day.date)
                 return (
@@ -146,76 +209,37 @@ export default function HabitGrid({
               })}
             </tr>
           </thead>
-          <tbody />
+
+          {/* Body: Habit rows with day cells */}
+          <tbody>
+            {habits.map((habit, idx) => (
+              <tr key={habit.id} className={`${styles.habitRow} ${idx % 2 === 0 ? styles.rowOdd : styles.rowEven}`}>
+                {days.map(day => {
+                  const state = getCellState(day.date)
+                  const checked = isChecked(habit.id, day.date)
+                  const canCheck = canToggle(day.date)
+
+                  return (
+                    <td
+                      key={`${habit.id}-${day.date}`}
+                      className={`${styles.dayCell} ${state === 'today' ? styles.cellToday : ''}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => handleCheckboxChange(habit.id, day.date)}
+                        disabled={!canCheck}
+                        className={`${styles.checkbox} ${checked ? styles.checkboxChecked : ''} ${!canCheck ? styles.checkboxDisabled : ''}`}
+                        aria-label={`${habit.name} on ${day.date}`}
+                      />
+                    </td>
+                  )
+                })}
+              </tr>
+            ))}
+          </tbody>
         </table>
       </div>
-    )
-  }
-
-  return (
-    <div
-      ref={wrapperRef}
-      className={`${styles.gridWrapper} ${isDragging ? styles.dragging : ''}`}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseLeave}
-    >
-      <table className={styles.grid}>
-        {/* Header: Day columns */}
-        <thead>
-          <tr>
-            <th className={styles.headerHabit}></th>
-            {days.map(day => {
-              const state = getCellState(day.date)
-              return (
-                <th
-                  key={day.date}
-                  className={`${styles.dayHeader} ${state === 'today' ? styles.dayToday : ''}`}
-                >
-                  <div className={styles.dayNum}>{day.dayNum}</div>
-                  <div className={styles.dayName}>{day.dayName}</div>
-                </th>
-              )
-            })}
-          </tr>
-        </thead>
-
-        {/* Body: Habit rows */}
-        <tbody>
-          {habits.map((habit, idx) => (
-            <tr key={habit.id} className={`${styles.habitRow} ${idx % 2 === 0 ? styles.rowOdd : styles.rowEven}`}>
-              <td className={styles.habitCell}>
-                <div className={styles.habitInfo}>
-                  <span className={styles.habitEmoji}>{habit.emoji}</span>
-                  <span className={styles.habitName}>{habit.name}</span>
-                </div>
-              </td>
-              {days.map(day => {
-                const state = getCellState(day.date)
-                const checked = isChecked(habit.id, day.date)
-                const canCheck = canToggle(day.date)
-
-                return (
-                  <td
-                    key={`${habit.id}-${day.date}`}
-                    className={`${styles.dayCell} ${state === 'today' ? styles.cellToday : ''}`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => handleCheckboxChange(habit.id, day.date)}
-                      disabled={!canCheck}
-                      className={`${styles.checkbox} ${checked ? styles.checkboxChecked : ''} ${!canCheck ? styles.checkboxDisabled : ''}`}
-                      aria-label={`${habit.name} on ${day.date}`}
-                    />
-                  </td>
-                )
-              })}
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   )
 }
