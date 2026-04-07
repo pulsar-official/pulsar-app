@@ -127,7 +127,7 @@
   border-radius: 4px;
   transition: background 0.15s;
 
-  &:hover { background: rgba(167,139,250,0.08); }
+  &:hover { background: rgba(150,150,150,0.08); }
 }
 
 .panelClose {
@@ -172,7 +172,7 @@
   &:hover { background: $surface-2; }
 }
 
-.notifItem.unread { background: rgba(167, 139, 250, 0.05); }
+.notifItem.unread { background: rgba(150, 150, 150, 0.05); }
 
 .notifTypeIcon {
   font-size: 1rem;
@@ -278,7 +278,7 @@
 
 .feedbackCat.feedbackCatActive {
   border-color: oklch(0.65 0.18 290);
-  background: rgba(167,139,250,0.08);
+  background: rgba(150,150,150,0.08);
   color: $text-1;
 }
 
