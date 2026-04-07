@@ -87,29 +87,6 @@
   dominant-baseline: hanging;
 }
 
-/* ── Summary Footer ── */
-.summary {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 11px;
-  margin-top: auto;
-}
-
-.summaryLabel {
-  color: rgba(255, 255, 255, 0.5);
-  font-weight: 500;
-  font-size: 9px;
-}
-
-.summaryValue {
-  color: oklch(0.55 0.18 290);
-  font-weight: 700;
-  font-size: 12px;
-  font-family: monospace;
-}
 
 /* ── Tooltip (hover on data points) ── */
 .tooltip {

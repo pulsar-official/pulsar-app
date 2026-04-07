@@ -38,7 +38,7 @@ export default function HabitProgressChart({
     [checkMap]
   )
 
-  /* Generate last 30 days starting from startDate */
+  /* Generate 30 days starting from startDate (same as HabitGrid) */
   const days = useMemo(() => {
     const result: { date: string; day: number }[] = []
     // Validate startDate format (should be YYYY-MM-DD)
@@ -46,9 +46,9 @@ export default function HabitProgressChart({
       return result // Return empty if invalid
     }
     const start = new Date(startDate + 'T00:00:00')
-    for (let i = 29; i >= 0; i--) {
+    for (let i = 0; i < 30; i++) {
       const d = new Date(start)
-      d.setDate(d.getDate() - i)
+      d.setDate(d.getDate() + i)
       const dateStr = d.toISOString().slice(0, 10)
       result.push({
         date: dateStr,
@@ -281,16 +281,6 @@ export default function HabitProgressChart({
         </div>
       )}
 
-      {/* Legend / Summary */}
-      <div className={styles.summary}>
-        <span className={styles.summaryLabel}>Last 30 days</span>
-        <span className={styles.summaryValue}>
-          {chartData.length > 0
-            ? Math.round(chartData.reduce((sum, d) => sum + d.pct, 0) / chartData.length)
-            : 0}
-          % avg
-        </span>
-      </div>
     </div>
   )
 }

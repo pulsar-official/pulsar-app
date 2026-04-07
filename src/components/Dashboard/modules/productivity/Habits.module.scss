@@ -299,11 +299,13 @@
   flex-shrink: 0;
   height: 150px;
   animation: haSlideIn 220ms $ease;
+  width: 100%;
+  overflow-x: auto;
 }
 
 /* ── Chart Card (left) ── */
 .chartCard {
-  width: 500px;
+  width: 800px;
   flex-shrink: 0;
   border: 1px solid rgba(255,255,255,0.07);
   border-radius: 12px;

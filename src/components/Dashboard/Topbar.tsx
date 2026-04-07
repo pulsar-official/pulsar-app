@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import styles from './Topbar.module.scss'
 import { useUIStore } from '@/stores/uiStore'
 import UniversalSearch from '@/components/UniversalSearch'
@@ -25,6 +26,7 @@ export const Topbar: React.FC<TopbarProps> = ({
   onNotificationsClick,
   quickActions = [],
 }) => {
+  const router = useRouter()
   const [showNotifications, setShowNotifications] = useState(false)
   const { toggleMobileMenu } = useUIStore()
 
@@ -38,6 +40,15 @@ export const Topbar: React.FC<TopbarProps> = ({
           <line x1="3" y1="12" x2="21" y2="12" />
           <line x1="3" y1="18" x2="21" y2="18" />
         </svg>
+      </button>
+
+      {/* Habits quick link */}
+      <button
+        className={styles.habitsBtn}
+        onClick={() => router.push('/dashboard/productivity/habits')}
+        title="Go to Habits"
+      >
+        + New Habit
       </button>
 
       {/* Left: Breadcrumb */}
