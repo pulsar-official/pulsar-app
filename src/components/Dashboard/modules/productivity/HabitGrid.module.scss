@@ -62,8 +62,9 @@
   width: 200px;
   position: sticky;
   left: 0;
-  z-index: 20;
+  z-index: 30;
   background: #0f0f19 !important;
+  overflow: hidden;
 }
 
 .dayHeader {
@@ -71,6 +72,7 @@
   min-width: 48px;
   width: 48px;
   padding: 8px 0 !important;
+  z-index: 1;
 
   &.dayToday {
     background: rgba(120, 81, 169, 0.12);
