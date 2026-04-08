@@ -29,16 +29,11 @@ export default function HabitQuoteCard() {
 
   return (
     <div className={styles.card} onClick={handleRefresh}>
-      <div className={styles.content}>
-        <div className={styles.label}>Daily Inspiration</div>
+      <div className={styles.quoteMarkWrap}>
+        <div className={styles.quoteMark}>"</div>
         <div className={styles.quoteText}>
-          "{quote.quote}"
+          {quote.quote}
         </div>
-        {quote.author && (
-          <div className={styles.quoteAuthor}>
-            — {quote.author}
-          </div>
-        )}
       </div>
     </div>
   )
