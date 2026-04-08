@@ -82,9 +82,9 @@ export default function Habits() {
 
   return (
     <div className={styles.wrap}>
-      {/* Header: month navigation on right */}
+      {/* Header: title on left, month navigation on right */}
       <div className={styles.header}>
-        <div />
+        <div className={styles.headerTitle}>Habit Tracker</div>
         <div className={styles.monthNav}>
           <button className={styles.navBtn} onClick={handlePrevMonth}>
             &#8249;
@@ -97,9 +97,6 @@ export default function Habits() {
           </button>
         </div>
       </div>
-
-      {/* Grid Title */}
-      <div className={styles.gridTitle}>Habit Tracker</div>
 
       {/* Main Habit Grid (30-day view from month start) */}
       <div className={styles.gridCard}>
