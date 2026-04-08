@@ -5,7 +5,7 @@ import styles from './Habits.module.scss'
 import { useProductivityStore } from '@/stores/productivityStore'
 import HabitGrid from './HabitGrid'
 import HabitProgressChart from './HabitProgressChart'
-import HabitTopCard from './HabitTopCard'
+import HabitQuoteCard from './HabitQuoteCard'
 import HabitCreateModal from './HabitCreateModal'
 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June',
@@ -82,8 +82,9 @@ export default function Habits() {
 
   return (
     <div className={styles.wrap}>
-      {/* Header: month navigation (new habit button now in topbar) */}
+      {/* Header: month navigation on right */}
       <div className={styles.header}>
+        <div />
         <div className={styles.monthNav}>
           <button className={styles.navBtn} onClick={handlePrevMonth}>
             &#8249;
@@ -97,6 +98,9 @@ export default function Habits() {
         </div>
       </div>
 
+      {/* Grid Title */}
+      <div className={styles.gridTitle}>Habit Tracker</div>
+
       {/* Main Habit Grid (30-day view from month start) */}
       <div className={styles.gridCard}>
         <HabitGrid
@@ -108,7 +112,7 @@ export default function Habits() {
         />
       </div>
 
-      {/* Bottom Panel: Chart (left) + Top Habit (right) */}
+      {/* Bottom Panel: Chart (left) + Quote Card (right) */}
       <div className={styles.bottomPanel}>
         <div className={styles.chartCard}>
           <HabitProgressChart
@@ -117,12 +121,7 @@ export default function Habits() {
             startDate={monthStartDate}
           />
         </div>
-        <HabitTopCard
-          habits={habits}
-          habitChecks={habitChecks}
-          todayDate={todayDate}
-          startDate={monthStartDate}
-        />
+        <HabitQuoteCard />
       </div>
 
       {/* Create Habit Modal */}

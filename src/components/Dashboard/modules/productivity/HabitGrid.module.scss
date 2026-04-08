@@ -29,7 +29,7 @@
 .leftHeader {
   width: 200px;
   height: 40px;
-  background: #1F1F1F !important;
+  background: #0A0A0A !important;
   flex-shrink: 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   display: flex;
@@ -87,7 +87,7 @@
   padding: 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  background: #1F1F1F !important;
+  background: #0A0A0A !important;
   height: 40px;
   width: 48px;
   min-width: 48px;
@@ -149,15 +149,15 @@
   min-width: min-content;
 
   &.rowOdd {
-    background: #1F1F1F;
+    background: #0A0A0A;
   }
 
   &.rowEven {
-    background: #262626;
+    background: #121212;
   }
 
   &:hover {
-    background: #2E2E2E;
+    background: #1A1A1A;
   }
 }
 
@@ -174,15 +174,15 @@
   padding: 0;
 
   &.rowOdd {
-    background: #1F1F1F;
+    background: #0A0A0A;
   }
 
   &.rowEven {
-    background: #262626;
+    background: #121212;
   }
 
   &:hover {
-    background: #2E2E2E;
+    background: #1A1A1A;
   }
 }
 
